@@ -10597,8 +10597,7 @@ static bool PreviousDeclsHaveMultiVersionAttribute(const FunctionDecl *FD) {
 
 static bool CheckTargetCausesMultiVersioning(
     Sema &S, FunctionDecl *OldFD, FunctionDecl *NewFD, const TargetAttr *NewTA,
-    bool &Redeclaration, NamedDecl *&OldDecl, bool &MergeTypeWithPrevious,
-    LookupResult &Previous) {
+    bool &Redeclaration, NamedDecl *&OldDecl, LookupResult &Previous) {
   const auto *OldTA = OldFD->getAttr<TargetAttr>();
   ParsedTargetAttr NewParsed = NewTA->parse();
   // Sort order doesn't matter, it just needs to be consistent.
@@ -10663,7 +10662,6 @@ static bool CheckTargetCausesMultiVersioning(
   OldFD->setIsMultiVersion();
   NewFD->setIsMultiVersion();
   Redeclaration = false;
-  MergeTypeWithPrevious = false;
   OldDecl = nullptr;
   Previous.clear();
   return false;
@@ -10688,7 +10686,7 @@ static bool CheckMultiVersionAdditionalDecl(
     MultiVersionKind NewMVType, const TargetAttr *NewTA,
     const CPUDispatchAttr *NewCPUDisp, const CPUSpecificAttr *NewCPUSpec,
     const TargetClonesAttr *NewClones, bool &Redeclaration, NamedDecl *&OldDecl,
-    bool &MergeTypeWithPrevious, LookupResult &Previous) {
+    LookupResult &Previous) {
 
   MultiVersionKind OldMVType = OldFD->getMultiVersionKind();
   // Disallow mixing of multiversioning types.
@@ -10744,7 +10742,6 @@ static bool CheckMultiVersionAdditionalDecl(
       const auto *CurClones = CurFD->getAttr<TargetClonesAttr>();
       Redeclaration = true;
       OldDecl = CurFD;
-      MergeTypeWithPrevious = true;
       NewFD->setIsMultiVersion();
 
       if (CurClones && NewClones &&
@@ -10847,7 +10844,6 @@ static bool CheckMultiVersionAdditionalDecl(
 
   NewFD->setIsMultiVersion();
   Redeclaration = false;
-  MergeTypeWithPrevious = false;
   OldDecl = nullptr;
   Previous.clear();
   return false;
@@ -10861,7 +10857,6 @@ static bool CheckMultiVersionAdditionalDecl(
 /// Returns true if there was an error, false otherwise.
 static bool CheckMultiVersionFunction(Sema &S, FunctionDecl *NewFD,
                                       bool &Redeclaration, NamedDecl *&OldDecl,
-                                      bool &MergeTypeWithPrevious,
                                       LookupResult &Previous) {
   const auto *NewTA = NewFD->getAttr<TargetAttr>();
   const auto *NewCPUDisp = NewFD->getAttr<CPUDispatchAttr>();
@@ -10910,8 +10905,7 @@ static bool CheckMultiVersionFunction(Sema &S, FunctionDecl *NewFD,
     switch (MVType) {
     case MultiVersionKind::Target:
       return CheckTargetCausesMultiVersioning(S, OldFD, NewFD, NewTA,
-                                              Redeclaration, OldDecl,
-                                              MergeTypeWithPrevious, Previous);
+                                              Redeclaration, OldDecl, Previous);
     case MultiVersionKind::TargetClones:
       if (OldFD->isUsed(false)) {
         NewFD->setInvalidDecl();
@@ -10929,9 +10923,9 @@ static bool CheckMultiVersionFunction(Sema &S, FunctionDecl *NewFD,
   // At this point, we have a multiversion function decl (in OldFD) AND an
   // appropriate attribute in the current function decl.  Resolve that these are
   // still compatible with previous declarations.
-  return CheckMultiVersionAdditionalDecl(
-      S, OldFD, NewFD, MVType, NewTA, NewCPUDisp, NewCPUSpec, NewClones,
-      Redeclaration, OldDecl, MergeTypeWithPrevious, Previous);
+  return CheckMultiVersionAdditionalDecl(S, OldFD, NewFD, MVType, NewTA,
+                                         NewCPUDisp, NewCPUSpec, NewClones,
+                                         Redeclaration, OldDecl, Previous);
 }
 
 /// Perform semantic checking of a new function declaration.
@@ -11021,8 +11015,7 @@ bool Sema::CheckFunctionDeclaration(Scope *S, FunctionDecl *NewFD,
     }
   }
 
-  if (CheckMultiVersionFunction(*this, NewFD, Redeclaration, OldDecl,
-                                MergeTypeWithPrevious, Previous))
+  if (CheckMultiVersionFunction(*this, NewFD, Redeclaration, OldDecl, Previous))
     return Redeclaration;
 
   // PPC MMA non-pointer types are not allowed as function return types.
