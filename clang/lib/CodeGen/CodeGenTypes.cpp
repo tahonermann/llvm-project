@@ -417,6 +417,12 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
                                     /* UseNativeHalf = */ false);
       break;
 
+    case BuiltinType::DecimalFloat32:
+    case BuiltinType::DecimalFloat64:
+    case BuiltinType::DecimalFloat128:
+      assert(0 && "LLVM type support for decimal floating point is not yet implemented");
+      break;
+
     case BuiltinType::NullPtr:
       // Model std::nullptr_t as i8*
       ResultType = llvm::Type::getInt8PtrTy(getLLVMContext());
