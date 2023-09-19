@@ -46,6 +46,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/Path.h"
@@ -932,7 +933,8 @@ llvm::DIType *CGDebugInfo::CreateType(const BuiltinType *BT) {
   case BuiltinType::DecimalFloat32:
   case BuiltinType::DecimalFloat64:
   case BuiltinType::DecimalFloat128:
-    assert(0 && "DWARF debugging support for decimal floating point is not yet implemented");
+    llvm::report_fatal_error("DWARF debugging support for decimal floating "
+                             "point is not yet implemented");
     break;
   }
 
