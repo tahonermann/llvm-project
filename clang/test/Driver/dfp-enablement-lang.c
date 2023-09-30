@@ -15,6 +15,19 @@
 
 // expected-no-diagnostics
 
+#if defined(__cplusplus)
+  #if defined(__STDC_IEC_60559_DFP__)
+    #error __STDC_IEC_60559_DFP__ should never be defined for C++
+  #endif
+#else
+  #if !defined(__STDC_IEC_60559_DFP__)
+    // c-dfp-off-error@+1 {{__STDC_IEC_60559_DFP__ should be defined}}
+    #error __STDC_IEC_60559_DFP__ should be defined for C when DFP support is enabled
+  #elif __STDC_IEC_60559_DFP__ != 197001L
+    #error __STDC_IEC_60559_DFP__ has the wrong value
+  #endif
+#endif
+
 _Decimal32 d32;   // cxx-error {{unknown type name '_Decimal32'}} \
                   // c-dfp-off-error {{decimal floating-point extensions are not enabled}}
 _Decimal64 d64;   // cxx-error {{unknown type name '_Decimal64'}} \
