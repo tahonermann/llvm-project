@@ -13,8 +13,6 @@
 // RUN: %clang -target x86_64-unknown-linux-gnu -x c++ -std=c++2c -fsyntax-only -fexperimental-decimal-floating-point -Xclang -verify=cxx %s
 // RUN: %clang -target x86_64-unknown-linux-gnu -x c++ -std=c++2c -fsyntax-only -fno-experimental-decimal-floating-point -Xclang -verify=cxx,dfp-off %s
 
-// expected-no-diagnostics
-
 #if defined(__cplusplus)
   #if defined(__STDC_IEC_60559_DFP__)
     #error __STDC_IEC_60559_DFP__ should never be defined for C++
@@ -42,3 +40,10 @@ typedef float __attribute__((mode(TD))) D128; // dfp-off-error {{decimal floatin
 float __attribute__((mode(SD))) famsd; // dfp-off-error {{decimal floating-point extensions are not enabled}}
 float __attribute__((mode(DD))) famdd; // dfp-off-error {{decimal floating-point extensions are not enabled}}
 float __attribute__((mode(TD))) famtd; // dfp-off-error {{decimal floating-point extensions are not enabled}}
+
+void test_suffixes() {
+  // FIXME: Support for DFP literal suffixes is not yet implemented.
+  1.0df; // expected-error {{invalid suffix 'df' on floating constant}}
+  2.0dd; // expected-error {{invalid suffix 'dd' on floating constant}}
+  3.0dl; // expected-error {{invalid suffix 'dl' on floating constant}}
+}

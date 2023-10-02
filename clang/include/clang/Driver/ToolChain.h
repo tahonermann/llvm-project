@@ -98,6 +98,12 @@ public:
     CST_Libstdcxx
   };
 
+  enum DFPLibType {
+    DFPLT_None,
+    DFPLT_CompilerRT,
+    DFPLT_Libgcc,
+  };
+
   enum RuntimeLibType {
     RLT_CompilerRT,
     RLT_Libgcc
@@ -183,6 +189,7 @@ private:
   }
 
   mutable std::optional<CXXStdlibType> cxxStdlibType;
+  mutable std::optional<DFPLibType> dfpLibType;
   mutable std::optional<RuntimeLibType> runtimeLibType;
   mutable std::optional<UnwindLibType> unwindLibType;
 
@@ -483,6 +490,10 @@ public:
     return ToolChain::CST_Libstdcxx;
   }
 
+  virtual DFPLibType GetDefaultDFPLibType() const {
+    return ToolChain::DFPLT_None;
+  }
+
   virtual UnwindLibType GetDefaultUnwindLibType() const {
     return ToolChain::UNW_None;
   }
@@ -673,6 +684,10 @@ public:
   // GetCXXStdlibType - Determine the C++ standard library type to use with the
   // given compilation arguments.
   virtual CXXStdlibType GetCXXStdlibType(const llvm::opt::ArgList &Args) const;
+
+  // GetDFPLibType - Determine the DFP library type to use with the given
+  // compilation arguments.
+  virtual DFPLibType GetDFPLibType(const llvm::opt::ArgList &Args) const;
 
   // GetUnwindLibType - Determine the unwind library type to use with the
   // given compilation arguments.

@@ -53,6 +53,7 @@
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Compression.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
@@ -1791,6 +1792,23 @@ static LibGccType getLibGccType(const ToolChain &TC, const Driver &D,
   return LibGccType::UnspecifiedLibGcc;
 }
 
+static void AddDFPLibrary(const ToolChain &TC, const Driver &D,
+                          ArgStringList &CmdArgs, const ArgList &Args) {
+  ToolChain::DFPLibType DFPLT = TC.GetDFPLibType(Args);
+  switch (DFPLT) {
+  case ToolChain::DFPLT_None:
+    return;
+  case ToolChain::DFPLT_CompilerRT:
+    llvm::report_fatal_error(
+        "Support for DFP in compiler-rt has not been implemented.");
+    return;
+  case ToolChain::DFPLT_Libgcc:
+    // FIXME: Do something useful.
+    return;
+  }
+  llvm_unreachable("Unknown decimal floating-point library");
+}
+
 // Gcc adds libgcc arguments in various ways:
 //
 // gcc <none>:     -lgcc --as-needed -lgcc_s --no-as-needed
@@ -1868,6 +1886,7 @@ static void AddLibgcc(const ToolChain &TC, const Driver &D,
   if (LGT == LibGccType::StaticLibGcc ||
       (LGT == LibGccType::UnspecifiedLibGcc && !D.CCCIsCXX()))
     CmdArgs.push_back("-lgcc");
+  AddDFPLibrary(TC, D, CmdArgs, Args);
   AddUnwindLibrary(TC, D, CmdArgs, Args);
   if (LGT == LibGccType::SharedLibGcc ||
       (LGT == LibGccType::UnspecifiedLibGcc && D.CCCIsCXX()))
@@ -1882,6 +1901,7 @@ void tools::AddRunTimeLibs(const ToolChain &TC, const Driver &D,
   switch (RLT) {
   case ToolChain::RLT_CompilerRT:
     CmdArgs.push_back(TC.getCompilerRTArgString(Args, "builtins"));
+    AddDFPLibrary(TC, D, CmdArgs, Args);
     AddUnwindLibrary(TC, D, CmdArgs, Args);
     break;
   case ToolChain::RLT_Libgcc:

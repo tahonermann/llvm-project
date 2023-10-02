@@ -2176,6 +2176,8 @@ public:
   bool isUnscopedEnumerationType() const;
 
   /// Floating point categories.
+  bool isStandardFloatingType() const;
+                                   // C23 6.2.5p12 (float, double, long double)
   bool isDecimalFloatingType() const;
                                    // C23 6.2.5p13 (_Decimal32/64/128)
   bool isRealFloatingType() const; // C99 6.2.5p10 (float, double, long double)
@@ -2749,6 +2751,10 @@ public:
 
   bool isUnsignedInteger() const {
     return getKind() >= Bool && getKind() <= UInt128;
+  }
+
+  bool isStandardFloatingPoint() const {
+    return getKind() >= Float && getKind() <= LongDouble;
   }
 
   bool isDecimalFloatingPoint() const {

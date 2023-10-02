@@ -13,6 +13,7 @@
 #include "ToolChains/CommonArgs.h"
 #include "ToolChains/Flang.h"
 #include "ToolChains/InterfaceStubs.h"
+#include "clang/Basic/DFPOptions.h"
 #include "clang/Basic/ObjCRuntime.h"
 #include "clang/Basic/Sanitizers.h"
 #include "clang/Config/config.h"
@@ -1061,6 +1062,42 @@ ToolChain::UnwindLibType ToolChain::GetUnwindLibType(
   }
 
   return *unwindLibType;
+}
+
+ToolChain::DFPLibType ToolChain::GetDFPLibType(const ArgList &Args) const{
+  if (dfpLibType)
+    return *dfpLibType;
+
+  std::optional<DFPLibImpl> LibImpl;
+  const Arg *A = Args.getLastArg(options::OPT_dfplib_EQ);
+  if (A) {
+    LibImpl = getDFPLibImplFromOptionValue(A->getValue());
+    if (!LibImpl.has_value())
+      getDriver().Diag(diag::err_drv_invalid_dfplib_name)
+          << A->getAsString(Args);
+  }
+  if (!LibImpl.has_value())
+    LibImpl = DFPLibImpl::Default;
+  switch (*LibImpl) {
+  case DFPLibImpl::Default:
+    dfpLibType = GetDefaultDFPLibType();
+    break;
+  case DFPLibImpl::None:
+    dfpLibType = ToolChain::DFPLT_None;
+    break;
+  case DFPLibImpl::CompilerRT:
+    dfpLibType = ToolChain::DFPLT_CompilerRT;
+    break;
+  case DFPLibImpl::Libgcc:
+  case DFPLibImpl::Libgcc_BID:
+  case DFPLibImpl::Libgcc_DPD:
+    dfpLibType = ToolChain::DFPLT_Libgcc;
+    break;
+  default:
+    llvm_unreachable("Unknown DFPLibImpl");
+  }
+
+  return *dfpLibType;
 }
 
 ToolChain::CXXStdlibType ToolChain::GetCXXStdlibType(const ArgList &Args) const{

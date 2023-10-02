@@ -42,6 +42,7 @@
 #include "Targets/X86.h"
 #include "Targets/XCore.h"
 #include "clang/Basic/Diagnostic.h"
+#include "clang/Basic/DiagnosticDriver.h"
 #include "clang/Basic/DiagnosticFrontend.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/TargetParser/Triple.h"
@@ -806,6 +807,14 @@ TargetInfo::CreateTargetInfo(DiagnosticsEngine &Diags,
     return nullptr;
   }
 
+  // Set the DFP mode.
+  if (!Target->setDecimalFloatingPointMode(Opts->DFPLib)) {
+    Diags.Report(diag::err_drv_unsupported_dfplib_for_target)
+        << getDFPLibImplOptionSpelling(Opts->DFPLib)
+        << Triple.str();
+    return nullptr;
+  }
+
   // Compute the default target features, we need the target to handle this
   // because features may have dependencies on one another.
   llvm::erase_if(Opts->FeaturesAsWritten, [&](StringRef Name) {
@@ -845,6 +854,7 @@ TargetInfo::CreateTargetInfo(DiagnosticsEngine &Diags,
 
   return Target.release();
 }
+
 /// validateOpenCLTarget  - Check that OpenCL target has valid
 /// options setting based on OpenCL version.
 bool TargetInfo::validateOpenCLTarget(const LangOptions &Opts,

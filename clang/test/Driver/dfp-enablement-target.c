@@ -67,8 +67,6 @@
 // RUN: %clang -target x86_64-unknown-windows-gnu    -std=c23 -fsyntax-only -fexperimental-decimal-floating-point -Xclang -verify=unsupported %s
 // RUN: %clang -target x86_64-unknown-windows-msvc   -std=c23 -fsyntax-only -fexperimental-decimal-floating-point -Xclang -verify=unsupported %s
 
-// expected-no-diagnostics
-
 _Decimal32 d32;   // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
 _Decimal64 d64;   // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
 _Decimal128 d128; // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
@@ -80,3 +78,10 @@ typedef float __attribute__((mode(TD))) D128; // unsupported-error {{decimal flo
 float __attribute__((mode(SD))) famsd; // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
 float __attribute__((mode(DD))) famdd; // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
 float __attribute__((mode(TD))) famtd; // unsupported-error {{decimal floating-point extensions are not supported on the current target}}
+
+void test_suffixes() {
+  // FIXME: Support for DFP literal suffixes is not yet implemented.
+  1.0df; // expected-error {{invalid suffix 'df' on floating constant}}
+  2.0dd; // expected-error {{invalid suffix 'dd' on floating constant}}
+  3.0dl; // expected-error {{invalid suffix 'dl' on floating constant}}
+}

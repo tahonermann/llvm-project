@@ -133,6 +133,10 @@ def err_drv_invalid_rtlib_name : Error<
   "invalid runtime library name in argument '%0'">;
 def err_drv_unsupported_rtlib_for_platform : Error<
   "unsupported runtime library '%0' for platform '%1'">;
+def err_drv_invalid_dfplib_name : Error<
+  "invalid decimal floating-point library name in argument '%0'">;
+def err_drv_unsupported_dfplib_for_target : Error<
+  "unsupported decimal floating-point library '%0' for target '%1'">;
 def err_drv_invalid_unwindlib_name : Error<
   "invalid unwind library name in argument '%0'">;
 def err_drv_incompatible_unwindlib : Error<

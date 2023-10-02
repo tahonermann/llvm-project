@@ -8269,3 +8269,12 @@ def dxc_disable_validation : DXCFlag<"Vd">,
 def : Option<["/", "-"], "Qembed_debug", KIND_FLAG>, Group<dxc_Group>,
   Flags<[Ignored, NoXarchOption]>, Visibility<[DXCOption]>,
   HelpText<"Embed PDB in shader container (ignored)">;
+
+def dfplib_EQ : Joined<["-", "--"], "dfplib=">,
+  Visibility<[ClangOption, CC1Option]>,
+  HelpText<"Decimal floating-point library to use">,
+  Values<"default,none,compiler-rt,libgcc,libgcc:bid,libgcc:dpd">,
+  MarshallingInfoEnum<TargetOpts<"DFPLib">, "Default">,
+  NormalizedValuesScope<"clang::DFPLibImpl">,
+  NormalizedValues<["Default", "None", "CompilerRT", "Libgcc", "Libgcc_BID", "Libgcc_DPD"]>;
+def _dfplib : Separate<["--"], "dfplib">, Alias<dfplib_EQ>;

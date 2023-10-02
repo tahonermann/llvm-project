@@ -2204,6 +2204,12 @@ bool Type::hasFloatingRepresentation() const {
   return isFloatingType();
 }
 
+bool Type::isStandardFloatingType() const {
+  if (const auto *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isStandardFloatingPoint();
+  return false;
+}
+
 bool Type::isDecimalFloatingType() const {
   if (const auto *BT = dyn_cast<BuiltinType>(CanonicalType))
     return BT->isDecimalFloatingPoint();

@@ -59,6 +59,7 @@ add_clang_library(clangBasic
   CodeGenOptions.cpp
   Cuda.cpp
   DarwinSDKInfo.cpp
+  DFPOptions.cpp
   Diagnostic.cpp
   DiagnosticIDs.cpp
   DiagnosticOptions.cpp

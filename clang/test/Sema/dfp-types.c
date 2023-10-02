@@ -86,3 +86,10 @@ void test_generic(D32 d32, D64 d64, D128 d128) {
   _Static_assert(_Generic(d64,  D32 : 0, D64  : 1, D128 : 0) == 1);
   _Static_assert(_Generic(d128, D32 : 0, D64  : 0, D128 : 1) == 1);
 }
+
+void test_suffixes() {
+  // FIXME: Support for DFP literal suffixes is not yet implemented.
+  1.0df; // expected-error {{invalid suffix 'df' on floating constant}}
+  2.0dd; // expected-error {{invalid suffix 'dd' on floating constant}}
+  3.0dl; // expected-error {{invalid suffix 'dl' on floating constant}}
+}

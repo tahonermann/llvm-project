@@ -14,6 +14,7 @@
 #ifndef LLVM_CLANG_BASIC_TARGETOPTIONS_H
 #define LLVM_CLANG_BASIC_TARGETOPTIONS_H
 
+#include "clang/Basic/DFPOptions.h"
 #include "clang/Basic/OpenCLOptions.h"
 #include "llvm/Support/VersionTuple.h"
 #include "llvm/Target/TargetOptions.h"
@@ -67,6 +68,9 @@ public:
   /// The list of OpenCL extensions to enable or disable, as written on
   /// the command line.
   std::vector<std::string> OpenCLExtensionsAsWritten;
+
+  /// The run-time implementation to use for decimal floating-point extensions.
+  DFPLibImpl DFPLib;
 
   /// If given, enables support for __int128_t and __uint128_t types.
   bool ForceEnableInt128 = false;
