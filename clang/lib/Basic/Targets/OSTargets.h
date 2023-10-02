@@ -352,6 +352,8 @@ public:
     case llvm::Triple::x86:
     case llvm::Triple::x86_64:
       this->HasFloat128 = true;
+      if (!Triple.isAndroid())
+        this->DecimalFloatEnablementAndMode = DecimalFloatMode::BID;
       break;
     }
   }
