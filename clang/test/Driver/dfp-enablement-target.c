@@ -1,5 +1,5 @@
 // This test is intended to validate whether decimal floating-point (DFP)
-// extensions are supported and workding for a given target and to ensure
+// extensions are supported and working for a given target and to ensure
 // that an appropriate diagnostic is issued when DFP features are used
 // otherwise.
 

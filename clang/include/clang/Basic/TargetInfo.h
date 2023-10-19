@@ -221,7 +221,7 @@ enum OpenCLTypeKind : uint8_t {
 };
 
 // ISO/IEC TS 18661-2, ISO/IEC TR 24733, and C23 decimal floating-point.
-// Multiple encodings for how Decimal floating-point values are stored are
+// Multiple encodings for how decimal floating-point values are stored are
 // used in practice. This enumeration provides an enumerator for each known
 // encoding.
 enum class DecimalFloatMode : uint8_t {
