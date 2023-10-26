@@ -177,6 +177,12 @@ public:
   /// Return true if this is 'decimal128'.
   bool isDecimal128Ty() const { return getTypeID() == Decimal128TyID; }
 
+  /// Return true if this is a decimal floating point.
+  bool isDecimalFPTy() const {
+    return getTypeID() == Decimal32TyID || getTypeID() == Decimal64TyID ||
+           getTypeID() == Decimal128TyID;
+  }
+
   /// Return true if this is a well-behaved IEEE-like type, which has a IEEE
   /// compatible layout as defined by isIEEE(), and does not have unnormal
   /// values
@@ -187,9 +193,6 @@ public:
     case HalfTyID:
     case BFloatTyID:
     case FP128TyID:
-    case Decimal32TyID:
-    case Decimal64TyID:
-    case Decimal128TyID:
       return true;
     default:
       return false;
@@ -199,7 +202,7 @@ public:
   /// Return true if this is one of the floating-point types
   bool isFloatingPointTy() const {
     return isIEEELikeFPTy() || getTypeID() == X86_FP80TyID ||
-           getTypeID() == PPC_FP128TyID;
+           getTypeID() == PPC_FP128TyID || isDecimalFPTy();
   }
 
   /// Returns true if this is a floating-point type that is an unevaluated sum
@@ -351,7 +354,8 @@ public:
 
   /// Return the width of the mantissa of this type. This is only valid on
   /// floating-point types. If the FP type does not have a stable mantissa (e.g.
-  /// ppc long double), this method returns -1.
+  /// ppc long double), or if the type is a decimal floating point this method
+  /// returns -1.
   int getFPMantissaWidth() const;
 
   /// Return whether the type is IEEE compatible, as defined by the eponymous
