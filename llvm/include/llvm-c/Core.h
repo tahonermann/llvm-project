@@ -149,13 +149,10 @@ typedef enum {
   LLVMVoidTypeKind,      /**< type with no size */
   LLVMHalfTypeKind,      /**< 16 bit floating point type */
   LLVMFloatTypeKind,     /**< 32 bit floating point type */
-  LLVMDecimal32TypeKind, /**< 32 bit decimal floating point type */
   LLVMDoubleTypeKind,    /**< 64 bit floating point type */
-  LLVMDecimal64TypeKind, /**< 64 bit decimal floating point type */
   LLVMX86_FP80TypeKind,  /**< 80 bit floating point type (X87) */
   LLVMFP128TypeKind,     /**< 128 bit floating point type (112-bit mantissa)*/
   LLVMPPC_FP128TypeKind, /**< 128 bit floating point type (two 64-bits) */
-  LLVMDecimal128TypeKind,/**< 128 bit decimal floating point type */
   LLVMLabelTypeKind,     /**< Labels */
   LLVMIntegerTypeKind,   /**< Arbitrary bit width integers */
   LLVMFunctionTypeKind,  /**< Functions */
@@ -167,9 +164,12 @@ typedef enum {
   LLVMX86_MMXTypeKind,   /**< X86 MMX */
   LLVMTokenTypeKind,     /**< Tokens */
   LLVMScalableVectorTypeKind, /**< Scalable SIMD vector type */
-  LLVMBFloatTypeKind,    /**< 16 bit brain floating point type */
-  LLVMX86_AMXTypeKind,   /**< X86 AMX */
-  LLVMTargetExtTypeKind, /**< Target extension type */
+  LLVMBFloatTypeKind,         /**< 16 bit brain floating point type */
+  LLVMX86_AMXTypeKind,        /**< X86 AMX */
+  LLVMTargetExtTypeKind,      /**< Target extension type */
+  LLVMDecimal32TypeKind,      /**< 32 bit decimal floating point type */
+  LLVMDecimal64TypeKind,      /**< 64 bit decimal floating point type */
+  LLVMDecimal128TypeKind,     /**< 128 bit decimal floating point type */
 } LLVMTypeKind;
 
 typedef enum {
@@ -1273,19 +1273,9 @@ LLVMTypeRef LLVMBFloatTypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMFloatTypeInContext(LLVMContextRef C);
 
 /**
- * Obtain a 32-bit decimal floating point type from a context.
- */
-LLVMTypeRef LLVMDecimal32TypeInContext(LLVMContextRef C);
-
-/**
  * Obtain a 64-bit floating point type from a context.
  */
 LLVMTypeRef LLVMDoubleTypeInContext(LLVMContextRef C);
-
-/**
- * Obtain a 64-bit decimal floating point type from a context.
- */
-LLVMTypeRef LLVMDecimal64TypeInContext(LLVMContextRef C);
 
 /**
  * Obtain a 80-bit floating point type (X87) from a context.
@@ -1302,6 +1292,16 @@ LLVMTypeRef LLVMFP128TypeInContext(LLVMContextRef C);
  * Obtain a 128-bit floating point type (two 64-bits) from a context.
  */
 LLVMTypeRef LLVMPPCFP128TypeInContext(LLVMContextRef C);
+
+/**
+ * Obtain a 32-bit decimal floating point type from a context.
+ */
+LLVMTypeRef LLVMDecimal32TypeInContext(LLVMContextRef C);
+
+/**
+ * Obtain a 64-bit decimal floating point type from a context.
+ */
+LLVMTypeRef LLVMDecimal64TypeInContext(LLVMContextRef C);
 
 /**
  * Obtain a 128-bit decimal floating point type from a context.

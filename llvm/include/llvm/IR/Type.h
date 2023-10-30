@@ -178,7 +178,7 @@ public:
   bool isDecimal128Ty() const { return getTypeID() == Decimal128TyID; }
 
   /// Return true if this is a decimal floating point.
-  bool isDecimalFPTy() const {
+  bool isDecimalFloatingPointTy() const {
     return getTypeID() == Decimal32TyID || getTypeID() == Decimal64TyID ||
            getTypeID() == Decimal128TyID;
   }
@@ -202,7 +202,7 @@ public:
   /// Return true if this is one of the floating-point types
   bool isFloatingPointTy() const {
     return isIEEELikeFPTy() || getTypeID() == X86_FP80TyID ||
-           getTypeID() == PPC_FP128TyID || isDecimalFPTy();
+           getTypeID() == PPC_FP128TyID || isDecimalFloatingPointTy();
   }
 
   /// Returns true if this is a floating-point type that is an unevaluated sum
@@ -357,6 +357,8 @@ public:
   /// ppc long double), or if the type is a decimal floating point this method
   /// returns -1.
   int getFPMantissaWidth() const;
+
+  int getDFPMantissaWidth() const;
 
   /// Return whether the type is IEEE compatible, as defined by the eponymous
   /// method in APFloat.

@@ -987,12 +987,6 @@ lltok::Kind LLLexer::LexIdentifier() {
 ///    HexPPC128Constant 0xM[0-9A-Fa-f]+
 ///    HexHalfConstant   0xH[0-9A-Fa-f]+
 ///    HexBFloatConstant 0xR[0-9A-Fa-f]+
-///    FIXME: I have temporarily added these prefixes temporarly to mimic
-///    the DFP attributes in C++. But this is just a placeholder for
-///    the real prefix.
-///    HexDecimal32Constant 0xSD[0-9A-Fa-f]+
-///    HexDecimal64Constant 0xDD[0-9A-Fa-f]+
-///    HexDecimal128Constant 0xTD[0-9A-Fa-f]+
 lltok::Kind LLLexer::Lex0x() {
   CurPtr = TokStart + 2;
 
@@ -1015,6 +1009,8 @@ lltok::Kind LLLexer::Lex0x() {
     ++CurPtr;
 
   if (Kind == 'J') {
+    // FIXME: Need to add code here for DFP, using the APDecimalFloat.
+
     // HexFPConstant - Floating point constant represented in IEEE format as a
     // hexadecimal number for when exponential notation is not precise enough.
     // Half, BFloat, Float, and double only.
