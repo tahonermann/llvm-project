@@ -469,14 +469,11 @@ public:
   static Type *getHalfTy(LLVMContext &C);
   static Type *getBFloatTy(LLVMContext &C);
   static Type *getFloatTy(LLVMContext &C);
-  static Type *getDecimal32Ty(LLVMContext &C);
   static Type *getDoubleTy(LLVMContext &C);
-  static Type *getDecimal64Ty(LLVMContext &C);
   static Type *getMetadataTy(LLVMContext &C);
   static Type *getX86_FP80Ty(LLVMContext &C);
   static Type *getFP128Ty(LLVMContext &C);
   static Type *getPPC_FP128Ty(LLVMContext &C);
-  static Type *getDecimal128Ty(LLVMContext &C);
   static Type *getX86_MMXTy(LLVMContext &C);
   static Type *getX86_AMXTy(LLVMContext &C);
   static Type *getTokenTy(LLVMContext &C);
@@ -487,6 +484,9 @@ public:
   static IntegerType *getInt32Ty(LLVMContext &C);
   static IntegerType *getInt64Ty(LLVMContext &C);
   static IntegerType *getInt128Ty(LLVMContext &C);
+  static Type *getDecimal32Ty(LLVMContext &C);
+  static Type *getDecimal64Ty(LLVMContext &C);
+  static Type *getDecimal128Ty(LLVMContext &C);
   template <typename ScalarTy> static Type *getScalarTy(LLVMContext &C) {
     int noOfBits = sizeof(ScalarTy) * CHAR_BIT;
     if (std::is_integral<ScalarTy>::value) {

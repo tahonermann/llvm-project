@@ -816,19 +816,19 @@ lltok::Kind LLLexer::LexIdentifier() {
   TYPEKEYWORD("half",      Type::getHalfTy(Context));
   TYPEKEYWORD("bfloat",    Type::getBFloatTy(Context));
   TYPEKEYWORD("float",     Type::getFloatTy(Context));
-  TYPEKEYWORD("decimal32", Type::getDecimal32Ty(Context));
   TYPEKEYWORD("double",    Type::getDoubleTy(Context));
-  TYPEKEYWORD("decimal64", Type::getDecimal64Ty(Context));
   TYPEKEYWORD("x86_fp80",  Type::getX86_FP80Ty(Context));
   TYPEKEYWORD("fp128",     Type::getFP128Ty(Context));
   TYPEKEYWORD("ppc_fp128", Type::getPPC_FP128Ty(Context));
-  TYPEKEYWORD("decimal128", Type::getDecimal128Ty(Context));
   TYPEKEYWORD("label",     Type::getLabelTy(Context));
   TYPEKEYWORD("metadata",  Type::getMetadataTy(Context));
   TYPEKEYWORD("x86_mmx",   Type::getX86_MMXTy(Context));
   TYPEKEYWORD("x86_amx",   Type::getX86_AMXTy(Context));
   TYPEKEYWORD("token",     Type::getTokenTy(Context));
   TYPEKEYWORD("ptr",       PointerType::getUnqual(Context));
+  TYPEKEYWORD("decimal32", Type::getDecimal32Ty(Context));
+  TYPEKEYWORD("decimal64", Type::getDecimal64Ty(Context));
+  TYPEKEYWORD("decimal128", Type::getDecimal128Ty(Context));
 
 #undef TYPEKEYWORD
 

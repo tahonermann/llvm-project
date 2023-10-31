@@ -690,15 +690,12 @@ inline TypeSize DataLayout::getTypeSizeInBits(Type *Ty) const {
   case Type::BFloatTyID:
     return TypeSize::Fixed(16);
   case Type::FloatTyID:
-  case Type::Decimal32TyID:
     return TypeSize::Fixed(32);
   case Type::DoubleTyID:
   case Type::X86_MMXTyID:
-  case Type::Decimal64TyID:
     return TypeSize::Fixed(64);
   case Type::PPC_FP128TyID:
   case Type::FP128TyID:
-  case Type::Decimal128TyID:
     return TypeSize::Fixed(128);
   case Type::X86_AMXTyID:
     return TypeSize::Fixed(8192);
@@ -718,6 +715,12 @@ inline TypeSize DataLayout::getTypeSizeInBits(Type *Ty) const {
     Type *LayoutTy = cast<TargetExtType>(Ty)->getLayoutType();
     return getTypeSizeInBits(LayoutTy);
   }
+  case Type::Decimal32TyID:
+    return TypeSize::Fixed(32);
+  case Type::Decimal64TyID:
+    return TypeSize::Fixed(64);
+  case Type::Decimal128TyID:
+    return TypeSize::Fixed(128);
   default:
     llvm_unreachable("DataLayout::getTypeSizeInBits(): Unsupported type");
   }
