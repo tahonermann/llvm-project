@@ -1520,10 +1520,11 @@ public:
   ConstantInt *TheFalseVal = nullptr;
 
   // Basic type instances.
-  Type VoidTy, LabelTy, HalfTy, BFloatTy, FloatTy, Decimal32Ty, DoubleTy;
-  Type Decimal64Ty, MetadataTy, TokenTy;
-  Type X86_FP80Ty, FP128Ty, PPC_FP128Ty, Decimal128Ty, X86_MMXTy, X86_AMXTy;
+  Type VoidTy, LabelTy, HalfTy, BFloatTy, FloatTy, DoubleTy, MetadataTy,
+      TokenTy;
+  Type X86_FP80Ty, FP128Ty, PPC_FP128Ty, X86_MMXTy, X86_AMXTy;
   IntegerType Int1Ty, Int8Ty, Int16Ty, Int32Ty, Int64Ty, Int128Ty;
+  Type Decimal32Ty, Decimal64Ty, Decimal128Ty;
 
   std::unique_ptr<ConstantTokenNone> TheNoneToken;
 

@@ -968,19 +968,19 @@ void ModuleBitcodeWriter::writeTypeTable() {
     unsigned Code = 0;
 
     switch (T->getTypeID()) {
-    case Type::VoidTyID:       Code = bitc::TYPE_CODE_VOID;       break;
-    case Type::HalfTyID:       Code = bitc::TYPE_CODE_HALF;       break;
-    case Type::BFloatTyID:     Code = bitc::TYPE_CODE_BFLOAT;     break;
-    case Type::FloatTyID:      Code = bitc::TYPE_CODE_FLOAT;      break;
-    case Type::DoubleTyID:     Code = bitc::TYPE_CODE_DOUBLE;     break;
-    case Type::X86_FP80TyID:   Code = bitc::TYPE_CODE_X86_FP80;   break;
-    case Type::FP128TyID:      Code = bitc::TYPE_CODE_FP128;      break;
-    case Type::PPC_FP128TyID:  Code = bitc::TYPE_CODE_PPC_FP128;  break;
-    case Type::LabelTyID:      Code = bitc::TYPE_CODE_LABEL;      break;
-    case Type::MetadataTyID:   Code = bitc::TYPE_CODE_METADATA;   break;
-    case Type::X86_MMXTyID:    Code = bitc::TYPE_CODE_X86_MMX;    break;
-    case Type::X86_AMXTyID:    Code = bitc::TYPE_CODE_X86_AMX;    break;
-    case Type::TokenTyID:      Code = bitc::TYPE_CODE_TOKEN;      break;
+    case Type::VoidTyID:      Code = bitc::TYPE_CODE_VOID;      break;
+    case Type::HalfTyID:      Code = bitc::TYPE_CODE_HALF;      break;
+    case Type::BFloatTyID:    Code = bitc::TYPE_CODE_BFLOAT;    break;
+    case Type::FloatTyID:     Code = bitc::TYPE_CODE_FLOAT;     break;
+    case Type::DoubleTyID:    Code = bitc::TYPE_CODE_DOUBLE;    break;
+    case Type::X86_FP80TyID:  Code = bitc::TYPE_CODE_X86_FP80;  break;
+    case Type::FP128TyID:     Code = bitc::TYPE_CODE_FP128;     break;
+    case Type::PPC_FP128TyID: Code = bitc::TYPE_CODE_PPC_FP128; break;
+    case Type::LabelTyID:     Code = bitc::TYPE_CODE_LABEL;     break;
+    case Type::MetadataTyID:  Code = bitc::TYPE_CODE_METADATA;  break;
+    case Type::X86_MMXTyID:   Code = bitc::TYPE_CODE_X86_MMX;   break;
+    case Type::X86_AMXTyID:   Code = bitc::TYPE_CODE_X86_AMX;   break;
+    case Type::TokenTyID:     Code = bitc::TYPE_CODE_TOKEN;     break;
     case Type::IntegerTyID:
       // INTEGER: [width]
       Code = bitc::TYPE_CODE_INTEGER;
