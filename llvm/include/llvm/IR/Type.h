@@ -354,10 +354,10 @@ public:
 
   /// Return the width of the mantissa of this type. This is only valid on
   /// floating-point types. If the FP type does not have a stable mantissa (e.g.
-  /// ppc long double), or if the type is a decimal floating point this method
-  /// returns -1.
+  /// ppc long double), this method returns -1.
   int getFPMantissaWidth() const;
 
+  /// Return the width of the mantissa of a decimal floating-point type.
   int getDFPMantissaWidth() const;
 
   /// Return whether the type is IEEE compatible, as defined by the eponymous
