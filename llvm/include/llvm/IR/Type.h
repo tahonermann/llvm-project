@@ -55,12 +55,9 @@ public:
     // PrimitiveTypes
     HalfTyID = 0,  ///< 16-bit floating point type
     BFloatTyID,    ///< 16-bit floating point type (7-bit significand)
-    Decimal32TyID, ///< 32-bit decimal floating point type
     FloatTyID,     ///< 32-bit floating point type
-    Decimal64TyID, ///< 64-bit decimal floating point type
     DoubleTyID,    ///< 64-bit floating point type
     X86_FP80TyID,  ///< 80-bit floating point type (X87)
-    Decimal128TyID, ///< 128-bit decimal floating point type
     FP128TyID,     ///< 128-bit floating point type (112-bit significand)
     PPC_FP128TyID, ///< 128-bit floating point type (two 64-bits, PowerPC)
     VoidTyID,      ///< type with no size
@@ -69,6 +66,11 @@ public:
     X86_MMXTyID,   ///< MMX vectors (64 bits, X86 specific)
     X86_AMXTyID,   ///< AMX vectors (8192 bits, X86 specific)
     TokenTyID,     ///< Tokens
+
+    // Decimal floating-point types.
+    Decimal32TyID, ///< 32-bit decimal floating point type
+    Decimal64TyID, ///< 64-bit decimal floating point type
+    Decimal128TyID, ///< 128-bit decimal floating point type
 
     // Derived types... see DerivedTypes.h file.
     IntegerTyID,        ///< Arbitrary bit width integers
@@ -352,13 +354,14 @@ public:
   /// type.
   unsigned getScalarSizeInBits() const LLVM_READONLY;
 
-  /// Return the width of the mantissa of this type. This is only valid on
-  /// floating-point types. If the FP type does not have a stable mantissa (e.g.
-  /// ppc long double), this method returns -1.
+  /// Return the width of the mantissa of this type, in bits. This is only valid
+  /// on floating-point types. If the FP type does not have a stable mantissa
+  /// (e.g. ppc long double), this method returns -1.
   int getFPMantissaWidth() const;
 
-  /// Return the width of the mantissa of a decimal floating-point type.
-  int getDFPMantissaWidth() const;
+  /// Return the width of the mantissa of a decimal floating-point type, in
+  /// digits. See table in section X.2.1 of WG14 N2601.
+  int getDFPPrecisionInDigits() const;
 
   /// Return whether the type is IEEE compatible, as defined by the eponymous
   /// method in APFloat.

@@ -220,12 +220,15 @@ int Type::getFPMantissaWidth() const {
   return -1;
 }
 
-int Type::getDFPMantissaWidth() const {
+int Type::getDFPPrecisionInDigits() const {
   if (auto *VTy = dyn_cast<VectorType>(this))
-    return VTy->getElementType()->getDFPMantissaWidth();
+    return VTy->getElementType()->getDFPPrecisionInDigits();
   assert(isDecimalFloatingPointTy() && "Not a decimal floating point type!");
-  // For both BID and DPD the width of the mantissa varies and is dependent
-  // on the combination fields.
+  // Precision values following the table in section X.2.1 of WG14 N2601.
+  if (getTypeID() == Decimal32TyID) return 7;
+  if (getTypeID() == Decimal64TyID) return 16;
+  if (getTypeID() == Decimal128TyID) return 34;
+  assert("unknown decimal floating point type");
   return -1;
 }
 

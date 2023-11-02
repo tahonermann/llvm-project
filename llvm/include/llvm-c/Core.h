@@ -1316,12 +1316,12 @@ LLVMTypeRef LLVMDecimal128TypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMHalfType(void);
 LLVMTypeRef LLVMBFloatType(void);
 LLVMTypeRef LLVMFloatType(void);
-LLVMTypeRef LLVMDecimal32Type(void);
 LLVMTypeRef LLVMDoubleType(void);
-LLVMTypeRef LLVMDecimal64Type(void);
 LLVMTypeRef LLVMX86FP80Type(void);
 LLVMTypeRef LLVMFP128Type(void);
 LLVMTypeRef LLVMPPCFP128Type(void);
+LLVMTypeRef LLVMDecimal32Type(void);
+LLVMTypeRef LLVMDecimal64Type(void);
 LLVMTypeRef LLVMDecimal128Type(void);
 
 /**
