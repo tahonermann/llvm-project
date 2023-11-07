@@ -990,7 +990,6 @@ lltok::Kind LLLexer::LexIdentifier() {
 lltok::Kind LLLexer::Lex0x() {
   CurPtr = TokStart + 2;
 
-  // TODO: Handle the DFP type here.
   char Kind;
   if ((CurPtr[0] >= 'K' && CurPtr[0] <= 'M') || CurPtr[0] == 'H' ||
       CurPtr[0] == 'R') {
@@ -1009,8 +1008,6 @@ lltok::Kind LLLexer::Lex0x() {
     ++CurPtr;
 
   if (Kind == 'J') {
-    // FIXME: Need to add code here for DFP, using the APDecimalFloat.
-
     // HexFPConstant - Floating point constant represented in IEEE format as a
     // hexadecimal number for when exponential notation is not precise enough.
     // Half, BFloat, Float, and double only.

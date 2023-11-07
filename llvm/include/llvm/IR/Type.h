@@ -359,8 +359,9 @@ public:
   /// (e.g. ppc long double), this method returns -1.
   int getFPMantissaWidth() const;
 
-  /// Return the width of the mantissa of a decimal floating-point type, in
-  /// digits. See table in section X.2.1 of WG14 N2601.
+  /// Return the precision in digits of a decimal floating-point type
+  /// per the "Decimal interchange format parameters" table of
+  /// C23 annex H.2.1, "Interchange floating types".
   int getDFPPrecisionInDigits() const;
 
   /// Return whether the type is IEEE compatible, as defined by the eponymous
