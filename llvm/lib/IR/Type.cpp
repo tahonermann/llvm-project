@@ -182,6 +182,9 @@ TypeSize Type::getPrimitiveSizeInBits() const {
   case Type::X86_FP80TyID: return TypeSize::Fixed(80);
   case Type::FP128TyID: return TypeSize::Fixed(128);
   case Type::PPC_FP128TyID: return TypeSize::Fixed(128);
+  case Decimal32TyID: return TypeSize::Fixed(32);
+  case Decimal64TyID: return TypeSize::Fixed(64);
+  case Decimal128TyID: return TypeSize::Fixed(128);
   case Type::X86_MMXTyID: return TypeSize::Fixed(64);
   case Type::X86_AMXTyID: return TypeSize::Fixed(8192);
   case Type::IntegerTyID:
@@ -194,9 +197,6 @@ TypeSize Type::getPrimitiveSizeInBits() const {
     assert(!ETS.isScalable() && "Vector type should have fixed-width elements");
     return {ETS.getFixedValue() * EC.getKnownMinValue(), EC.isScalable()};
   }
-  case Decimal32TyID: return TypeSize::Fixed(32);
-  case Decimal64TyID: return TypeSize::Fixed(64);
-  case Decimal128TyID: return TypeSize::Fixed(128);
   default: return TypeSize::Fixed(0);
   }
 }
@@ -228,8 +228,7 @@ int Type::getDFPPrecisionInDigits() const {
   if (getTypeID() == Decimal32TyID) return 7;
   if (getTypeID() == Decimal64TyID) return 16;
   if (getTypeID() == Decimal128TyID) return 34;
-  assert("unknown decimal floating point type");
-  return -1;
+  report_fatal_error("unknown decimal floating point type");
 }
 
 bool Type::isSizedDerivedType(SmallPtrSetImpl<Type*> *Visited) const {

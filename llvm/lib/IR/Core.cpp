@@ -563,6 +563,12 @@ LLVMTypeKind LLVMGetTypeKind(LLVMTypeRef Ty) {
     return LLVMFP128TypeKind;
   case Type::PPC_FP128TyID:
     return LLVMPPC_FP128TypeKind;
+  case Type::Decimal32TyID:
+    return LLVMDecimal32TypeKind;
+  case Type::Decimal64TyID:
+    return LLVMDecimal64TypeKind;
+  case Type::Decimal128TyID:
+    return LLVMDecimal128TypeKind;
   case Type::LabelTyID:
     return LLVMLabelTypeKind;
   case Type::MetadataTyID:
@@ -591,12 +597,6 @@ LLVMTypeKind LLVMGetTypeKind(LLVMTypeRef Ty) {
     return LLVMTargetExtTypeKind;
   case Type::TypedPointerTyID:
     llvm_unreachable("Typed pointers are unsupported via the C API");
-  case Type::Decimal32TyID:
-    return LLVMDecimal32TypeKind;
-  case Type::Decimal64TyID:
-    return LLVMDecimal64TypeKind;
-  case Type::Decimal128TyID:
-    return LLVMDecimal128TypeKind;
   }
   llvm_unreachable("Unhandled TypeID.");
 }
