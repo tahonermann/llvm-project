@@ -224,7 +224,8 @@ int Type::getDFPPrecisionInDigits() const {
   if (auto *VTy = dyn_cast<VectorType>(this))
     return VTy->getElementType()->getDFPPrecisionInDigits();
   assert(isDecimalFloatingPointTy() && "Not a decimal floating point type!");
-  // Precision values following the table in section X.2.1 of WG14 N2601.
+  // Precision values per the "Decimal interchange format parameters" table of
+  /// C23 annex H.2.1, "Interchange floating types".
   if (getTypeID() == Decimal32TyID) return 7;
   if (getTypeID() == Decimal64TyID) return 16;
   if (getTypeID() == Decimal128TyID) return 34;
