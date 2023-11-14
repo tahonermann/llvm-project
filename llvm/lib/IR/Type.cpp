@@ -48,8 +48,8 @@ Type *Type::getPrimitiveType(LLVMContext &C, TypeID IDNumber) {
   case X86_MMXTyID   : return getX86_MMXTy(C);
   case X86_AMXTyID   : return getX86_AMXTy(C);
   case TokenTyID     : return getTokenTy(C);
-  case Decimal32TyID:  return getDecimal32Ty(C);
-  case Decimal64TyID:  return getDecimal64Ty(C);
+  case Decimal32TyID :  return getDecimal32Ty(C);
+  case Decimal64TyID :  return getDecimal64Ty(C);
   case Decimal128TyID: return getDecimal128Ty(C);
   default:
     return nullptr;
