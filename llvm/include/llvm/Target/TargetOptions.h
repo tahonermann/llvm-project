@@ -81,11 +81,7 @@ namespace llvm {
     GNU
   };
 
-  enum class BinaryEncoding {
-      None,
-      BID,
-      DPD
-  };
+  enum class BinaryEncoding { BID, DPD, None };
 
   /// Identify a debugger for "tuning" the debug info.
   ///
@@ -409,6 +405,7 @@ namespace llvm {
 
     /// Which debugger to tune for.
     DebuggerKind DebuggerTuning = DebuggerKind::Default;
+
     BinaryEncoding DFPEncoding = BinaryEncoding::None;
 
   private:

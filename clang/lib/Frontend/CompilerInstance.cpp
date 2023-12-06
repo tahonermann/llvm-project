@@ -115,8 +115,8 @@ bool CompilerInstance::createTarget() {
           TargetOptions::BinaryEncoding::DPD;
   }
   // Create the target instance.
-  setTarget(TargetInfo::CreateTargetInfo(
-      getDiagnostics(), getInvocation().TargetOpts));
+  setTarget(TargetInfo::CreateTargetInfo(getDiagnostics(),
+                                         getInvocation().TargetOpts));
   if (!hasTarget())
     return false;
 

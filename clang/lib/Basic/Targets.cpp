@@ -763,7 +763,6 @@ using namespace clang::targets;
 TargetInfo *
 TargetInfo::CreateTargetInfo(DiagnosticsEngine &Diags,
                              const std::shared_ptr<TargetOptions> &Opts) {
-
   llvm::Triple Triple(Opts->Triple);
 
   // Construct the target
