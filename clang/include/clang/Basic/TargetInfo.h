@@ -314,8 +314,7 @@ public:
   /// what the backend expects.
   static TargetInfo *
   CreateTargetInfo(DiagnosticsEngine &Diags,
-                   const std::shared_ptr<TargetOptions> &Opts,
-                   LangOptions LO = LangOptions());
+                   const std::shared_ptr<TargetOptions> &Opts);
 
   virtual ~TargetInfo();
 

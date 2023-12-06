@@ -762,8 +762,7 @@ using namespace clang::targets;
 /// options.
 TargetInfo *
 TargetInfo::CreateTargetInfo(DiagnosticsEngine &Diags,
-                             const std::shared_ptr<TargetOptions> &Opts,
-                             LangOptions LO) {
+                             const std::shared_ptr<TargetOptions> &Opts) {
 
   llvm::Triple Triple(Opts->Triple);
 

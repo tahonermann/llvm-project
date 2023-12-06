@@ -123,10 +123,11 @@ static std::string computeDataLayout(const Triple &TT,
   std::string Ret = "e";
 
   // Decimal floating-point encoding.
-  // TODO: assert (Options.DFPEncoding == BinaryEncoding::BID)
-  // and diagnose.
-  if (Options.DFPEncoding != BinaryEncoding::None)
+  if (Options.DFPEncoding != BinaryEncoding::None) {
+    assert(Options.DFPEncoding == BinaryEncoding::BID &&
+           "Decimal floating-point on x86 is BID!");
     Ret += "-d:bid";
+  }
 
   Ret += DataLayout::getManglingComponent(TT);
   // X86 and x32 have 32 bit pointers.

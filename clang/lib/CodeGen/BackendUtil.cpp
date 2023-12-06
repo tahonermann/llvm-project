@@ -370,16 +370,12 @@ static bool initTargetOptions(DiagnosticsEngine &Diags,
     break;
   }
 
-  if (LangOpts.DecimalFloatingPoint) {
-    if (TargetOpts.DFPEncoding ==
-        clang::TargetOptions::TODFPBinaryEncodingKind::BID)
-      Options.DFPEncoding = llvm::BinaryEncoding::BID;
-    else if (TargetOpts.DFPEncoding ==
-             clang::TargetOptions::TODFPBinaryEncodingKind::DPD)
-      Options.DFPEncoding = llvm::BinaryEncoding::DPD;
-    else
-      Options.DFPEncoding = llvm::BinaryEncoding::None;
-  }
+  if (TargetOpts.DFPEncoding == clang::TargetOptions::BinaryEncoding::BID)
+    Options.DFPEncoding = llvm::BinaryEncoding::BID;
+  else if (TargetOpts.DFPEncoding == clang::TargetOptions::BinaryEncoding::DPD)
+    Options.DFPEncoding = llvm::BinaryEncoding::DPD;
+  else
+    Options.DFPEncoding = llvm::BinaryEncoding::None;
 
   Options.BinutilsVersion =
       llvm::TargetMachine::parseBinutilsVersion(CodeGenOpts.BinutilsVersion);
