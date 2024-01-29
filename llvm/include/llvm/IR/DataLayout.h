@@ -24,6 +24,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/FloatingPointMode.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Alignment.h"
@@ -119,8 +120,7 @@ private:
   /// Defaults to false.
   bool BigEndian;
 
-  enum BinaryEncoding { BID, DPD, None };
-  BinaryEncoding DFPEncoding;
+  llvm::DecimalFloatMode DFPEncoding;
 
   unsigned AllocaAddrSpace;
   MaybeAlign StackNaturalAlign;

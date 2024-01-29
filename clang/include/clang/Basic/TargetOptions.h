@@ -90,9 +90,6 @@ public:
   /// \brief Code object version for AMDGPU.
   CodeObjectVersionKind CodeObjectVersion = CodeObjectVersionKind::COV_None;
 
-  enum class BinaryEncoding { BID, DPD, None };
-  BinaryEncoding DFPEncoding = BinaryEncoding::None;
-
   /// \brief Enumeration values for AMDGPU printf lowering scheme
   enum class AMDGPUPrintfKind {
     /// printf lowering scheme involving hostcalls, currently used by HIP
@@ -132,6 +129,29 @@ public:
 
   /// The entry point name for HLSL shader being compiled as specified by -E.
   std::string HLSLEntry;
+
+  // If disengaged, decimal floating-point extensions are not supported,
+  // otherwise, the decimal floating-point mode is enabled.
+  std::optional<llvm::DecimalFloatMode> DecimalFloatEnablementAndMode;
+
+  /// Determine whether decimal floating-point extensions are enabled on this
+  /// target.
+  bool hasDecimalFloatingPoint() const {
+    return DecimalFloatEnablementAndMode.has_value();
+  }
+
+  /// Determine the encoding used for decimal floating-point values on this
+  /// target if decimal floating-point extensions are enabled.
+  llvm::DecimalFloatMode getDecimalFloatingPointMode() const {
+    assert(hasDecimalFloatingPoint() &&
+           "Decimal floating-point extensions are not enabled");
+    return DecimalFloatEnablementAndMode.value();
+  }
+
+  /// Set the encoding used for decimal floating-point value on this target.
+  void setDecimalFloatingPointMode(llvm::DecimalFloatMode Mode) {
+    DecimalFloatEnablementAndMode = Mode;
+  }
 };
 
 } // end namespace clang

@@ -719,33 +719,27 @@ public:
     Int64Type = IsX32 ? SignedLongLong : SignedLong;
     RegParmMax = 6;
 
-    bool isBIDEncoding = Opts.DFPEncoding == TargetOptions::BinaryEncoding::BID;
-    bool isDPDEncoding = Opts.DFPEncoding == TargetOptions::BinaryEncoding::DPD;
-
+    bool isBIDEncoding = false;
+    bool isDPDEncoding = false;
+    if (Opts.hasDecimalFloatingPoint()) {
+      const llvm::DecimalFloatMode Encoding = Opts.getDecimalFloatingPointMode();
+      isBIDEncoding = Encoding == llvm::DecimalFloatMode::BID;
+      isDPDEncoding = Encoding == llvm::DecimalFloatMode::DPD;
+    }
+    std::string Layout =
+        "-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
+    std::string EncodedLayout = isBIDEncoding   ? "e-d:bid"
+                                : isDPDEncoding ? "e-d:dpd"
+                                                : "e";
     // Pointers are 32-bit in x32.
-    if (isBIDEncoding)
-      resetDataLayout(
-          IsX32       ? "e-d:-bid-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-"
-                        "i64:64-f80:128-n8:16:32:64-S128"
-          : IsWinCOFF ? "e-d:bid-m:w-p270:32:32-p271:32:32-p272:64:"
-                        "64-i64:64-f80:128-n8:16:32:64-S128"
-                      : "e-d:bid-m:e-p270:32:32-p271:32:32-p272:64:"
-                        "64-i64:64-f80:128-n8:16:32:64-S128");
-    else if (isDPDEncoding)
-      resetDataLayout(
-          IsX32       ? "e-d:dpd-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-"
-                        "i64:64-f80:128-n8:16:32:64-S128"
-          : IsWinCOFF ? "e-d:dpd-m:w-p270:32:32-p271:32:32-p272:64:"
-                        "64-i64:64-f80:128-n8:16:32:64-S128"
-                      : "e-d:dpd-m:e-p270:32:32-p271:32:32-p272:64:"
-                        "64-i64:64-f80:128-n8:16:32:64-S128");
+    if (!EncodedLayout.empty())
+      resetDataLayout(IsX32       ? EncodedLayout + "-m:e-p:32:32" + Layout
+                      : IsWinCOFF ? EncodedLayout + "-m:w" + Layout
+                                  : EncodedLayout + "-m:e" + Layout);
     else
-      resetDataLayout(IsX32 ? "e-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-"
-                              "i64:64-f80:128-n8:16:32:64-S128"
-                      : IsWinCOFF ? "e-m:w-p270:32:32-p271:32:32-p272:64:"
-                                    "64-i64:64-f80:128-n8:16:32:64-S128"
-                                  : "e-m:e-p270:32:32-p271:32:32-p272:64:"
-                                    "64-i64:64-f80:128-n8:16:32:64-S128");
+      resetDataLayout(IsX32       ? "e-m:e-p:32:32" + Layout
+                      : IsWinCOFF ? "e-m:w" + Layout
+                                  : "e-m:e" + Layout);
 
     // Use fpret only for long double.
     RealTypeUsesObjCFPRetMask = (unsigned)FloatModeKind::LongDouble;

@@ -107,12 +107,13 @@ void CompilerInstance::setAuxTarget(TargetInfo *Value) { AuxTarget = Value; }
 bool CompilerInstance::createTarget() {
   if (getLangOpts().DecimalFloatingPoint) {
     if (getInvocation().getTargetOpts().CPU == "x86" ||
-        getInvocation().getTargetOpts().CPU == "x86-64")
-      getInvocation().getTargetOpts().DFPEncoding =
-          TargetOptions::BinaryEncoding::BID;
+        getInvocation().getTargetOpts().CPU == "x86-64" ||
+        getInvocation().getTargetOpts().CPU == "powerpc")
+      getInvocation().getTargetOpts().setDecimalFloatingPointMode(
+          llvm::DecimalFloatMode::BID);
     else
-      getInvocation().getTargetOpts().DFPEncoding =
-          TargetOptions::BinaryEncoding::DPD;
+      getInvocation().getTargetOpts().setDecimalFloatingPointMode(
+          llvm::DecimalFloatMode::DPD);
   }
   // Create the target instance.
   setTarget(TargetInfo::CreateTargetInfo(getDiagnostics(),

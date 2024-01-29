@@ -197,7 +197,7 @@ void DataLayout::reset(StringRef Desc) {
 
   LayoutMap = nullptr;
   BigEndian = false;
-  DFPEncoding = None;
+  DFPEncoding = llvm::DecimalFloatMode::None;
   AllocaAddrSpace = 0;
   StackNaturalAlign.reset();
   ProgramAddrSpace = 0;
@@ -321,11 +321,11 @@ Error DataLayout::parseSpecifier(StringRef Desc) {
       break;
     case 'd':
       if (Split.second == "bid")
-        DFPEncoding = BID;
+        DFPEncoding = llvm::DecimalFloatMode::BID;
       else if (Split.second == "dpd")
-        DFPEncoding = DPD;
+        DFPEncoding = llvm::DecimalFloatMode::DPD;
       else
-        DFPEncoding = None;
+        DFPEncoding = llvm::DecimalFloatMode::None;
       break;
     case 'p': {
       // Address space.

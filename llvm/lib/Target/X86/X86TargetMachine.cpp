@@ -123,9 +123,9 @@ static std::string computeDataLayout(const Triple &TT,
   std::string Ret = "e";
 
   // Decimal floating-point encoding.
-  if (Options.DFPEncoding != BinaryEncoding::None) {
-    assert(Options.DFPEncoding == BinaryEncoding::BID &&
-           "Decimal floating-point on x86 is BID!");
+  if (Options.DFPEncoding != llvm::DecimalFloatMode::None) {
+    assert(Options.DFPEncoding == llvm::DecimalFloatMode::BID &&
+            "Decimal floating-point on x86 is BID!");
     Ret += "-d:bid";
   }
 

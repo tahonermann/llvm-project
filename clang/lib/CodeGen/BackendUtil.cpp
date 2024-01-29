@@ -369,14 +369,13 @@ static bool initTargetOptions(DiagnosticsEngine &Diags,
     Options.AllowFPOpFusion = llvm::FPOpFusion::Fast;
     break;
   }
-
-  if (TargetOpts.DFPEncoding == clang::TargetOptions::BinaryEncoding::BID)
-    Options.DFPEncoding = llvm::BinaryEncoding::BID;
-  else if (TargetOpts.DFPEncoding == clang::TargetOptions::BinaryEncoding::DPD)
-    Options.DFPEncoding = llvm::BinaryEncoding::DPD;
-  else
-    Options.DFPEncoding = llvm::BinaryEncoding::None;
-
+  if (LangOpts.DecimalFloatingPoint) {
+    if (TargetOpts.getDecimalFloatingPointMode() == llvm::DecimalFloatMode::BID)
+      Options.DFPEncoding = llvm::DecimalFloatMode::BID;
+    else if (TargetOpts.getDecimalFloatingPointMode() ==
+             llvm::DecimalFloatMode::DPD)
+      Options.DFPEncoding = llvm::DecimalFloatMode::DPD;
+  }
   Options.BinutilsVersion =
       llvm::TargetMachine::parseBinutilsVersion(CodeGenOpts.BinutilsVersion);
   Options.UseInitArray = CodeGenOpts.UseInitArray;
