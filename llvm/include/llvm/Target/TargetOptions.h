@@ -404,6 +404,8 @@ namespace llvm {
     /// Which debugger to tune for.
     DebuggerKind DebuggerTuning = DebuggerKind::Default;
 
+    llvm::DecimalFloatMode DFPEncoding = llvm::DecimalFloatMode::None;
+
   private:
     /// Flushing mode to assume in default FP environment.
     DenormalMode FPDenormalMode;

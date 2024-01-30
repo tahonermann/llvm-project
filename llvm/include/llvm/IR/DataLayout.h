@@ -24,6 +24,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/FloatingPointMode.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Alignment.h"
@@ -119,6 +120,8 @@ private:
   /// Defaults to false.
   bool BigEndian;
 
+  llvm::DecimalFloatMode DFPEncoding;
+
   unsigned AllocaAddrSpace;
   MaybeAlign StackNaturalAlign;
   unsigned ProgramAddrSpace;
@@ -205,6 +208,7 @@ public:
     clear();
     StringRepresentation = DL.StringRepresentation;
     BigEndian = DL.isBigEndian();
+    DFPEncoding = DL.DFPEncoding;
     AllocaAddrSpace = DL.AllocaAddrSpace;
     StackNaturalAlign = DL.StackNaturalAlign;
     FunctionPtrAlign = DL.FunctionPtrAlign;
