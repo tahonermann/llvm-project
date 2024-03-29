@@ -13,6 +13,7 @@
 #include "ToolChains/CommonArgs.h"
 #include "ToolChains/Flang.h"
 #include "ToolChains/InterfaceStubs.h"
+#include "clang/Basic/DFPOptions.h"
 #include "clang/Basic/ObjCRuntime.h"
 #include "clang/Basic/Sanitizers.h"
 #include "clang/Config/config.h"
@@ -1061,6 +1062,42 @@ ToolChain::UnwindLibType ToolChain::GetUnwindLibType(
   }
 
   return *unwindLibType;
+}
+
+ToolChain::DFPLibType ToolChain::GetDFPLibType(const ArgList &Args) const{
+  NEEDS WORK
+  if (dfpLibType)
+    return *dfpLibType;
+
+  std::optional<DFPLibOption> DFPLibOpt;
+  const Arg *A = Args.getLastArg(options::OPT_dfplib_EQ);
+  if (A) {
+    DFPLibOpt = getDFPLibOptionFromSpelling(A->getValue());
+    if (!DFPLibOpt.has_value())
+      getDriver().Diag(diag::err_drv_invalid_dfplib_name)
+          << A->getAsString(Args);
+  }
+  if (!DFPLibOpt.has_value())
+    DFPLibOpt = DFPLibOption::Default;
+
+  if (*DFPLibOpt == DFPLibOption::Default)
+    dfpLibType = GetDefaultDFPLibType();
+  else
+    dfpLibType = GetDFPLibTypeForDFPLibOption(*DFPLibOpt);
+
+  if (!dfpLibType.has_value()) {
+    getDriver().Diag(diag::err_drv_unsupported_dfplib_for_target)
+        << getSpellingOfDFPLibOption(*DFPLibOpt)
+        << getTriple().str();
+    dfpLibType = ToolChain::DFPLT_None;
+  }
+
+  return *dfpLibType;
+}
+
+std::optional<DFPLibType>
+ToolChain::GetDFPLibTypeForDFPLibOption(DFPLibOption DFPLibOpt) const {
+  NEEDS WORK
 }
 
 ToolChain::CXXStdlibType ToolChain::GetCXXStdlibType(const ArgList &Args) const{

@@ -331,6 +331,31 @@ protected:
       Builder.defineMacro("__FLOAT128__");
   }
 
+  bool setDecimalFloatingPointMode(DFPLibImpl LibImpl) override {
+    switch (LibImpl) {
+    case DFPLibImpl::None:
+    case DFPLibImpl::CompilerRT:
+    case DFPLibImpl::Libgcc_DPD:
+      return false;
+    case DFPLibImpl::Default:
+      // The default is always supported, but does not necessarily enable
+      // DFP support. DFP support for Android is pending the availability
+      // of a DFP run-time library.
+      if (!this->getTriple().isAndroid() && this->getTriple().isX86())
+        this->DecimalFloatEnablementAndMode = DecimalFloatMode::BID;
+      return true;
+    case DFPLibImpl::Libgcc:
+    case DFPLibImpl::Libgcc_BID:
+      // Android NDK r23 and later no longer provide libgcc.
+      if (!this->getTriple().isAndroid() && this->getTriple().isX86()) {
+        this->DecimalFloatEnablementAndMode = DecimalFloatMode::BID;
+        return true;
+      }
+      return false;
+    }
+    llvm_unreachable("Unknown decimal floating-point implementation");
+  }
+
 public:
   LinuxTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {
@@ -352,12 +377,6 @@ public:
     case llvm::Triple::x86:
     case llvm::Triple::x86_64:
       this->HasFloat128 = true;
-      if (!Triple.isAndroid()) {
-        // Android NDK r23 and later no longer provide libgcc. DFP support
-        // for Android is therefore not enabled by default pending the
-        // availability of a different DFP run-time library.
-        this->DecimalFloatEnablementAndMode = DecimalFloatMode::BID;
-      }
       break;
     }
   }

@@ -190,7 +190,13 @@ struct APFloatBase {
     S_FloatTF32,
 
     S_x87DoubleExtended,
-    S_MaxSemantics = S_x87DoubleExtended,
+
+    // Decimal floating-point types,
+    S_Decimal32,
+    S_Decimal64,
+    S_Decimal128,
+
+    S_MaxSemantics = S_Decimal128,
   };
 
   static const llvm::fltSemantics &EnumToSemantics(Semantics S);

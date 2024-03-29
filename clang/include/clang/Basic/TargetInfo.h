@@ -17,6 +17,7 @@
 #include "clang/Basic/AddressSpaces.h"
 #include "clang/Basic/BitmaskEnum.h"
 #include "clang/Basic/CodeGenOptions.h"
+#include "clang/Basic/DFPOptions.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Basic/LangOptions.h"
 #include "clang/Basic/Specifiers.h"
@@ -735,6 +736,23 @@ public:
     assert(hasDecimalFloatingPoint() &&
            "Decimal floating-point extensions are not enabled");
     return DecimalFloatEnablementAndMode.value();
+  }
+
+  /// Set the DFP run-time implementation to use. Overriders are required
+  /// to return true and set DecimalFloatEnablementAndMode as appropriate for
+  /// supported implementations and to return false when called for an
+  /// unsupported implementation. When called with DFPLibImpl::Default,
+  /// overriders must return true; if DFP support is not enabled by default,
+  /// then DecimalFloatEnablementAndMode should be reset (use of the
+  /// '-dfplib=default' option with a target that does not support DFP
+  /// extensions should not provoke an error).
+  virtual bool setDecimalFloatingPointMode(DFPLibImpl LibImpl) {
+    if (LibImpl == DFPLibImpl::Default) {
+      // DFP support is disabled by default.
+      DecimalFloatEnablementAndMode.reset();
+      return true;
+    }
+    return false;
   }
 
   /// Return the alignment that is the largest alignment ever used for any

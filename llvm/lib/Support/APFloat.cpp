@@ -97,11 +97,14 @@ enum class fltNanEncoding {
 
 /* Represents floating point arithmetic semantics.  */
 struct fltSemantics {
-  /* The largest E such that 2^E is representable; this matches the
+  // FIXME: Add a radix member.
+  /* The radix R ... */
+
+  /* The largest E such that R^E is representable; this matches the
      definition of IEEE 754.  */
   APFloatBase::ExponentType maxExponent;
 
-  /* The smallest E such that 2^E is a normalized number; this
+  /* The smallest E such that R^E is a normalized number; this
      matches the definition of IEEE 754.  */
   APFloatBase::ExponentType minExponent;
 

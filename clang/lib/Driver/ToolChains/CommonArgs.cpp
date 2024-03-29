@@ -1869,6 +1869,7 @@ static void AddLibgcc(const ToolChain &TC, const Driver &D,
       (LGT == LibGccType::UnspecifiedLibGcc && !D.CCCIsCXX()))
     CmdArgs.push_back("-lgcc");
   AddUnwindLibrary(TC, D, CmdArgs, Args);
+  AddDFPLibrary(TC, D, CmdArgs Args);
   if (LGT == LibGccType::SharedLibGcc ||
       (LGT == LibGccType::UnspecifiedLibGcc && D.CCCIsCXX()))
     CmdArgs.push_back("-lgcc");
@@ -1883,6 +1884,7 @@ void tools::AddRunTimeLibs(const ToolChain &TC, const Driver &D,
   case ToolChain::RLT_CompilerRT:
     CmdArgs.push_back(TC.getCompilerRTArgString(Args, "builtins"));
     AddUnwindLibrary(TC, D, CmdArgs, Args);
+    AddDFPLibrary(TC, D, CmdArgs Args);
     break;
   case ToolChain::RLT_Libgcc:
     // Make sure libgcc is not used under MSVC environment by default

@@ -9,6 +9,7 @@
 #ifndef LLVM_CLANG_DRIVER_TOOLCHAIN_H
 #define LLVM_CLANG_DRIVER_TOOLCHAIN_H
 
+#include "clang/Basic/DFPOptions.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Basic/LangOptions.h"
 #include "clang/Basic/Sanitizers.h"
@@ -98,6 +99,13 @@ public:
     CST_Libstdcxx
   };
 
+  enum DFPLibType {
+    DFPLT_None,
+    DFPLT_CompilerRT,
+    DFPLT_Libgcc_BID,
+    DFPLT_Libgcc_DPD,
+  };
+
   enum RuntimeLibType {
     RLT_CompilerRT,
     RLT_Libgcc
@@ -183,6 +191,7 @@ private:
   }
 
   mutable std::optional<CXXStdlibType> cxxStdlibType;
+  mutable std::optional<DFPLibType> dfpLibType;
   mutable std::optional<RuntimeLibType> runtimeLibType;
   mutable std::optional<UnwindLibType> unwindLibType;
 
@@ -483,6 +492,10 @@ public:
     return ToolChain::CST_Libstdcxx;
   }
 
+  virtual DFPLibType GetDefaultDFPLibType() const {
+    return ToolChain::DFPLT_None;
+  }
+
   virtual UnwindLibType GetDefaultUnwindLibType() const {
     return ToolChain::UNW_None;
   }
@@ -673,6 +686,16 @@ public:
   // GetCXXStdlibType - Determine the C++ standard library type to use with the
   // given compilation arguments.
   virtual CXXStdlibType GetCXXStdlibType(const llvm::opt::ArgList &Args) const;
+
+  // GetDFPLibType - Determine the DFP library type to use with the given
+  // compilation arguments. A disengaged value is returned if the arguments
+  // specify an unsupported DFP library option.
+  virtual std::optional<DFPLibType>
+  GetDFPLibType(const llvm::opt::ArgList &Args) const;
+
+  // GetDFPLibTypeForDFPLibOption - 
+  virtual std::optional<DFPLibType>
+  GetDFPLibTypeForDFPLibOption(DFPLibOption DFPLibOpt) const;
 
   // GetUnwindLibType - Determine the unwind library type to use with the
   // given compilation arguments.

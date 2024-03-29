@@ -5735,6 +5735,9 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
 
   RenderTargetOptions(Triple, Args, KernelOrKext, CmdArgs);
 
+  // Add decimal floating-point extension arguments.
+  Args.AddLastArg(CmdArgs, options::OPT_dfplib_EQ);
+
   // Add clang-cl arguments.
   types::ID InputType = Input.getType();
   if (D.IsCLMode())
