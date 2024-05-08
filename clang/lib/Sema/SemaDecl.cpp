@@ -15880,6 +15880,11 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
            diag::err_sycl_entry_point_invalid)
           << /*coroutine*/7;
       FD->setInvalidDecl();
+    } else if (Body) {
+      StmtResult SR = SYCL().BuildSYCLKernelCallStmt(FD, Body);
+      if (SR.isInvalid())
+        return nullptr;
+      Body = SR.get();
     }
   }
 

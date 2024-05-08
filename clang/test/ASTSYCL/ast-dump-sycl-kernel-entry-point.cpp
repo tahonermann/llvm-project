@@ -143,7 +143,7 @@ void skep6() {
 // CHECK:      |-FunctionDecl {{.*}} skep6 'void ()'
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
 // CHECK:      |-FunctionDecl {{.*}} prev {{.*}} skep6 'void ()'
-// CHECK:      | |-CompoundStmt {{.*}}
+// CHECK:      | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
 
 // Ensure that matching attributes from the same declaration are ok.
@@ -151,7 +151,7 @@ void skep6() {
 void skep7() {
 }
 // CHECK:      |-FunctionDecl {{.*}} skep7 'void ()'
-// CHECK:      | |-CompoundStmt {{.*}}
+// CHECK:      | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | |-SYCLKernelEntryPointAttr {{.*}} KN<7>
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<7>
 
