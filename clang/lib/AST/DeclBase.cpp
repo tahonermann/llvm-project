@@ -962,6 +962,7 @@ unsigned Decl::getIdentifierNamespaceForKind(Kind DeclKind) {
     case PragmaDetectMismatch:
     case Block:
     case Captured:
+    case OutlinedFunction:
     case TranslationUnit:
     case ExternCContext:
     case Decomposition:
@@ -1216,6 +1217,8 @@ template <class T> static Decl *getNonClosureContext(T *D) {
     return getNonClosureContext(BD->getParent());
   if (auto *CD = dyn_cast<CapturedDecl>(D))
     return getNonClosureContext(CD->getParent());
+  if (auto *OFD = dyn_cast<OutlinedFunctionDecl>(D))
+    return getNonClosureContext(OFD->getParent());
   return nullptr;
 }
 
@@ -1408,6 +1411,7 @@ DeclContext *DeclContext::getPrimaryContext() {
   case Decl::TopLevelStmt:
   case Decl::Block:
   case Decl::Captured:
+  case Decl::OutlinedFunction:
   case Decl::OMPDeclareReduction:
   case Decl::OMPDeclareMapper:
   case Decl::RequiresExprBody:

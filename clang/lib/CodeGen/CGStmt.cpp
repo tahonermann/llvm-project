@@ -173,6 +173,9 @@ void CodeGenFunction::EmitStmt(const Stmt *S, ArrayRef<const Attr *> Attrs) {
     EmitCapturedStmt(*CS, CS->getCapturedRegionKind());
     }
     break;
+  case Stmt::SYCLKernelCallStmtClass:
+    // FIXME: Implement emit of SYCL kernel call statements.
+    llvm_unreachable("SYCL kernel call statements are not supported yet.");
   case Stmt::ObjCAtTryStmtClass:
     EmitObjCAtTryStmt(cast<ObjCAtTryStmt>(*S));
     break;
