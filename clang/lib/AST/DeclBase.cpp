@@ -923,6 +923,7 @@ unsigned Decl::getIdentifierNamespaceForKind(Kind DeclKind) {
     case PragmaDetectMismatch:
     case Block:
     case Captured:
+    case OutlinedFunction:
     case TranslationUnit:
     case ExternCContext:
     case Decomposition:

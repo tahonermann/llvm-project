@@ -580,6 +580,10 @@ public:
 
   void VisitTopLevelStmtDecl(const TopLevelStmtDecl *D) { Visit(D->getStmt()); }
 
+  void VisitOutlinedFunctionDecl(const OutlinedFunctionDecl *D) {
+    Visit(D->getBody());
+  }
+
   void VisitCapturedDecl(const CapturedDecl *D) { Visit(D->getBody()); }
 
   void VisitOMPThreadPrivateDecl(const OMPThreadPrivateDecl *D) {
@@ -801,6 +805,10 @@ public:
 
   void VisitCapturedStmt(const CapturedStmt *Node) {
     Visit(Node->getCapturedDecl());
+  }
+
+  void VisitSYCLKernelCallStmt(const SYCLKernelCallStmt *Node) {
+    Visit(Node->getOutlinedFunctionDecl());
   }
 
   void VisitOMPExecutableDirective(const OMPExecutableDirective *Node) {

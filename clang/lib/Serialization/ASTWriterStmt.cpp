@@ -608,6 +608,12 @@ void ASTStmtWriter::VisitCapturedStmt(CapturedStmt *S) {
   Code = serialization::STMT_CAPTURED;
 }
 
+void ASTStmtWriter::VisitSYCLKernelCallStmt(SYCLKernelCallStmt *S) {
+  VisitStmt(S);
+  Record.AddStmt(S->getOriginalStmt());
+  Record.AddDeclRef(S->getOutlinedFunctionDecl());
+}
+
 void ASTStmtWriter::VisitExpr(Expr *E) {
   VisitStmt(E);
 
