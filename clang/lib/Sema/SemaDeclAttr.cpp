@@ -8806,6 +8806,10 @@ static void handleSYCLKernelAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   handleSimpleAttribute<SYCLKernelAttr>(S, D, AL);
 }
 
+static void handleSYCLKernelEntryPointAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  // FIXME: Implement handleSYCLKernelEntryPointAttr().
+}
+
 static void handleDestroyAttr(Sema &S, Decl *D, const ParsedAttr &A) {
   if (!cast<VarDecl>(D)->hasGlobalStorage()) {
     S.Diag(D->getLocation(), diag::err_destroy_attr_on_non_static_var)
@@ -9428,6 +9432,9 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
     break;
   case ParsedAttr::AT_SYCLKernel:
     handleSYCLKernelAttr(S, D, AL);
+    break;
+  case ParsedAttr::AT_SYCLKernelEntryPoint:
+    handleSYCLKernelEntryPointAttr(S, D, AL);
     break;
   case ParsedAttr::AT_SYCLSpecialClass:
     handleSimpleAttribute<SYCLSpecialClassAttr>(S, D, AL);

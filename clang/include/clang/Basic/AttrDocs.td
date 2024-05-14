@@ -455,6 +455,13 @@ The SYCL kernel in the previous code sample meets these expectations.
   }];
 }
 
+def SYCLKernelEntryPointDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+FIXME
+  }];
+}
+
 def SYCLSpecialClassDocs : Documentation {
   let Category = DocCatStmt;
   let Content = [{
