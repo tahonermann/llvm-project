@@ -54,6 +54,7 @@
 #include "clang/Sema/SemaPPC.h"
 #include "clang/Sema/SemaRISCV.h"
 #include "clang/Sema/SemaSwift.h"
+#include "clang/Sema/SemaSYCL.h"
 #include "clang/Sema/SemaWasm.h"
 #include "clang/Sema/Template.h"
 #include "llvm/ADT/STLForwardCompat.h"
@@ -3015,6 +3016,16 @@ static void checkNewAttributesAfterDef(Sema &S, Decl *New, const Decl *Old) {
     } else if (isa<OMPDeclareVariantAttr>(NewAttribute)) {
       // We allow to add OMP[Begin]DeclareVariantAttr to be added to
       // declarations after definitions.
+      ++I;
+      continue;
+    } else if (isa<SYCLKernelEntryPointAttr>(NewAttribute)) {
+      // Elevate latent uses of the sycl_kernel_entry_point attribute to an
+      // error since the definition will have already been created without
+      // the semantic effects of the attribute having been applied.
+      S.Diag(NewAttribute->getLocation(),
+             diag::err_sycl_entry_point_after_definition);
+      S.Diag(Def->getLocation(), diag::note_previous_definition);
+      New->setInvalidDecl();
       ++I;
       continue;
     }
@@ -12053,6 +12064,9 @@ bool Sema::CheckFunctionDeclaration(Scope *S, FunctionDecl *NewFD,
   if (LangOpts.OpenMP)
     OpenMP().ActOnFinishedFunctionDefinitionInOpenMPAssumeScope(NewFD);
 
+  if (LangOpts.isSYCL() && NewFD->hasAttr<SYCLKernelEntryPointAttr>())
+    SYCL().CheckSYCLEntryPointFunctionDecl(NewFD);
+
   // Semantic checking for this function declaration (in isolation).
 
   if (getLangOpts().CPlusPlus) {
@@ -12281,6 +12295,13 @@ void Sema::CheckMain(FunctionDecl *FD, const DeclSpec &DS) {
   if (getLangOpts().OpenCL) {
     Diag(FD->getLocation(), diag::err_opencl_no_main)
         << FD->hasAttr<OpenCLKernelAttr>();
+    FD->setInvalidDecl();
+    return;
+  }
+
+  if (getLangOpts().isSYCL() && FD->hasAttr<SYCLKernelEntryPointAttr>()) {
+    Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+         diag::err_sycl_entry_point_on_main);
     FD->setInvalidDecl();
     return;
   }
@@ -15839,6 +15860,27 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
       CheckCompletedCoroutineBody(FD, Body);
     else
       CheckCoroutineWrapper(FD);
+  }
+
+  // Create SYCL kernel entry point function outline.
+  if (FD && !FD->isInvalidDecl() && !FD->isDependentContext() &&
+      FD->hasAttr<SYCLKernelEntryPointAttr>()) {
+    if (FD->isDeleted()) {
+      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+           diag::err_sycl_entry_point_invalid)
+          << /*deleted function*/2;
+      FD->setInvalidDecl();
+    } else if (FD->isDefaulted()) {
+      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+           diag::err_sycl_entry_point_invalid)
+          << /*defaulted function*/3;
+      FD->setInvalidDecl();
+    } else if (FSI->isCoroutine()) {
+      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+           diag::err_sycl_entry_point_invalid)
+          << /*coroutine*/7;
+      FD->setInvalidDecl();
+    }
   }
 
   {
