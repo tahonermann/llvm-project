@@ -8807,7 +8807,11 @@ static void handleSYCLKernelAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
 }
 
 static void handleSYCLKernelEntryPointAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
-  // FIXME: Implement handleSYCLKernelEntryPointAttr().
+  ParsedType PT = AL.getTypeArg();
+  TypeSourceInfo *TSI = nullptr;
+  (void)S.GetTypeFromParser(PT, &TSI);
+  assert(TSI && "no type source info for attribute argument");
+  D->addAttr(::new (S.Context) SYCLKernelEntryPointAttr(S.Context, AL, TSI));
 }
 
 static void handleDestroyAttr(Sema &S, Decl *D, const ParsedAttr &A) {

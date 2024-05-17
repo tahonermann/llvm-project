@@ -7,7 +7,7 @@
 // "Naming of kernels", of the SYCL 2020 specification.
 
 // Entities used to validate kernel name arguments.
-struct S;
+struct S; // #S-decl
 typedef S TA1;
 using TA2 = S;
 template<int> struct ST; // #ST-decl
@@ -49,7 +49,7 @@ template<typename KN>
 template<int, typename KN>
 [[clang::sycl_kernel_entry_point(KN)]] void ok10();
 template<typename T>
-[[clang::sycl_kernel_entry_point(typename T::MS)]] void ok11() {}
+[[clang::sycl_kernel_entry_point(T)]] void ok11() {}
 template<>
 [[clang::sycl_kernel_entry_point(NS::NSS)]] void ok11<NS::NSS>() {}
 void ok() {
@@ -133,10 +133,24 @@ template<typename T>
 [[clang::sycl_kernel_entry_point(typename T::MS)]] void bad21() {}
 template void bad21<S2>();
 
+// FIXME: C++23 [temp.expl.spec]p12 states:
+// FIXME:   ... Similarly, attributes appearing in the declaration of a template
+// FIXME:   have no effect on an explicit specialization of that template.
+// FIXME: Clang currently instantiates and propagates attributes from a function
+// FIXME: template to its explicit specializations resulting in the following
+// FIXME: spurious error.
+// expected-error@+4 {{incomplete type 'S' named in nested name specifier}}
+// expected-note@+5 {{in instantiation of function template specialization 'bad22<S>' requested here}}
+// expected-note@#S-decl {{forward declaration of 'S'}}
 template<typename T>
-[[clang::sycl_kernel_entry_point(T)]] void bad22();
+[[clang::sycl_kernel_entry_point(typename T::not_found)]] void bad22() {}
+template<>
+void bad22<S>() {}
+
+template<typename T>
+[[clang::sycl_kernel_entry_point(T)]] void bad23();
 void f() {
   // FIXME-expected-error@+2 {{'sycl_kernel_entry_point' attribute argument must be a forward declarable class type}}
   struct LS;
-  bad22<LS>();
+  bad23<LS>();
 }
