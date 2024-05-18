@@ -112,5 +112,27 @@ void skep5<KN<5,-1>>(long long) {
 template void skep5<KN<5,4>>(int);
 // Checks are located with the primary template declaration above.
 
+// Ensure that matching attributes from multiple declarations are combined.
+[[clang::sycl_kernel_entry_point(KN<6>)]]
+void skep6();
+[[clang::sycl_kernel_entry_point(KN<6>)]]
+void skep6() {
+}
+// CHECK: |-FunctionDecl {{.*}} skep6 'void ()'
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
+// CHECK: |-FunctionDecl {{.*}} prev {{.*}} skep6 'void ()'
+// CHECK-NEXT: | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
+
+// FIXME: Merge matching attributes.
+// Ensure that matching attributes from the same declaration are combined.
+[[clang::sycl_kernel_entry_point(KN<7>), clang::sycl_kernel_entry_point(KN<7>)]]
+void skep7() {
+}
+// CHECK: |-FunctionDecl {{.*}} skep7 'void ()'
+// CHECK-NEXT: | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | |-SYCLKernelEntryPointAttr {{.*}} KN<7>
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<7>
+
 void the_end() {}
 // CHECK: `-FunctionDecl {{.*}} the_end 'void ()'

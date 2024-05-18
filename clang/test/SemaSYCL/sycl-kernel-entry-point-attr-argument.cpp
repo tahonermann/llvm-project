@@ -56,6 +56,9 @@ void ok() {
   ok9<struct LS1>();
   ok10<1, struct LS2>();
 }
+[[clang::sycl_kernel_entry_point(S)]] void ok12();
+[[clang::sycl_kernel_entry_point(S)]] void ok12() {}
+[[clang::sycl_kernel_entry_point(S), clang::sycl_kernel_entry_point(S)]] void ok13();
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,3 +157,12 @@ void f() {
   struct LS;
   bad23<LS>();
 }
+
+// FIXME: Inconsistent declarations are not diagnosed.
+// FIXME-expected-error@+2 {{}}
+[[clang::sycl_kernel_entry_point(S)]] void bad24();
+[[clang::sycl_kernel_entry_point(S2)]] void bad24() {}
+
+// FIXME: Inconsistent declarations are not diagnosed.
+// FIXME-expected-error@+2 {{}}
+[[clang::sycl_kernel_entry_point(S), clang::sycl_kernel_entry_point(S2)]] void bad25();
