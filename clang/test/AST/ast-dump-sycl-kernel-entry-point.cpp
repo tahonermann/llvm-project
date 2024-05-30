@@ -118,10 +118,10 @@ void skep6();
 [[clang::sycl_kernel_entry_point(KN<6>)]]
 void skep6() {
 }
-// CHECK: |-FunctionDecl {{.*}} skep6 'void ()'
+// CHECK:      |-FunctionDecl {{.*}} skep6 'void ()'
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
-// CHECK: |-FunctionDecl {{.*}} prev {{.*}} skep6 'void ()'
-// CHECK-NEXT: | |-CompoundStmt {{.*}}
+// CHECK:      |-FunctionDecl {{.*}} prev {{.*}} skep6 'void ()'
+// CHECK:      | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
 
 // FIXME: Merge matching attributes.
@@ -129,8 +129,8 @@ void skep6() {
 [[clang::sycl_kernel_entry_point(KN<7>), clang::sycl_kernel_entry_point(KN<7>)]]
 void skep7() {
 }
-// CHECK: |-FunctionDecl {{.*}} skep7 'void ()'
-// CHECK-NEXT: | |-CompoundStmt {{.*}}
+// CHECK:      |-FunctionDecl {{.*}} skep7 'void ()'
+// CHECK:      | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | |-SYCLKernelEntryPointAttr {{.*}} KN<7>
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<7>
 
