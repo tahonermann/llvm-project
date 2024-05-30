@@ -5425,7 +5425,7 @@ BlockDecl *BlockDecl::CreateDeserialized(ASTContext &C, GlobalDeclID ID) {
 
 
 OutlinedFunctionDecl::OutlinedFunctionDecl(DeclContext *DC, unsigned NumParams)
-    : Decl(OutlinedFunction, DC, SourceLocation()), DeclContext(Captured),
+    : Decl(OutlinedFunction, DC, SourceLocation()), DeclContext(OutlinedFunction),
       NumParams(NumParams), BodyAndNothrow(nullptr, false) {}
 
 OutlinedFunctionDecl *OutlinedFunctionDecl::Create(ASTContext &C, DeclContext *DC,
