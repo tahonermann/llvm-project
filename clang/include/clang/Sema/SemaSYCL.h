@@ -58,6 +58,8 @@ public:
                                        SourceLocation LParen,
                                        SourceLocation RParen,
                                        ParsedType ParsedTy);
+
+  StmtResult BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body);
 };
 
 } // namespace clang

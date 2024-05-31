@@ -50,6 +50,7 @@
 #include "clang/Sema/SemaInternal.h"
 #include "clang/Sema/SemaObjC.h"
 #include "clang/Sema/SemaOpenMP.h"
+#include "clang/Sema/SemaSYCL.h"
 #include "clang/Sema/Template.h"
 #include "llvm/ADT/STLForwardCompat.h"
 #include "llvm/ADT/SmallString.h"
@@ -16003,6 +16004,18 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
       CheckCompletedCoroutineBody(FD, Body);
     else
       CheckCoroutineWrapper(FD);
+  }
+
+  // Create SYCL kernel entry point function outline.
+  if (Body && FD && !FD->isDependentContext() &&
+      FD->hasAttr<SYCLKernelEntryPointAttr>()) {
+    // FIXME: Issue proper diagnostics for all of these scenarios.
+    assert(!FSI->isCoroutine());
+
+    StmtResult SR = SYCL().BuildSYCLKernelCallStmt(FD, Body);
+    if (SR.isInvalid())
+      return nullptr;
+    Body = SR.get();
   }
 
   {
