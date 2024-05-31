@@ -581,7 +581,6 @@ public:
   void VisitTopLevelStmtDecl(const TopLevelStmtDecl *D) { Visit(D->getStmt()); }
 
   void VisitOutlinedFunctionDecl(const OutlinedFunctionDecl *D) {
-    dumpDeclContext(D);
     for (const ImplicitParamDecl *Parameter : D->parameters())
       Visit(Parameter);
     Visit(D->getBody());
