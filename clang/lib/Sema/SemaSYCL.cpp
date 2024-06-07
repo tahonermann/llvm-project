@@ -8,6 +8,7 @@
 // This implements Semantic Analysis for SYCL constructs.
 //===----------------------------------------------------------------------===//
 
+#include "TreeTransform.h"
 #include "clang/Sema/SemaSYCL.h"
 #include "clang/AST/Mangle.h"
 #include "clang/AST/StmtSYCL.h"
@@ -158,6 +159,51 @@ ExprResult SemaSYCL::ActOnUniqueStableNameExpr(SourceLocation OpLoc,
   return BuildUniqueStableNameExpr(OpLoc, LParen, RParen, TSI);
 }
 
+namespace {
+
+// The body of a function declared with the [[sycl_kernel_entry_point]]
+// attribute is cloned and transformed to substitute references to the original
+// function parameters with references to replacement variables that stand in
+// for SYCL kernel parameters or local variables that reconstitute a decomposed
+// SYCL kernel argument.
+class OutlinedFunctionDeclBodyInstantiator
+    : public TreeTransform<OutlinedFunctionDeclBodyInstantiator> {
+public:
+  using ParmDeclMap = llvm::DenseMap<ParmVarDecl*, VarDecl*>;
+
+  OutlinedFunctionDeclBodyInstantiator(Sema &S, ParmDeclMap &M)
+      : TreeTransform<OutlinedFunctionDeclBodyInstantiator>(S),
+        SemaRef(S), MapRef(M) {}
+
+  // A new set of AST nodes is always required.
+  bool AlwaysRebuild() {
+    return true;
+  }
+
+  // Transform ParmVarDecl references to the supplied replacement variables.
+  ExprResult TransformDeclRefExpr(DeclRefExpr *DRE) {
+    const ParmVarDecl *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
+    if (PVD) {
+      ParmDeclMap::iterator I = MapRef.find(PVD);
+      if (I != MapRef.end()) {
+        VarDecl *VD = I->second;
+        VD->setIsUsed();
+        return DeclRefExpr::Create(
+            SemaRef.getASTContext(), DRE->getQualifierLoc(),
+            DRE->getTemplateKeywordLoc(), VD, false, DRE->getNameInfo(),
+            VD->getType(), DRE->getValueKind());
+      }
+    }
+    return DRE;
+  }
+
+private:
+  Sema &SemaRef;
+  ParmDeclMap &MapRef;
+};
+
+} // unnamed namespace
+
 StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   // FIXME: Issue proper diagnostics for all of these scenarios.
   if (auto *MD = dyn_cast<CXXMethodDecl>(FD))
@@ -172,40 +218,25 @@ StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   assert(!FD->isNoReturn());
   assert(FD->getReturnType()->isVoidType());
 
+  using ParmDeclMap = OutlinedFunctionDeclBodyInstantiator::ParmDeclMap;
+  ParmDeclMap ParmMap;
+
   assert(SemaRef.CurContext == FD);
   OutlinedFunctionDecl *OFD =
       OutlinedFunctionDecl::Create(getASTContext(), FD, FD->getNumParams());
   unsigned i = 0;
-  for (const auto &p : FD->parameters()) {
+  for (ParmVarDecl *PVD : FD->parameters()) {
     ImplicitParamDecl *IPD =
         ImplicitParamDecl::Create(getASTContext(), OFD, SourceLocation(),
-                                  p->getIdentifier(), p->getType(),
+                                  PVD->getIdentifier(), PVD->getType(),
                                   ImplicitParamKind::Other);
     OFD->setParam(i, IPD);
+    ParmMap[PVD] = IPD;
     ++i;
   }
 
-  // FIXME: For short-term testing purposes, a sequence of statements that
-  // FIXME: references each of the implicit parameter declarations is
-  // FIXME: generated.
-  SmallVector<Stmt *, 8> OFDBodyStmts;
-  i = 0;
-  for (const auto &p : FD->parameters()) {
-    QualType QT = p->getType().getNonReferenceType();
-    DeclRefExpr *DRE = new (getASTContext()) DeclRefExpr(getASTContext(),
-                                                         OFD->getParam(i),
-                /* RefersToEnclosingVariableOrCapture */ false,
-                                                         QT,
-                                                         VK_LValue,
-                                                         SourceLocation());
-    assert(DRE);
-    OFDBodyStmts.push_back(DRE);
-    ++i;
-  }
-
-  Stmt *OFDBody =
-      CompoundStmt::Create(getASTContext(), OFDBodyStmts, FPOptionsOverride(),
-                           SourceLocation(), SourceLocation());
+  OutlinedFunctionDeclBodyInstantiator OFDBodyInstantiator(SemaRef, ParmMap);
+  Stmt *OFDBody = OFDBodyInstantiator.TransformStmt(Body).get();
   OFD->setBody(OFDBody);
   OFD->setNothrow();
   Stmt *NewBody = new (getASTContext()) SYCLKernelCallStmt(Body, OFD);

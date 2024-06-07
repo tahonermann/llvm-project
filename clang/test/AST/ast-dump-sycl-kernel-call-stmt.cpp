@@ -22,7 +22,7 @@ template<int> struct KN;
 // A unique invocable type for use with each declared kernel entry point.
 template<int> struct K {
   template<typename... Ts>
-  void operator()(Ts...) const;
+  void operator()(Ts...) const {}
 };
 
 
@@ -69,9 +69,13 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: |   | |   `-ImplicitCastExpr {{.*}} 'const K<2>' lvalue <NoOp>
 // CHECK-NEXT: |   | |     `-DeclRefExpr {{.*}} 'K<2>' lvalue ParmVar {{.*}} 'k' 'K<2>'
 // CHECK-NEXT: |   | `-OutlinedFunctionDecl {{.*}}
-// CHECK-NEXT: |   |   |-ImplicitParamDecl {{.*}} implicit k 'K<2>'
+// CHECK-NEXT: |   |   |-ImplicitParamDecl {{.*}} implicit used k 'K<2>'
 // CHECK-NEXT: |   |   `-CompoundStmt {{.*}}
-// CHECK-NEXT: |   |     `-DeclRefExpr {{.*}} 'K<2>' lvalue ImplicitParam {{.*}} 'k' 'K<2>'
+// CHECK-NEXT: |   |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: |   |       |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: |   |       | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: |   |       `-ImplicitCastExpr {{.*}} 'const K<2>' lvalue <NoOp>
+// CHECK-NEXT: |   |         `-DeclRefExpr {{.*}} 'K<2>' lvalue ImplicitParam {{.*}} 'k' 'K<2>'
 // CHECK-NEXT: |   `-SYCLKernelEntryPointAttr {{.*}} KN<2>
 
 template<typename KNT, typename KT>
@@ -111,9 +115,13 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const K<3>' lvalue <NoOp>
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'K<3>' lvalue ParmVar {{.*}} 'k' 'K<3>'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
-// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit k 'K<3>'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<3>'
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
-// CHECK-NEXT: | |     `-DeclRefExpr {{.*}} 'K<3>' lvalue ImplicitParam {{.*}} 'k' 'K<3>'
+// CHECK-NEXT: | |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: | |       `-ImplicitCastExpr {{.*}} 'const K<3>' lvalue <NoOp>
+// CHECK-NEXT: | |         `-DeclRefExpr {{.*}} 'K<3>' lvalue ImplicitParam {{.*}} 'k' 'K<3>'
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<3>
 
 [[clang::sycl_kernel_entry_point(KN<4>)]]
@@ -136,14 +144,64 @@ void skep4(K<4> k, int p1, int p2) {
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'p2' 'int'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
-// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit k 'K<4>'
-// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit p1 'int'
-// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit p2 'int'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<4>'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used p1 'int'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used p2 'int'
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
-// CHECK-NEXT: | |     |-DeclRefExpr {{.*}} 'K<4>' lvalue ImplicitParam {{.*}} 'k' 'K<4>'
-// CHECK-NEXT: | |     |-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'p1' 'int'
-// CHECK-NEXT: | |     `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'p2' 'int'
+// CHECK-NEXT: | |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'void (*)(int, int) const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'void (int, int) const' lvalue CXXMethod {{.*}} 'operator()' 'void (int, int) const'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'const K<4>' lvalue <NoOp>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'K<4>' lvalue ImplicitParam {{.*}} 'k' 'K<4>'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'p1' 'int'
+// CHECK-NEXT: | |       `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |         `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'p2' 'int'
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<4>
+
+[[clang::sycl_kernel_entry_point(KN<5>)]]
+void skep5(int unused1, K<5> k, int unused2, int p, int unused3) {
+  static int slv = 0;
+  int lv = 4;
+  k(slv, 1, p, 3, lv, 5, []{ return 6; });
+}
+// CHECK:      |-FunctionDecl {{.*}} skep5 'void (int, K<5>, int, int, int)'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} unused1 'int'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} used k 'K<5>'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} unused2 'int'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} used p 'int'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} unused3 'int'
+// CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | |-CompoundStmt {{.*}}
+// CHECK:      | | `-OutlinedFunctionDecl {{.*}}
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit unused1 'int'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<5>'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit unused2 'int'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used p 'int'
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit unused3 'int'
+// CHECK-NEXT: | |   `-CompoundStmt {{.*}}
+// CHECK-NEXT: | |     |-DeclStmt {{.*}}
+// CHECK-NEXT: | |     | `-VarDecl {{.*}} used slv 'int' static cinit
+// CHECK-NEXT: | |     |   `-IntegerLiteral {{.*}} 'int' 0
+// CHECK-NEXT: | |     |-DeclStmt {{.*}}
+// CHECK-NEXT: | |     | `-VarDecl {{.*}} used lv 'int' cinit
+// CHECK-NEXT: | |     |   `-IntegerLiteral {{.*}} 'int' 4
+// CHECK-NEXT: | |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'void (*)(int, int, int, int, int, int, (lambda {{.*}}) const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'void (int, int, int, int, int, int, (lambda {{.*}})) const' lvalue CXXMethod {{.*}} 'operator()' 'void (int, int, int, int, int, int, (lambda {{.*}})) const'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'const K<5>' lvalue <NoOp>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'K<5>' lvalue ImplicitParam {{.*}} 'k' 'K<5>'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'int' lvalue Var {{.*}} 'slv' 'int'
+// CHECK-NEXT: | |       |-IntegerLiteral {{.*}} 'int' 1
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'p' 'int'
+// CHECK-NEXT: | |       |-IntegerLiteral {{.*}} 'int' 3
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'int' lvalue Var {{.*}} 'lv' 'int'
+// CHECK-NEXT: | |       |-IntegerLiteral {{.*}} 'int' 5
+// CHECK-NEXT: | |       `-LambdaExpr {{.*}} '(lambda {{.*}})'
+// CHECK:      | `-SYCLKernelEntryPointAttr {{.*}} KN<5>
 
 void the_end() {}
 // CHECK:      `-FunctionDecl {{.*}} the_end 'void ()'
