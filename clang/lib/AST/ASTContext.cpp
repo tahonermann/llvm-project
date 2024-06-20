@@ -11983,6 +11983,18 @@ bool ASTContext::DeclMustBeEmitted(const Decl *D) {
   if (D->hasAttr<WeakRefAttr>())
     return false;
 
+  // SYCL kernel entry point functions are used to generate and emit
+  // the offload kernel.
+  if (LangOpts.SYCLIsDevice) {
+    if (D->hasAttr<SYCLKernelEntryPointAttr>())
+      return true;
+    // FIXME: Existing tests fail if we limit emission to the kernel caller
+    // function and functions called from it. Once the sycl_device attribute
+    // is implemented, modify this check (and tests) to include it and
+    // return false.
+    // return false;
+  }
+
   // Aliases and used decls are required.
   if (D->hasAttr<AliasAttr>() || D->hasAttr<UsedAttr>())
     return true;
