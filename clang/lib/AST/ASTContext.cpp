@@ -1263,6 +1263,14 @@ void ASTContext::InitBuiltinTypes(const TargetInfo &Target,
   InitBuiltinType(SatUnsignedFractTy,      BuiltinType::SatUFract);
   InitBuiltinType(SatUnsignedLongFractTy,  BuiltinType::SatULongFract);
 
+  InitBuiltinType(DecimalFloat32Ty, BuiltinType::DecimalFloatBID32);
+  InitBuiltinType(DecimalFloat64Ty, BuiltinType::DecimalFloatBID64);
+  InitBuiltinType(DecimalFloat128Ty, BuiltinType::DecimalFloatBID128);
+
+  InitBuiltinType(DecimalFloatDPD32Ty, BuiltinType::DecimalFloatDPD32);
+  InitBuiltinType(DecimalFloatDPD64Ty, BuiltinType::DecimalFloatDPD64);
+  InitBuiltinType(DecimalFloatDPD128Ty, BuiltinType::DecimalFloatDPD128);
+
   // GNU extension, 128-bit integers.
   InitBuiltinType(Int128Ty,            BuiltinType::Int128);
   InitBuiltinType(UnsignedInt128Ty,    BuiltinType::UInt128);
@@ -1628,6 +1636,18 @@ const llvm::fltSemantics &ASTContext::getFloatTypeSemantics(QualType T) const {
     if (getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice)
       return AuxTarget->getFloat128Format();
     return Target->getFloat128Format();
+  case BuiltinType::DecimalFloatBID32:
+    return Target->getDecimalFloatBID32Format();
+  case BuiltinType::DecimalFloatDPD32:
+    return Target->getDecimalFloatDPD32Format();
+  case BuiltinType::DecimalFloatBID64:
+    return Target->getDecimalFloatBID64Format();
+  case BuiltinType::DecimalFloatDPD64:
+    return Target->getDecimalFloatDPD64Format();
+  case BuiltinType::DecimalFloatBID128:
+    return Target->getDecimalFloatBID128Format();
+  case BuiltinType::DecimalFloatDPD128:
+    return Target->getDecimalFloatDPD128Format();  
   }
 }
 
@@ -2101,6 +2121,21 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     case BuiltinType::Ibm128:
       Width = Target->getIbm128Width();
       Align = Target->getIbm128Align();
+      break;
+    case BuiltinType::DecimalFloatBID32:
+    case BuiltinType::DecimalFloatDPD32:
+      Width = Target->getDecimalFloat32Width();
+      Align = Target->getDecimalFloat32Align();
+      break;  
+    case BuiltinType::DecimalFloatBID64:
+    case BuiltinType::DecimalFloatDPD64:
+      Width = Target->getDecimalFloat64Width();
+      Align = Target->getDecimalFloat64Align();
+      break;  
+    case BuiltinType::DecimalFloatBID128:
+    case BuiltinType::DecimalFloatDPD128:
+      Width = Target->getDecimalFloat128Width();
+      Align = Target->getDecimalFloat128Align();
       break;
     case BuiltinType::LongDouble:
       if (getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice &&
@@ -8140,6 +8175,12 @@ static char getObjCEncodingForPrimitiveType(const ASTContext *C,
     case BuiltinType::SatUShortFract:
     case BuiltinType::SatUFract:
     case BuiltinType::SatULongFract:
+    case BuiltinType::DecimalFloatBID32:
+    case BuiltinType::DecimalFloatDPD32:
+    case BuiltinType::DecimalFloatBID64:
+    case BuiltinType::DecimalFloatDPD64:
+    case BuiltinType::DecimalFloatBID128:
+    case BuiltinType::DecimalFloatDPD128:
       // FIXME: potentially need @encodes for these!
       return ' ';
 

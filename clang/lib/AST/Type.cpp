@@ -2238,9 +2238,16 @@ bool Type::hasUnsignedIntegerRepresentation() const {
 bool Type::isFloatingType() const {
   if (const auto *BT = dyn_cast<BuiltinType>(CanonicalType))
     return BT->getKind() >= BuiltinType::Half &&
-           BT->getKind() <= BuiltinType::Ibm128;
+           BT->getKind() <= BuiltinType::DecimalFloatDPD128;
   if (const auto *CT = dyn_cast<ComplexType>(CanonicalType))
     return CT->getElementType()->isFloatingType();
+  return false;
+}
+
+bool Type::isDecimalFloatType() const {
+  if (const auto *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->getKind() >= BuiltinType::DecimalFloatBID32 &&
+           BT->getKind() <= BuiltinType::DecimalFloatDPD128;
   return false;
 }
 
@@ -2270,7 +2277,7 @@ bool Type::isRealType() const {
 bool Type::isArithmeticType() const {
   if (const auto *BT = dyn_cast<BuiltinType>(CanonicalType))
     return BT->getKind() >= BuiltinType::Bool &&
-           BT->getKind() <= BuiltinType::Ibm128;
+           BT->getKind() <= BuiltinType::DecimalFloatDPD128;
   if (const auto *ET = dyn_cast<EnumType>(CanonicalType))
     // GCC allows forward declaration of enum types (forbid by C99 6.7.2.3p2).
     // If a body isn't seen by the time we get here, return false.
@@ -3379,6 +3386,15 @@ StringRef BuiltinType::getName(const PrintingPolicy &Policy) const {
     return "__float128";
   case Ibm128:
     return "__ibm128";
+  case DecimalFloatBID32:
+  case DecimalFloatDPD32:
+    return "_Decimal32";
+  case DecimalFloatBID64:
+  case DecimalFloatDPD64:
+    return "_Decimal64";
+  case DecimalFloatBID128:
+  case DecimalFloatDPD128:
+    return "_Decimal128";
   case WChar_S:
   case WChar_U:
     return Policy.MSWChar ? "__wchar_t" : "wchar_t";

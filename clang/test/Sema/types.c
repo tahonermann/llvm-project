@@ -48,7 +48,9 @@ enum e { e_1 };
 extern int j[sizeof(enum e)];  // expected-note {{previous declaration}}
 int j[42];   // expected-error {{redefinition of 'j' with a different type: 'int[42]' vs 'int[4]'}}
 
-_Decimal32 x;  // expected-error {{GNU decimal type extension not supported}}
+_Decimal32 x;
+_Decimal64 y;
+_Decimal128 z;
 
 int __attribute__ ((vector_size (8), vector_size (8))) v;  // expected-error {{invalid vector element type}}
 

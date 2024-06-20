@@ -2479,6 +2479,7 @@ public:
   bool isBFloat16Type() const;
   bool isFloat128Type() const;
   bool isIbm128Type() const;
+  bool isDecimalFloatType() const;
   bool isRealType() const;         // C99 6.2.5p17 (real floating + integer)
   bool isArithmeticType() const;   // C99 6.2.5p18 (integer + floating)
   bool isVoidType() const;         // C99 6.2.5p19

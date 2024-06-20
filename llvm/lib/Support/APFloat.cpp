@@ -112,9 +112,13 @@ struct fltSemantics {
   /* Number of bits actually used in the semantics. */
   unsigned int sizeInBits;
 
+  APFloatBase::RadixAndFormat radixAndFormat = APFloatBase::BaseTwo;
+
   fltNonfiniteBehavior nonFiniteBehavior = fltNonfiniteBehavior::IEEE754;
 
   fltNanEncoding nanEncoding = fltNanEncoding::IEEE;
+
+
   // Returns true if any number described by this semantics can be precisely
   // represented by the specified semantics. Does not take into account
   // the value of fltNonfiniteBehavior.
@@ -131,15 +135,21 @@ static constexpr fltSemantics semIEEEdouble = {1023, -1022, 53, 64};
 static constexpr fltSemantics semIEEEquad = {16383, -16382, 113, 128};
 static constexpr fltSemantics semFloat8E5M2 = {15, -14, 3, 8};
 static constexpr fltSemantics semFloat8E5M2FNUZ = {
-    15, -15, 3, 8, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
+    15, -15, 3, 8, APFloatBase::BaseTwo, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
 static constexpr fltSemantics semFloat8E4M3FN = {
-    8, -6, 4, 8, fltNonfiniteBehavior::NanOnly, fltNanEncoding::AllOnes};
+    8, -6, 4, 8, APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly, fltNanEncoding::AllOnes};
 static constexpr fltSemantics semFloat8E4M3FNUZ = {
-    7, -7, 4, 8, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
+    7, -7, 4, 8, APFloatBase::BaseTwo, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
 static constexpr fltSemantics semFloat8E4M3B11FNUZ = {
-    4, -10, 4, 8, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
+    4, -10, 4, 8, APFloatBase::BaseTwo, fltNonfiniteBehavior::NanOnly, fltNanEncoding::NegativeZero};
 static constexpr fltSemantics semFloatTF32 = {127, -126, 11, 19};
 static constexpr fltSemantics semX87DoubleExtended = {16383, -16382, 64, 80};
+static constexpr fltSemantics semDFP32BID = {97, -94, 7, 32, APFloatBase::BaseTenBID};
+static constexpr fltSemantics semDFP32DPD = {97, -94, 7, 32, APFloatBase::BaseTenDPD};
+static constexpr fltSemantics semDFP64BID = {385, -382, 16, 64, APFloatBase::BaseTenBID};
+static constexpr fltSemantics semDFP64DPD = {385, -382, 16, 64, APFloatBase::BaseTenDPD};
+static constexpr fltSemantics semDFP128BID = {6145, -6142, 34, 128, APFloatBase::BaseTenBID};
+static constexpr fltSemantics semDFP128DPD = {6145, -6142, 34, 128, APFloatBase::BaseTenDPD};
 static constexpr fltSemantics semBogus = {0, 0, 0, 0};
 
 /* The IBM double-double semantics. Such a number consists of a pair of IEEE
@@ -208,6 +218,19 @@ const llvm::fltSemantics &APFloatBase::EnumToSemantics(Semantics S) {
     return FloatTF32();
   case S_x87DoubleExtended:
     return x87DoubleExtended();
+  case S_DFP32BID:
+    return DFP32BID();
+  case S_DFP32DPD:
+    return DFP32DPD();
+  case S_DFP64BID:
+    return DFP64BID();
+  case S_DFP64DPD:
+    return DFP64DPD();
+  case S_DFP128BID:
+    return DFP128BID();
+  case S_DFP128DPD:
+    return DFP128DPD();
+
   }
   llvm_unreachable("Unrecognised floating semantics");
 }
@@ -240,6 +263,11 @@ APFloatBase::SemanticsToEnum(const llvm::fltSemantics &Sem) {
     return S_FloatTF32;
   else if (&Sem == &llvm::APFloat::x87DoubleExtended())
     return S_x87DoubleExtended;
+  else if (&Sem == &llvm::APFloat::DFP32BID())
+    return S_DFP32BID;
+  else if (&Sem == &llvm::APFloat::DFP32DPD())
+    return S_DFP32DPD;
+
   else
     llvm_unreachable("Unknown floating semantics");
 }
@@ -263,6 +291,12 @@ const fltSemantics &APFloatBase::FloatTF32() { return semFloatTF32; }
 const fltSemantics &APFloatBase::x87DoubleExtended() {
   return semX87DoubleExtended;
 }
+const fltSemantics &APFloatBase::DFP32BID() {return semDFP32BID;}
+const fltSemantics &APFloatBase::DFP32DPD() {return semDFP32DPD;}
+const fltSemantics &APFloatBase::DFP64BID() {return semDFP64BID;}
+const fltSemantics &APFloatBase::DFP64DPD() {return semDFP64DPD;}
+const fltSemantics &APFloatBase::DFP128BID() {return semDFP128BID;}
+const fltSemantics &APFloatBase::DFP128DPD() {return semDFP128DPD;}
 const fltSemantics &APFloatBase::Bogus() { return semBogus; }
 
 constexpr RoundingMode APFloatBase::rmNearestTiesToEven;
@@ -316,6 +350,8 @@ unsigned int APFloatBase::semanticsIntSizeInBits(const fltSemantics &semantics,
 
 bool APFloatBase::isRepresentableAsNormalIn(const fltSemantics &Src,
                                             const fltSemantics &Dst) {
+  // FIXME implement for DFP
+  
   // Exponent range must be larger.
   if (Src.maxExponent >= Dst.maxExponent || Src.minExponent <= Dst.minExponent)
     return false;
@@ -330,6 +366,10 @@ bool APFloatBase::isRepresentableAsNormalIn(const fltSemantics &Src,
 
 unsigned APFloatBase::getSizeInBits(const fltSemantics &Sem) {
   return Sem.sizeInBits;
+}
+
+APFloatBase::RadixAndFormat getRadixAndFormat(const fltSemantics &Sem) {
+  return Sem.radixAndFormat;
 }
 
 static constexpr APFloatBase::ExponentType

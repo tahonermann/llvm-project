@@ -1170,11 +1170,13 @@ static QualType ConvertDeclSpecToType(TypeProcessingState &state) {
     Result = Context.BoolTy; // _Bool or bool
     break;
   case DeclSpec::TST_decimal32:    // _Decimal32
+    Result = Context.DecimalFloat32Ty;
+    break;
   case DeclSpec::TST_decimal64:    // _Decimal64
+    Result = Context.DecimalFloat64Ty;
+    break;
   case DeclSpec::TST_decimal128:   // _Decimal128
-    S.Diag(DS.getTypeSpecTypeLoc(), diag::err_decimal_unsupported);
-    Result = Context.IntTy;
-    declarator.setInvalidType(true);
+    Result = Context.DecimalFloat128Ty;
     break;
   case DeclSpec::TST_class:
   case DeclSpec::TST_enum:
