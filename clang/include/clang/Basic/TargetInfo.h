@@ -92,6 +92,9 @@ struct TransferrableTargetInfo {
   unsigned char FloatWidth, FloatAlign;
   unsigned char DoubleWidth, DoubleAlign;
   unsigned char LongDoubleWidth, LongDoubleAlign, Float128Align, Ibm128Align;
+  unsigned char DecimalFloat32Width, DecimalFloat32Align;
+  unsigned char DecimalFloat64Width, DecimalFloat64Align;
+  unsigned char DecimalFloat128Width, DecimalFloat128Align;
   unsigned char LargeArrayMinWidth, LargeArrayAlign;
   unsigned char LongWidth, LongAlign;
   unsigned char LongLongWidth, LongLongAlign;
@@ -136,7 +139,9 @@ struct TransferrableTargetInfo {
   unsigned MaxTLSAlign;
 
   const llvm::fltSemantics *HalfFormat, *BFloat16Format, *FloatFormat,
-      *DoubleFormat, *LongDoubleFormat, *Float128Format, *Ibm128Format;
+      *DoubleFormat, *LongDoubleFormat, *Float128Format, *Ibm128Format,
+      *DecimalFloatBID32Format, *DecimalFloatBID64Format, *DecimalFloatBID128Format,
+      *DecimalFloatDPD32Format, *DecimalFloatDPD64Format, *DecimalFloatDPD128Format;
 
   ///===---- Target Data Type Query Methods -------------------------------===//
   enum IntType {
@@ -793,6 +798,34 @@ public:
   const llvm::fltSemantics &getFloat128Format() const {
     return *Float128Format;
   }
+
+  unsigned getDecimalFloat32Width() const { return 32; }
+  unsigned getDecimalFloat32Align() const { return DecimalFloat32Align; }
+  const llvm::fltSemantics &getDecimalFloatBID32Format() const {
+    return *DecimalFloatBID32Format;
+  }
+  const llvm::fltSemantics &getDecimalFloatDPD32Format() const {
+    return *DecimalFloatDPD32Format;
+  }
+
+  unsigned getDecimalFloat64Width() const { return 64; }
+  unsigned getDecimalFloat64Align() const { return DecimalFloat64Align; }
+  const llvm::fltSemantics &getDecimalFloatBID64Format() const {
+    return *DecimalFloatBID64Format;
+  }
+  const llvm::fltSemantics &getDecimalFloatDPD64Format() const {
+    return *DecimalFloatDPD64Format;
+  }
+
+  unsigned getDecimalFloat128Width() const { return 128; }
+  unsigned getDecimalFloat128Align() const { return DecimalFloat128Align; }
+  const llvm::fltSemantics &getDecimalFloatBID128Format() const {
+    return *DecimalFloatBID128Format;
+  }
+  const llvm::fltSemantics &getDecimalFloatDPD128Format() const {
+    return *DecimalFloatDPD128Format;
+  }
+
 
   /// getIbm128Width/Align/Format - Return the size/align/format of
   /// '__ibm128'.

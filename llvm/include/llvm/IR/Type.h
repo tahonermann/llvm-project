@@ -60,6 +60,12 @@ public:
     X86_FP80TyID,  ///< 80-bit floating point type (X87)
     FP128TyID,     ///< 128-bit floating point type (112-bit significand)
     PPC_FP128TyID, ///< 128-bit floating point type (two 64-bits, PowerPC)
+    DecimalFloat32TyID,
+    DecimalFloatDPD32TyID,
+    DecimalFloat64TyID,
+    DecimalFloatDPD64TyID,
+    DecimalFloat128TyID,
+    DecimalFloatDPD128TyID,
     VoidTyID,      ///< type with no size
     LabelTyID,     ///< Labels
     MetadataTyID,  ///< Metadata

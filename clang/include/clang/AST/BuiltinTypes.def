@@ -221,6 +221,19 @@ FLOATING_TYPE(Float128, Float128Ty)
 // '__ibm128'
 FLOATING_TYPE(Ibm128, Ibm128Ty)
 
+// '_Decimal32'
+FLOATING_TYPE(DecimalFloatBID32, DecimalFloat32Ty)
+FLOATING_TYPE(DecimalFloatDPD32, DecimalFloatDPD32Ty)
+
+// '_Decimal64'
+FLOATING_TYPE(DecimalFloatBID64, DecimalFloat64Ty)
+FLOATING_TYPE(DecimalFloatDPD64, DecimalFloatDPD64Ty)
+
+// '_Decimal128'
+FLOATING_TYPE(DecimalFloatBID128, DecimalFloat128Ty)
+FLOATING_TYPE(DecimalFloatDPD128, DecimalFloatDPD128Ty)
+
+
 //===- Language-specific types --------------------------------------------===//
 
 // This is the type of C++0x 'nullptr'.
