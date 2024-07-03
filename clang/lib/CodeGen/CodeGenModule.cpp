@@ -3197,8 +3197,20 @@ void CodeGenModule::EmitDeferred() {
     if (LangOpts.OpenMP && OpenMPRuntime && OpenMPRuntime->emitTargetGlobal(D))
       continue;
 
-    // Otherwise, emit the definition and move on to the next one.
-    EmitGlobalDefinition(D, GV);
+    // If the Decl corresponds to a SYCL kernel entry point function, generate
+    // and emit the corresponding SYCL kernel caller function, i.e the
+    // offload kernel. Otherwise, emit the definition and move on to the next
+    // one.
+    const FunctionDecl *FD = nullptr;
+    if (LangOpts.SYCLIsDevice &&
+        (FD = D.getDecl()->getAsFunction()) != nullptr &&
+        FD->hasAttr<SYCLKernelEntryPointAttr>() &&
+        FD->isDefined()) {
+      // Generate and emit the offload kernel
+      EmitSYCLKernelCaller(FD, getContext());
+    } else {
+      EmitGlobalDefinition(D, GV);
+    }
 
     // If we found out that we need to emit more decls, do that recursively.
     // This has the advantage that the decls are emitted in a DFS and related

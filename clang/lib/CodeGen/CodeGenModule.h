@@ -1754,6 +1754,10 @@ private:
   /// .gcda files in a way that persists in .bc files.
   void EmitCoverageFile();
 
+  /// Emit the offload kernel.
+  void EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
+                            ASTContext &Ctx);
+
   /// Determine whether the definition must be emitted; if this returns \c
   /// false, the definition can be emitted lazily if it's used.
   bool MustBeEmitted(const ValueDecl *D);

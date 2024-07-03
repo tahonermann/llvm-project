@@ -11992,6 +11992,11 @@ bool ASTContext::DeclMustBeEmitted(const Decl *D) {
     if (!FD->doesThisDeclarationHaveABody())
       return FD->doesDeclarationForceExternallyVisibleDefinition();
 
+    // SYCL kernel entry point functions are used to generate and emit
+    // the offload kernel.
+    if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>())
+        return true;
+
     // Constructors and destructors are required.
     if (FD->hasAttr<ConstructorAttr>() || FD->hasAttr<DestructorAttr>())
       return true;
