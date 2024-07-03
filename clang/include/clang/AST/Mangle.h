@@ -174,6 +174,12 @@ public:
   virtual void mangleSEHFinallyBlock(GlobalDecl EnclosingDecl,
                                      raw_ostream &Out) = 0;
 
+  /// SYCL kernel caller functions have names equivalent to a function template
+  /// specialization named "__sycl_kernel_caller" that has a single type
+  /// template argument, a void return type, and no parameters.
+  virtual void mangleSYCLKernelCallerName(QualType KernelNameType,
+                                          raw_ostream &Out) = 0;
+
   /// Generates a unique string for an externally visible type for use with TBAA
   /// or type uniquing.
   /// TODO: Extend this to internal types by generating names that are unique
