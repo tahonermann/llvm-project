@@ -22,9 +22,8 @@ int main() {
 // then invokes the SYCL kernel i.e. the operator method of the SYCL kernel object.
 
 // CHECK: Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
-// FIXME: Kernel name is currently hardcoded.
 // FIXME: Pointer Alignment mismatch with syclos must be clarified and confirmed.
-// CHECK: define dso_local spir_kernel void @testKernelGen(ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[ATTR0:[0-9]+]] {
+// CHECK: define dso_local spir_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv(ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[ATTR0:[0-9]+]] {
 // CHECK-NEXT: entry:
 // CHECK-NEXT:  %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
 // CHECK-NEXT:  call spir_func void @_ZZ4mainENKUlvE_clEv

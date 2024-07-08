@@ -10,8 +10,10 @@
 
 #include "TreeTransform.h"
 #include "clang/Sema/SemaSYCL.h"
+#include "clang/AST/ASTContext.h"
 #include "clang/AST/Mangle.h"
 #include "clang/AST/StmtSYCL.h"
+#include "clang/AST/SYCLKernelInfo.h"
 #include "clang/Sema/Attr.h"
 #include "clang/Sema/ParsedAttr.h"
 #include "clang/Sema/Sema.h"
@@ -254,6 +256,48 @@ private:
 
 } // unnamed namespace
 
+static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
+                                          QualType KernelNameType) {
+  // FIXME: Host and device compilations must agree on a name for the generated
+  // FIXME: SYCL kernel caller function. The name is provided to the SYCL
+  // FIXME: library on the host via __builtin_sycl_kernel_name() and the SYCL
+  // FIXME: library is then responsible for dynamically resolving the name to
+  // FIXME: a function in a device image at run-time. At present, it is assumed
+  // FIXME: that the device ABI is based on the Itanium ABI and a corresponding
+  // FIXME: name is generated. However, if the device ABI is not based on the
+  // FIXME: Itanium ABI, this assumption leads to the existence of oddly named
+  // FIXME: functions relative to the device ABI. Further, this approach
+  // FIXME: requires that the same name be generated for every host and device
+  // FIXME: compilation which is difficult to ensure for context sensitive
+  // FIXME: "unnamed" types like lambda closure types. A better approach would
+  // FIXME: be to generate an ABI agnostic name and then emit a map with each
+  // FIXME: device compilation for the ABI dependent name. Alas, naming is hard
+  // FIXME: and defining an ABI agnostic naming scheme might devolve into
+  // FIXME: effectively re-creating a large subset of the Itanium ABI name
+  // FIXME: mangling scheme.
+
+  // Host and device compilation may use different ABIs and different ABIs may
+  // allocate discriminators differently. An override is needed to ensure
+  // consistent discriminators are allocated for host and device compilation.
+  auto DeviceDiscriminatorOverrider = [](ASTContext &Ctx, const NamedDecl *ND)
+                                        -> std::optional<unsigned> {
+    if (const auto *RD = dyn_cast<CXXRecordDecl>(ND))
+      return RD->getDeviceLambdaManglingNumber();
+    return std::nullopt;
+  };
+  std::unique_ptr<MangleContext> MC{ItaniumMangleContext::create(
+      Context, Context.getDiagnostics(), DeviceDiscriminatorOverrider)};
+
+  // Produce the mangled name.
+  std::string Buffer;
+  Buffer.reserve(128);
+  llvm::raw_string_ostream Out(Buffer);
+  MC->mangleSYCLKernelCallerName(KernelNameType, Out);
+  std::string KernelName = Out.str();
+
+  return { KernelNameType, KernelName };
+}
+
 StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   // FIXME: Issue proper diagnostics for all of these scenarios.
   if (auto *MD = dyn_cast<CXXMethodDecl>(FD))
@@ -290,6 +334,14 @@ StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   OFD->setBody(OFDBody);
   OFD->setNothrow();
   Stmt *NewBody = new (getASTContext()) SYCLKernelCallStmt(Body, OFD);
+
+  const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
+  assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
+  QualType KernelNameType = SKEPAttr->getKernelName();
+
+  getASTContext().SYCLKernels.insert_or_assign(
+      KernelNameType,
+      BuildSYCLKernelInfo(getASTContext(), KernelNameType));
 
   return NewBody;
 }

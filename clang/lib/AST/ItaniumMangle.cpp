@@ -137,6 +137,9 @@ public:
 
   void mangleModuleInitializer(const Module *Module, raw_ostream &) override;
 
+  void mangleSYCLKernelCallerName(QualType KernelNameType,
+                                  raw_ostream &Out) override;
+
   bool getNextDiscriminator(const NamedDecl *ND, unsigned &disc) {
     // Lambda closure types are already numbered.
     if (isLambda(ND))
@@ -7248,6 +7251,15 @@ void ItaniumMangleContextImpl::mangleModuleInitializer(const Module *M,
         StringRef(&M->Name[Partition + 1], M->Name.size() - Partition - 1),
         /*IsPartition*/ true);
   }
+}
+
+void ItaniumMangleContextImpl::mangleSYCLKernelCallerName(
+    QualType KernelNameType, raw_ostream &Out) {
+  // <encoding> ::= <unscoped-template-name> <template-args> <bare-function-type>
+  CXXNameMangler Mangler(*this, Out);
+  Mangler.getStream() << "_Z20__sycl_kernel_callerI";
+  Mangler.mangleType(KernelNameType);
+  Mangler.getStream() << "Evv";
 }
 
 ItaniumMangleContext *ItaniumMangleContext::create(ASTContext &Context,

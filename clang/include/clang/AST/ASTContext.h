@@ -23,6 +23,7 @@
 #include "clang/AST/ExternalASTSource.h"
 #include "clang/AST/PrettyPrinter.h"
 #include "clang/AST/RawCommentList.h"
+#include "clang/AST/SYCLKernelInfo.h"
 #include "clang/AST/TemplateName.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Basic/PartialDiagnostic.h"
@@ -1172,6 +1173,12 @@ public:
   /// Keep track of CUDA/HIP implicit host device functions used on device side
   /// in device compilation.
   llvm::DenseSet<const FunctionDecl *> CUDAImplicitHostDeviceFunUsedByDevice;
+
+  /// Map of SYCL kernels indexed by the unique type used to name the kernel.
+  // FIXME: Check if this map needs to be serialized. It presumably does since
+  // FIXME: a kernel call might appear in a pre-compiled header with uses of
+  // FIXME: builtin functions that require kernel information appearing later.
+  llvm::DenseMap<QualType, SYCLKernelInfo> SYCLKernels;
 
   /// For capturing lambdas with an explicit object parameter whose type is
   /// derived from the lambda type, we need to perform derived-to-base

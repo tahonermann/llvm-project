@@ -211,6 +211,9 @@ public:
   void mangleSEHFinallyBlock(GlobalDecl EnclosingDecl,
                              raw_ostream &Out) override;
   void mangleStringLiteral(const StringLiteral *SL, raw_ostream &Out) override;
+  void mangleSYCLKernelCallerName(QualType KernelNameType,
+                                  raw_ostream &Out) override;
+
   bool getNextDiscriminator(const NamedDecl *ND, unsigned &disc) {
     const DeclContext *DC = getEffectiveDeclContext(ND);
     if (!DC->isFunctionOrMethod())
@@ -4112,6 +4115,51 @@ void MicrosoftMangleContextImpl::mangleStringLiteral(const StringLiteral *SL,
   }
 
   Mangler.getStream() << '@';
+}
+
+void MicrosoftMangleContextImpl::mangleSYCLKernelCallerName(
+    QualType KernelNameType, raw_ostream &Out) {
+  // The SYCL kernel caller name is mangled like a function template
+  // specialization with void return type, no parameters, and a single
+  // type template parameter. Properties of the function are explictly
+  // mangled per the spec below.
+  // <mangled-name> ::=
+  //   '?'
+  //   <name> ::=
+  //     <unscoped-name> ::=
+  //       <template-name> ::=
+  //         <unscoped-template-name>
+  //           '?$'
+  //           <unqualified-name> :=
+  //             "__sycl_kernel_caller"
+  //           '@'
+  //         <template-args>
+  //           <template-arg> ::=
+  //             <type> ::=
+  //               KernelNameType
+  //       '@'
+  //     '@'
+  //   <type-encoding> ::=
+  //     <function-class> ::=
+  //       <global-function> ::=
+  //         'Y' # global near
+  //     <function-type> ::=
+  //       <this-cvr-qualifiers> ::= <empty>
+  //       <calling-convention> ::=
+  //         'A' # __cdecl)
+  //       <return-type> ::=
+  //         <type> ::=
+  //           <builtin-type> ::=
+  //         'X' # void
+  //       <argument-list> ::=
+  //         'X' # void
+  //       <throw-spec> ::=
+  //         'Z' # (default)
+  MicrosoftCXXNameMangler Mangler(*this, Out);
+  Mangler.getStream() << "??$__sycl_kernel_caller@";
+  Mangler.mangleType(KernelNameType, SourceRange(),
+                     MicrosoftCXXNameMangler::QMM_Escape);
+  Mangler.getStream() << "@@YAXXZ";
 }
 
 MicrosoftMangleContext *MicrosoftMangleContext::create(ASTContext &Context,
