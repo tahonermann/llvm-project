@@ -47,7 +47,7 @@ void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
   // Retrieve the generated name for the SYCL kernel caller function
   const auto *SKEPAttr = KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>();
   assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
-  QualType KernelNameType = SKEPAttr->getKernelName();
+  CanQualType KernelNameType = Ctx.getCanonicalType(SKEPAttr->getKernelName());
   const SYCLKernelInfo &SKI = Ctx.SYCLKernels.at(KernelNameType);
   auto *Fn = llvm::Function::Create(FnTy, llvm::GlobalVariable::ExternalLinkage,
                                     SKI.GetKernelName(), &getModule());

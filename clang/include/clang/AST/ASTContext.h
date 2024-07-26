@@ -1178,7 +1178,7 @@ public:
   // FIXME: Check if this map needs to be serialized. It presumably does since
   // FIXME: a kernel call might appear in a pre-compiled header with uses of
   // FIXME: builtin functions that require kernel information appearing later.
-  llvm::DenseMap<QualType, SYCLKernelInfo> SYCLKernels;
+  llvm::DenseMap<CanQualType, SYCLKernelInfo> SYCLKernels;
 
   /// For capturing lambdas with an explicit object parameter whose type is
   /// derived from the lambda type, we need to perform derived-to-base

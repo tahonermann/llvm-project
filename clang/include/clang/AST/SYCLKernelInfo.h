@@ -21,14 +21,14 @@ namespace clang {
 class SYCLKernelInfo {
 public:
   SYCLKernelInfo(
-      QualType KernelNameType,
+      CanQualType KernelNameType,
       const std::string &KernelName)
   :
       KernelNameType(KernelNameType),
       KernelName(KernelName)
   {}
 
-  QualType GetKernelNameType() const {
+  CanQualType GetKernelNameType() const {
     return KernelNameType;
   }
 
@@ -37,7 +37,7 @@ public:
   }
 
 private:
-  QualType KernelNameType;
+  CanQualType KernelNameType;
   std::string KernelName;
 };
 
