@@ -1,10 +1,40 @@
-// RUN: %clang_cc1 -std=c++17 -fsyntax-only -fsycl-is-device -verify %s
-// RUN: %clang_cc1 -std=c++20 -fsyntax-only -fsycl-is-device -verify %s
+// RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++17 -fsyntax-only -fsycl-is-device -verify %s
+// RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++20 -fsyntax-only -fsycl-is-device -verify %s
 
 // These tests validate appertainment for the sycl_kernel_entry_point attribute.
 
+#if __cplusplus >= 202002L
+// Mock coroutine support.
+namespace std {
+
+template<typename Promise = void>
+struct coroutine_handle {
+  template<typename T>
+  coroutine_handle(const coroutine_handle<T>&);
+  static coroutine_handle from_address(void *addr);
+};
+
+template<typename R, typename... Args>
+struct coroutine_traits {
+  struct suspend_never {
+    bool await_ready() const noexcept;
+    void await_suspend(std::coroutine_handle<>) const noexcept;
+    void await_resume() const noexcept;
+  };
+  struct promise_type {
+    void get_return_object() noexcept;
+    suspend_never initial_suspend() const noexcept;
+    suspend_never final_suspend() const noexcept;
+    void return_void() noexcept;
+    void unhandled_exception() noexcept;
+  };
+};
+
+}
+#endif
+
 // A unique kernel name type is required for each declared kernel entry point.
-template<int> struct KN;
+template<int, int = 0> struct KN;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,11 +46,11 @@ __attribute__((sycl_kernel_entry_point(KN<1>)))
 void ok1();
 
 // Function declaration with Clang attribute spelling.
-[[clang::sycl_kernel_entry_point(KN<1>)]]
+[[clang::sycl_kernel_entry_point(KN<2>)]]
 void ok2();
 
 // Function definition.
-[[clang::sycl_kernel_entry_point(KN<2>)]]
+[[clang::sycl_kernel_entry_point(KN<3>)]]
 void ok3() {}
 
 // Function template definition.
@@ -30,11 +60,11 @@ void ok4(T) {}
 
 // Function template explicit specialization.
 template<>
-[[clang::sycl_kernel_entry_point(KN<3>)]]
-void ok4<KN<3>>(int) {}
+[[clang::sycl_kernel_entry_point(KN<4,1>)]]
+void ok4<KN<4,1>>(int) {}
 
 // Function template explicit instantiation.
-template void ok4<KN<4>, long>(long);
+template void ok4<KN<4,2>, long>(long);
 
 namespace NS {
 // Function declaration at namespace scope.
@@ -42,14 +72,14 @@ namespace NS {
 void ok5();
 }
 
-struct S1 {
+struct S6 {
   // Static member function declaration.
   [[clang::sycl_kernel_entry_point(KN<6>)]]
   static void ok6();
 };
 
-// The sycl_kernel_entry_point attribute must match across declarations and must
-// be present on the first declaration.
+// The sycl_kernel_entry_point attribute must match across declarations and
+// cannot be added for the first time after a definition.
 [[clang::sycl_kernel_entry_point(KN<7>)]]
 void ok7();
 [[clang::sycl_kernel_entry_point(KN<7>)]]
@@ -57,27 +87,45 @@ void ok7();
 [[clang::sycl_kernel_entry_point(KN<8>)]]
 void ok8();
 void ok8() {}
+void ok9();
+[[clang::sycl_kernel_entry_point(KN<9>)]]
+void ok9() {}
+
+using VOID = void;
+[[clang::sycl_kernel_entry_point(KN<10>)]]
+VOID ok10();
+[[clang::sycl_kernel_entry_point(KN<11>)]]
+const void ok11();
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invalid declarations.
 ////////////////////////////////////////////////////////////////////////////////
 
+struct Smain;
+// expected-error@+1 {{'main' cannot be declared with the 'sycl_kernel_entry_point' attribute}}
+[[clang::sycl_kernel_entry_point(Smain)]]
+int main();
+
 template<int> struct BADKN;
 
-struct S2 {
+struct B1 {
   // Non-static data member function declaration.
   // expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
   [[clang::sycl_kernel_entry_point(BADKN<1>)]]
   int bad1;
+};
 
+struct B2 {
   // Static data member function declaration.
   // expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
   [[clang::sycl_kernel_entry_point(BADKN<2>)]]
   int bad2;
+};
 
+struct B3 {
   // Non-static member function declaration.
-  // FIXME-expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to static member functions}}
+  // expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a non-static member function}}
   [[clang::sycl_kernel_entry_point(BADKN<3>)]]
   void bad3();
 };
@@ -122,29 +170,70 @@ enum {
   bad14 [[clang::sycl_kernel_entry_point(BADKN<14>)]]
 };
 
-// Attribute missing on the first declaration.
-// FIXME-expected-error@+3 {{'sycl_kernel_entry_point' attribute must be present on the first declaration}}
-void bad15();
+// Attribute added after the definition.
+// expected-error@+3 {{'sycl_kernel_entry_point' attribute cannot be added to a function after the function is defined}}
+// expected-note@+1 {{previous definition is here}}
+void bad15() {}
 [[clang::sycl_kernel_entry_point(BADKN<15>)]]
 void bad15();
 
-// Mismatched attributes.
-// FIXME-expected-error@+4 {{'sycl_kernel_entry_point' attribute must be consistent across declarations}}
-[[clang::sycl_kernel_entry_point(BADKN<16>)]]
-void bad16();
-[[clang::sycl_kernel_entry_point(BADKN<16>)]]
-void bad16();
-
 // The function must return void.
-// FIXME-expected-error@+4 {{function with 'sycl_kernel_entry_point' attribute must have a 'void' return type}}
-[[clang::sycl_kernel_entry_point(BADKN<17>)]]
-void bad17();
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions with a 'void' return type}}
+[[clang::sycl_kernel_entry_point(BADKN<16>)]]
+int bad16();
 
 // Function parameters.
 // expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
-void bad18(void (fp [[clang::sycl_kernel_entry_point(BADKN<18>)]])());
+void bad17(void (fp [[clang::sycl_kernel_entry_point(BADKN<17>)]])());
 
 // Function template parameters.
 // FIXME-expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
 template<void (fp [[clang::sycl_kernel_entry_point(BADKN<18>)]])()>
-void bad19();
+void bad18();
+
+#if __cplusplus >= 202002L
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a coroutine function}}
+[[clang::sycl_kernel_entry_point(BADKN<19>)]]
+void bad19() {
+  co_return;
+}
+#endif
+
+struct B20 {
+  // expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a non-static member function}}
+  [[clang::sycl_kernel_entry_point(BADKN<20>)]]
+  B20();
+};
+
+struct B21 {
+  // expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a non-static member function}}
+  [[clang::sycl_kernel_entry_point(BADKN<21>)]]
+  ~B21();
+};
+
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a variadic function}}
+[[clang::sycl_kernel_entry_point(BADKN<22>)]]
+void bad22(...);
+
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a deleted function}}
+[[clang::sycl_kernel_entry_point(BADKN<23>)]]
+void bad23() = delete;
+
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a constexpr function}}
+[[clang::sycl_kernel_entry_point(BADKN<24>)]]
+constexpr void bad24() {}
+
+#if __cplusplus >= 202002L
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a consteval function}}
+[[clang::sycl_kernel_entry_point(BADKN<25>)]]
+consteval void bad25() {}
+#endif
+
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute cannot be applied to a noreturn function}}
+[[clang::sycl_kernel_entry_point(BADKN<26>)]]
+[[noreturn]] void bad26();
+
+// expected-error@+3 {{attribute 'target' multiversioning cannot be combined with attribute 'sycl_kernel_entry_point'}}
+__attribute__((target("avx"))) void bad27();
+[[clang::sycl_kernel_entry_point(BADKN<27>)]]
+__attribute__((target("sse4.2"))) void bad27();

@@ -14,6 +14,7 @@
 #include "clang/AST/Mangle.h"
 #include "clang/AST/StmtSYCL.h"
 #include "clang/AST/SYCLKernelInfo.h"
+#include "clang/Basic/Diagnostic.h"
 #include "clang/Sema/Attr.h"
 #include "clang/Sema/ParsedAttr.h"
 #include "clang/Sema/Sema.h"
@@ -257,7 +258,8 @@ private:
 } // unnamed namespace
 
 static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
-                                          CanQualType KernelNameType) {
+                                          CanQualType KernelNameType,
+                                          const FunctionDecl *FD) {
   // FIXME: Host and device compilations must agree on a name for the generated
   // FIXME: SYCL kernel caller function. The name is provided to the SYCL
   // FIXME: library on the host via __builtin_sycl_kernel_name() and the SYCL
@@ -282,7 +284,8 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   auto DeviceDiscriminatorOverrider = [](ASTContext &Ctx, const NamedDecl *ND)
                                         -> std::optional<unsigned> {
     if (const auto *RD = dyn_cast<CXXRecordDecl>(ND))
-      return RD->getDeviceLambdaManglingNumber();
+      if (RD->isLambda())
+        return RD->getDeviceLambdaManglingNumber();
     return std::nullopt;
   };
   std::unique_ptr<MangleContext> MC{ItaniumMangleContext::create(
@@ -295,22 +298,128 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   MC->mangleSYCLKernelCallerName(KernelNameType, Out);
   std::string KernelName = Out.str();
 
-  return { KernelNameType, KernelName };
+  return { KernelNameType, FD, KernelName };
+}
+
+void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
+  // Ensure that all attributes present on the declaration are consistent
+  // and warn about any redundant ones.
+  const SYCLKernelEntryPointAttr *SKEPAttr = nullptr;
+  for (auto SAI = FD->specific_attr_begin<SYCLKernelEntryPointAttr>();
+       SAI != FD->specific_attr_end<SYCLKernelEntryPointAttr>();
+       ++SAI) {
+    if (!SKEPAttr) {
+      SKEPAttr = *SAI;
+      continue;
+    }
+    if (!getASTContext().hasSameType(SAI->getKernelName(),
+                                     SKEPAttr->getKernelName())) {
+      Diag(SAI->getLocation(), diag::err_sycl_entry_point_invalid_redeclaration)
+          << SAI->getKernelName() << SKEPAttr->getKernelName();
+      Diag(SKEPAttr->getLocation(), diag::note_previous_attribute);
+      FD->setInvalidDecl();
+    } else {
+      Diag(SAI->getLocation(),
+           diag::warn_sycl_entry_point_redundant_declaration);
+      Diag(SKEPAttr->getLocation(), diag::note_previous_attribute);
+    }
+  }
+  assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
+
+  // Ensure the kernel name type is a class type.
+  if (!SKEPAttr->getKernelName()->isDependentType() &&
+      !SKEPAttr->getKernelName()->isStructureOrClassType()) {
+      Diag(SKEPAttr->getLocation(), diag::err_sycl_kernel_name_type);
+      FD->setInvalidDecl();
+  }
+
+  // Ensure that an attribute present on the previous declaration
+  // matches the one on this declaration.
+  FunctionDecl *PrevFD = FD->getPreviousDecl();
+  if (PrevFD && !PrevFD->isInvalidDecl()) {
+    const auto *PrevSKEPAttr = PrevFD->getAttr<SYCLKernelEntryPointAttr>();
+    if (PrevSKEPAttr) {
+      if (!getASTContext().hasSameType(SKEPAttr->getKernelName(),
+                                       PrevSKEPAttr->getKernelName())) {
+        Diag(SKEPAttr->getLocation(),
+             diag::err_sycl_entry_point_invalid_redeclaration)
+            << SKEPAttr->getKernelName() << PrevSKEPAttr->getKernelName();
+        Diag(PrevSKEPAttr->getLocation(), diag::note_previous_decl)
+            << PrevFD;;
+        FD->setInvalidDecl();
+      }
+    }
+  }
+
+  if (auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
+    if (!MD->isStatic()) {
+      Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_invalid)
+          << /*non-static member function*/0;
+      FD->setInvalidDecl();
+    }
+  }
+  if (FD->isVariadic()) {
+    Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_invalid)
+        << /*variadic function*/1;
+    FD->setInvalidDecl();
+  }
+  if (FD->isConsteval()) {
+    Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_invalid)
+        << /*consteval function*/5;
+    FD->setInvalidDecl();
+  } else if (FD->isConstexpr()) {
+    Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_invalid)
+        << /*constexpr function*/4;
+    FD->setInvalidDecl();
+  }
+  if (FD->isNoReturn()) {
+    Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_invalid)
+        << /*noreturn function*/6;
+    FD->setInvalidDecl();
+  }
+
+  if (!FD->getReturnType()->isVoidType()) {
+    Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_return_type);
+    FD->setInvalidDecl();
+  }
+
+  if (!FD->isInvalidDecl() && !FD->isDependentContext()) {
+    CanQualType KernelNameType =
+        getASTContext().getCanonicalType(SKEPAttr->getKernelName());
+
+    auto IT = getASTContext().SYCLKernels.find(KernelNameType);
+    if (IT != getASTContext().SYCLKernels.end()) {
+      if (!declaresSameEntity(FD, IT->second.GetKernelEntryPointDecl())) {
+        // FIXME: This diagnostic should include the origin of the kernel
+        // FIXME: names; not just the locations of the conflicting declarations.
+        Diag(FD->getLocation(), diag::err_sycl_kernel_name_conflict);
+        Diag(IT->second.GetKernelEntryPointDecl()->getLocation(),
+             diag::note_previous_declaration);
+        FD->setInvalidDecl();
+      }
+    } else {
+      getASTContext().SYCLKernels.insert_or_assign(
+          KernelNameType,
+          BuildSYCLKernelInfo(getASTContext(), KernelNameType, FD));
+    }
+  }
 }
 
 StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
-  // FIXME: Issue proper diagnostics for all of these scenarios.
-  if (auto *MD = dyn_cast<CXXMethodDecl>(FD))
-    assert(MD->isStatic());
+  assert(!FD->isInvalidDecl());
+  assert(!FD->isDependentContext());
   assert(FD->hasPrototype());
-  assert(!FD->isVariadic());
-  assert(!FD->isDeleted());
-  assert(!FD->isDefaulted());
-  assert(!FD->isConstexpr());
-  assert(!FD->isConsteval());
-  assert(!FD->isMultiVersion());
-  assert(!FD->isNoReturn());
-  assert(FD->getReturnType()->isVoidType());
+
+  const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
+  assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
+
+  CanQualType KernelNameType =
+      getASTContext().getCanonicalType(SKEPAttr->getKernelName());
+  // Ensure that the kernel name was previously registered and that the
+  // stored declaration matches.
+  const SYCLKernelInfo &SKI = getASTContext().SYCLKernels.at(KernelNameType);
+  if (!declaresSameEntity(SKI.GetKernelEntryPointDecl(), FD))
+    llvm::report_fatal_error("SYCL kernel name conflict");
 
   using ParmDeclMap = OutlinedFunctionDeclBodyInstantiator::ParmDeclMap;
   ParmDeclMap ParmMap;
@@ -334,15 +443,6 @@ StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   OFD->setBody(OFDBody);
   OFD->setNothrow();
   Stmt *NewBody = new (getASTContext()) SYCLKernelCallStmt(Body, OFD);
-
-  const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
-  assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
-  CanQualType KernelNameType =
-      getASTContext().getCanonicalType(SKEPAttr->getKernelName());
-
-  getASTContext().SYCLKernels.insert_or_assign(
-      KernelNameType,
-      BuildSYCLKernelInfo(getASTContext(), KernelNameType));
 
   return NewBody;
 }

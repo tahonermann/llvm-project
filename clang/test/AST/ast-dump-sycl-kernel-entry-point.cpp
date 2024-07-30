@@ -98,21 +98,29 @@ void skep5<KN<5,2>>(long) {
 // CHECK: | |-TemplateArgument type 'long'
 // CHECK: | `-SYCLKernelEntryPointAttr {{.*}} KN<5, 2>
 
-// The attribute declared with the explicit specialization takes precedent
-// over the one inherited from the primary template.
+// FIXME: C++23 [temp.expl.spec]p12 states:
+// FIXME:   ... Similarly, attributes appearing in the declaration of a template
+// FIXME:   have no effect on an explicit specialization of that template.
+// FIXME: Clang currently instantiates and propagates attributes from a function
+// FIXME: template to its explicit specializations resulting in a diagnostic
+// FIXME: being incorrectly issued for the following explicit specialization
+// FIXME: due to conflicting kernel name types (KN<5,3> vs the incorrectly
+// FIXME: inherited KN<5,-1>).
+#if 0
 template<>
 [[clang::sycl_kernel_entry_point(KN<5,3>)]]
 void skep5<KN<5,-1>>(long long) {
 }
-// CHECK: |-FunctionDecl {{.*}} prev {{.*}} skep5 'void (long long)' explicit_specialization
-// CHECK: | |-TemplateArgument type 'KN<5, -1>'
-// CHECK: | |-TemplateArgument type 'long long'
-// CHECK: | `-SYCLKernelEntryPointAttr {{.*}} KN<5, 3>
+// FIXME-CHECK: |-FunctionDecl {{.*}} prev {{.*}} skep5 'void (long long)' explicit_specialization
+// FIXME-CHECK: | |-TemplateArgument type 'KN<5, -1>'
+// FIXME-CHECK: | |-TemplateArgument type 'long long'
+// FIXME-CHECK: | `-SYCLKernelEntryPointAttr {{.*}} KN<5, 3>
+#endif
 
 template void skep5<KN<5,4>>(int);
 // Checks are located with the primary template declaration above.
 
-// Ensure that matching attributes from multiple declarations are combined.
+// Ensure that matching attributes from multiple declarations are ok.
 [[clang::sycl_kernel_entry_point(KN<6>)]]
 void skep6();
 [[clang::sycl_kernel_entry_point(KN<6>)]]
@@ -124,8 +132,7 @@ void skep6() {
 // CHECK:      | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
 
-// FIXME: Merge matching attributes.
-// Ensure that matching attributes from the same declaration are combined.
+// Ensure that matching attributes from the same declaration are ok.
 [[clang::sycl_kernel_entry_point(KN<7>), clang::sycl_kernel_entry_point(KN<7>)]]
 void skep7() {
 }

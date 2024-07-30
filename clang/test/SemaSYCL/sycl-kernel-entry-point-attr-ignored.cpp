@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -std=c++17 -fsyntax-only -verify %s
+// RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++17 -fsyntax-only -verify %s
 
 // These tests validate that the sycl_kernel_entry_point attribute is ignored
 // when SYCL support is not enabled.
