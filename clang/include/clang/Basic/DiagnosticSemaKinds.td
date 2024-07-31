@@ -12185,7 +12185,7 @@ def err_sycl_entry_point_invalid_redeclaration : Error<
   "'sycl_kernel_entry_point' kernel name argument does not match prior"
   " declaration%diff{: $ vs $|}0,1">;
 def warn_sycl_entry_point_redundant_declaration : Warning<
-  "redundant 'sycl_kernel_entry_point' attribute">;
+  "redundant 'sycl_kernel_entry_point' attribute">, InGroup<RedundantAttribute>;
 def err_sycl_entry_point_after_definition : Error<
   "'sycl_kernel_entry_point' attribute cannot be added to a function after the"
   " function is defined">;
