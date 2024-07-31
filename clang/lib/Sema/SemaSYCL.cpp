@@ -257,50 +257,6 @@ private:
 
 } // unnamed namespace
 
-static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
-                                          CanQualType KernelNameType,
-                                          const FunctionDecl *FD) {
-  // FIXME: Host and device compilations must agree on a name for the generated
-  // FIXME: SYCL kernel caller function. The name is provided to the SYCL
-  // FIXME: library on the host via __builtin_sycl_kernel_name() and the SYCL
-  // FIXME: library is then responsible for dynamically resolving the name to
-  // FIXME: a function in a device image at run-time. At present, it is assumed
-  // FIXME: that the device ABI is based on the Itanium ABI and a corresponding
-  // FIXME: name is generated. However, if the device ABI is not based on the
-  // FIXME: Itanium ABI, this assumption leads to the existence of oddly named
-  // FIXME: functions relative to the device ABI. Further, this approach
-  // FIXME: requires that the same name be generated for every host and device
-  // FIXME: compilation which is difficult to ensure for context sensitive
-  // FIXME: "unnamed" types like lambda closure types. A better approach would
-  // FIXME: be to generate an ABI agnostic name and then emit a map with each
-  // FIXME: device compilation for the ABI dependent name. Alas, naming is hard
-  // FIXME: and defining an ABI agnostic naming scheme might devolve into
-  // FIXME: effectively re-creating a large subset of the Itanium ABI name
-  // FIXME: mangling scheme.
-
-  // Host and device compilation may use different ABIs and different ABIs may
-  // allocate discriminators differently. An override is needed to ensure
-  // consistent discriminators are allocated for host and device compilation.
-  auto DeviceDiscriminatorOverrider = [](ASTContext &Ctx, const NamedDecl *ND)
-                                        -> std::optional<unsigned> {
-    if (const auto *RD = dyn_cast<CXXRecordDecl>(ND))
-      if (RD->isLambda())
-        return RD->getDeviceLambdaManglingNumber();
-    return std::nullopt;
-  };
-  std::unique_ptr<MangleContext> MC{ItaniumMangleContext::create(
-      Context, Context.getDiagnostics(), DeviceDiscriminatorOverrider)};
-
-  // Produce the mangled name.
-  std::string Buffer;
-  Buffer.reserve(128);
-  llvm::raw_string_ostream Out(Buffer);
-  MC->mangleSYCLKernelCallerName(KernelNameType, Out);
-  std::string KernelName = Out.str();
-
-  return { KernelNameType, FD, KernelName };
-}
-
 void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   // Ensure that all attributes present on the declaration are consistent
   // and warn about any redundant ones.
@@ -384,23 +340,19 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   }
 
   if (!FD->isInvalidDecl() && !FD->isDependentContext()) {
-    CanQualType KernelNameType =
-        getASTContext().getCanonicalType(SKEPAttr->getKernelName());
-
-    auto IT = getASTContext().SYCLKernels.find(KernelNameType);
-    if (IT != getASTContext().SYCLKernels.end()) {
-      if (!declaresSameEntity(FD, IT->second.GetKernelEntryPointDecl())) {
+    const SYCLKernelInfo *SKI =
+        getASTContext().findSYCLKernelInfo(SKEPAttr->getKernelName());
+    if (SKI) {
+      if (!declaresSameEntity(FD, SKI->GetKernelEntryPointDecl())) {
         // FIXME: This diagnostic should include the origin of the kernel
         // FIXME: names; not just the locations of the conflicting declarations.
         Diag(FD->getLocation(), diag::err_sycl_kernel_name_conflict);
-        Diag(IT->second.GetKernelEntryPointDecl()->getLocation(),
+        Diag(SKI->GetKernelEntryPointDecl()->getLocation(),
              diag::note_previous_declaration);
         FD->setInvalidDecl();
       }
     } else {
-      getASTContext().SYCLKernels.insert_or_assign(
-          KernelNameType,
-          BuildSYCLKernelInfo(getASTContext(), KernelNameType, FD));
+      getASTContext().registerSYCLEntryPointFunction(FD);
     }
   }
 }
@@ -413,11 +365,10 @@ StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
   assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
 
-  CanQualType KernelNameType =
-      getASTContext().getCanonicalType(SKEPAttr->getKernelName());
   // Ensure that the kernel name was previously registered and that the
   // stored declaration matches.
-  const SYCLKernelInfo &SKI = getASTContext().SYCLKernels.at(KernelNameType);
+  const SYCLKernelInfo &SKI =
+        getASTContext().getSYCLKernelInfo(SKEPAttr->getKernelName());
   if (!declaresSameEntity(SKI.GetKernelEntryPointDecl(), FD))
     llvm::report_fatal_error("SYCL kernel name conflict");
 
