@@ -240,11 +240,15 @@ public:
       ParmDeclMap::iterator I = MapRef.find(PVD);
       if (I != MapRef.end()) {
         VarDecl *VD = I->second;
+        assert(SemaRef.getASTContext().hasSameUnqualifiedType(PVD->getType(),
+                                                              VD->getType()));
+        assert(!VD->getType().isMoreQualifiedThan(PVD->getType()));
         VD->setIsUsed();
+        // The replacement DeclRefExpr
         return DeclRefExpr::Create(
             SemaRef.getASTContext(), DRE->getQualifierLoc(),
             DRE->getTemplateKeywordLoc(), VD, false, DRE->getNameInfo(),
-            VD->getType(), DRE->getValueKind());
+            DRE->getType(), DRE->getValueKind());
       }
     }
     return DRE;

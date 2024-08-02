@@ -203,5 +203,29 @@ void skep5(int unused1, K<5> k, int unused2, int p, int unused3) {
 // CHECK-NEXT: | |       `-LambdaExpr {{.*}} '(lambda {{.*}})'
 // CHECK:      | `-SYCLKernelEntryPointAttr {{.*}} KN<5>
 
+struct S6 {
+  void operator()() const;
+};
+[[clang::sycl_kernel_entry_point(KN<6>)]]
+void skep6(const S6 &k) {
+  k();
+}
+// CHECK:      |-FunctionDecl {{.*}} skep6 'void (const S6 &)'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} used k 'const S6 &'
+// CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: | | |   `-DeclRefExpr {{.*}} 'const S6' lvalue ParmVar {{.*}} 'k' 'const S6 &'
+// CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'const S6 &'
+// CHECK-NEXT: | |   `-CompoundStmt {{.*}}
+// CHECK-NEXT: | |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: | |       `-DeclRefExpr {{.*}} 'const S6' lvalue ImplicitParam {{.*}} 'k' 'const S6 &'
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
+
 void the_end() {}
 // CHECK:      `-FunctionDecl {{.*}} the_end 'void ()'
