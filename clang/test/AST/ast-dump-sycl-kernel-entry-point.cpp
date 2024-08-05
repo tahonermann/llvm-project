@@ -1,15 +1,24 @@
-// Test without serialization:
+// Tests without serialization:
 // RUN: %clang_cc1 -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-device \
-// RUN: -ast-dump %s \
-// RUN: | FileCheck --match-full-lines %s
+// RUN:   -ast-dump %s \
+// RUN:   | FileCheck --match-full-lines %s
+// RUN: %clang_cc1 -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-host \
+// RUN:   -ast-dump %s \
+// RUN:   | FileCheck --match-full-lines %s
 //
-// Test with serialization:
+// Tests with serialization:
 // RUN: %clang_cc1 -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-device \
-// RUN: -emit-pch -o %t %s
+// RUN:   -emit-pch -o %t %s
 // RUN: %clang_cc1 -x c++ -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-device \
-// RUN: -include-pch %t -ast-dump-all /dev/null \
-// RUN: | sed -e "s/ <undeserialized declarations>//" -e "s/ imported//" \
-// RUN: | FileCheck --match-full-lines %s
+// RUN:   -include-pch %t -ast-dump-all /dev/null \
+// RUN:   | sed -e "s/ <undeserialized declarations>//" -e "s/ imported//" \
+// RUN:   | FileCheck --match-full-lines %s
+// RUN: %clang_cc1 -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-host \
+// RUN:   -emit-pch -o %t %s
+// RUN: %clang_cc1 -x c++ -std=c++17 -triple x86_64-unknown-unknown -fsycl-is-host \
+// RUN:   -include-pch %t -ast-dump-all /dev/null \
+// RUN:   | sed -e "s/ <undeserialized declarations>//" -e "s/ imported//" \
+// RUN:   | FileCheck --match-full-lines %s
 
 // These tests validate the AST produced for functions declared with the
 // sycl_kernel_entry_point attribute.

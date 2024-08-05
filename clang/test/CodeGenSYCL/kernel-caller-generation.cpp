@@ -5,6 +5,15 @@ __attribute__((sycl_kernel_entry_point(name))) void kernel_single_task(const Fun
   kernelFunc();
 }
 
+struct single_purpose_kernel_name;
+struct single_purpose_kernel {
+  void operator()() const;
+};
+__attribute__((sycl_kernel_entry_point(single_purpose_kernel_name)))
+void single_purpose_kernel_task(single_purpose_kernel k) {
+  k();
+}
+
 int main() {
   int capture;
   kernel_single_task<class test_kernel>(
