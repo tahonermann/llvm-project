@@ -3515,6 +3515,9 @@ bool CodeGenModule::MayBeEmittedEagerly(const ValueDecl *Global) {
     // Defer until all versions have been semantically checked.
     if (FD->hasAttr<TargetVersionAttr>() && !FD->isMultiVersion())
       return false;
+    // Defer emission of SYCL kernel entry point functions.
+    if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>())
+      return false;
   }
   if (const auto *VD = dyn_cast<VarDecl>(Global)) {
     if (Context.getInlineVariableDefinitionKind(VD) ==
