@@ -11994,8 +11994,19 @@ bool ASTContext::DeclMustBeEmitted(const Decl *D) {
 
     // SYCL kernel entry point functions are used to generate and emit
     // the offload kernel.
-    if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>())
+    if (LangOpts.SYCLIsDevice) {
+      if (D->hasAttr<SYCLKernelEntryPointAttr>())
         return true;
+      // FIXME: In SYCL device compilation, the only functions that
+      // must be emitted are the SYCL kernel entry points, functions
+      // called from the the SYCL kernel, and functions declared with
+      // SYCL_EXTERNAL. However, some existing tests fail if the set
+      // of emitted functions is limited to these. Once support is
+      // implemented for SYCL_EXTERNAL, this check should be modified
+      // to return false. The tests should be modified to include
+      // SYCL_EXTERNAL.
+      // return false;
+    }
 
     // Constructors and destructors are required.
     if (FD->hasAttr<ConstructorAttr>() || FD->hasAttr<DestructorAttr>())
