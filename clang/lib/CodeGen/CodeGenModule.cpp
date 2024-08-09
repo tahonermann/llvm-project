@@ -3168,6 +3168,22 @@ void CodeGenModule::EmitDeferred() {
   CurDeclsToEmit.swap(DeferredDeclsToEmit);
 
   for (GlobalDecl &D : CurDeclsToEmit) {
+    // If the Decl corresponds to a SYCL kernel entry point function, generate
+    // and emit the corresponding the SYCL kernel caller function i.e the
+    // offload kernel.
+    if (const auto *FD = D.getDecl()->getAsFunction()) {
+      if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>() &&
+          FD->isDefined()) {
+        // Generate and emit the offload kernel
+        EmitSYCLKernelCaller(FD, getContext());
+        // The offload kernel invokes the operator method of the SYCL kernel
+        // object i.e. the SYCL kernel function is invoked. Emit this function.
+        EmitDeferred();
+        // Do not emit the SYCL kernel entry point function.
+        continue;
+      }
+    }
+
     // We should call GetAddrOfGlobal with IsForDefinition set to true in order
     // to get GlobalValue with exactly the type we need, not something that
     // might had been created for another decl with the same mangled name but
@@ -3196,21 +3212,6 @@ void CodeGenModule::EmitDeferred() {
     // If this is OpenMP, check if it is legal to emit this global normally.
     if (LangOpts.OpenMP && OpenMPRuntime && OpenMPRuntime->emitTargetGlobal(D))
       continue;
-
-    // If the Decl corresponds to a SYCL kernel entry point function, generate
-    // and emit the corresponding SYCL kernel caller function, i.e the
-    // offload kernel. Otherwise, emit the definition and move on to the next
-    // one.
-    const FunctionDecl *FD = nullptr;
-    if (LangOpts.SYCLIsDevice &&
-        (FD = D.getDecl()->getAsFunction()) != nullptr &&
-        FD->hasAttr<SYCLKernelEntryPointAttr>() &&
-        FD->isDefined()) {
-      // Generate and emit the offload kernel
-      EmitSYCLKernelCaller(FD, getContext());
-    } else {
-      EmitGlobalDefinition(D, GV);
-    }
 
     // If we found out that we need to emit more decls, do that recursively.
     // This has the advantage that the decls are emitted in a DFS and related

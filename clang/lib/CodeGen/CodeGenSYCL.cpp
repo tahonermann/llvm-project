@@ -45,12 +45,14 @@ void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
   llvm::FunctionType *FnTy = getTypes().GetFunctionType(FnInfo);
 
   // Retrieve the generated name for the SYCL kernel caller function
-  const auto *SKEPAttr = KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>();
-  assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
-  CanQualType KernelNameType = Ctx.getCanonicalType(SKEPAttr->getKernelName());
-  const SYCLKernelInfo &SKI = Ctx.SYCLKernels.at(KernelNameType);
+  const auto *KernelEntryPointAttr =
+      KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>();
+  CanQualType KernelNameType =
+      Ctx.getCanonicalType(KernelEntryPointAttr->getKernelName());
+  const SYCLKernelInfo *KernelInfo = Ctx.findSYCLKernelInfo(KernelNameType);
+  assert(KernelInfo && "Type does not correspond to a kernel name");
   auto *Fn = llvm::Function::Create(FnTy, llvm::GlobalVariable::ExternalLinkage,
-                                    SKI.GetKernelName(), &getModule());
+                                    KernelInfo->GetKernelName(), &getModule());
 
   // Emit the SYCL kernel caller function
   CodeGenFunction CGF(*this);
