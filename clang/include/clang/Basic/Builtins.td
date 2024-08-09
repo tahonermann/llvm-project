@@ -4598,6 +4598,19 @@ def GetDeviceSideMangledName : LangBuiltin<"CUDA_LANG"> {
   let Prototype = "char const*(...)";
 }
 
+// SYCL
+def SYCLKernelName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_name"];
+  let Attributes = [NoThrow, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelParamCount : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_count"];
+  let Attributes = [NoThrow, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
 // HLSL
 def HLSLAll : LangBuiltin<"HLSL_LANG"> {
   let Spellings = ["__builtin_hlsl_elementwise_all"];

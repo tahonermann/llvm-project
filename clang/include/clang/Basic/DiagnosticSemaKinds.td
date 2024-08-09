@@ -12199,6 +12199,9 @@ def err_sycl_kernel_name_type : Error<
 def err_sycl_kernel_name_conflict : Error<
   "'sycl_kernel_entry_point' kernel name argument conflicts with a previous"
   " declaration">;
+def err_builtin_invalid_argument_count : Error<"builtin requires exactly 1 argument">;
+def err_builtin_invalid_argument : Error<"invalid argument; argument must be a class or struct type"
+                                         " with a member type alias named 'type'">;
 
 def warn_cuda_maxclusterrank_sm_90 : Warning<
   "maxclusterrank requires sm_90 or higher, CUDA arch provided: %0, ignoring "

@@ -30,6 +30,7 @@
 #include "clang/Basic/TargetBuiltins.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/TargetOptions.h"
+#include "clang/Basic/IdentifierTable.h"
 #include "clang/CodeGen/CGFunctionInfo.h"
 #include "clang/Frontend/FrontendDiagnostic.h"
 #include "llvm/ADT/APFloat.h"
@@ -2536,6 +2537,20 @@ static RValue EmitHipStdParUnsupportedBuiltin(CodeGenFunction *CGF,
     Args.push_back(llvm::PoisonValue::get(FormalTy));
 
   return RValue::get(CGF->Builder.CreateCall(UBF, Args));
+}
+
+const SYCLKernelInfo *GetSYCLKernelInfo(ASTContext &Ctx, const CallExpr *E) {
+  // Argument to the builtin is a kernel_id_t type trait which is used
+  // to retrieve the kernel name type.
+  RecordDecl *RD = E->getArg(0)->getType()->castAs<RecordType>()->getDecl();
+  IdentifierTable &IdentTable = Ctx.Idents;
+  auto Name = DeclarationName(&(IdentTable.get("type")));
+  NamedDecl *ND = (RD->lookup(Name)).front();
+  TypeAliasDecl *TD = cast<TypeAliasDecl>(ND);
+  CanQualType KernelNameType = Ctx.getCanonicalType(TD->getUnderlyingType());
+
+  // Retrieve KernelInfo using the kernel name.
+  return Ctx.findSYCLKernelInfo(KernelNameType);
 }
 
 RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
@@ -5991,6 +6006,23 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
         cast<DeclRefExpr>(E->getArg(0)->IgnoreImpCasts())->getDecl());
     auto Str = CGM.GetAddrOfConstantCString(Name, "");
     return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_name: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    
+    // Emit the mangled name.
+    auto Str = CGM.GetAddrOfConstantCString(KernelInfo->GetKernelName(), "");
+    return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_count: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // Emit total number of parameters of kernel caller function.
+    int test = KernelInfo->GetParamCount();
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, test));
   }
   }
 
