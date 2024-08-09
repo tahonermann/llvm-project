@@ -13781,9 +13781,8 @@ void ASTContext::getFunctionFeatureMap(llvm::StringMap<bool> &FeatureMap,
   }
 }
 
-static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
-                                          CanQualType KernelNameType,
-                                          const FunctionDecl *FD) {
+static std::string GetSYCLKernelCallerName(ASTContext &Context,
+                                           CanQualType KernelNameType) {
   // FIXME: Host and device compilations must agree on a name for the generated
   // FIXME: SYCL kernel caller function. The name is provided to the SYCL
   // FIXME: library on the host via __builtin_sycl_kernel_name() and the SYCL
@@ -13820,9 +13819,38 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   Buffer.reserve(128);
   llvm::raw_string_ostream Out(Buffer);
   MC->mangleSYCLKernelCallerName(KernelNameType, Out);
-  std::string KernelName = Out.str();
+  return Out.str();
+}
 
-  return { KernelNameType, FD, KernelName };
+static int GetSYCLKernelCallerParamCount(const FunctionDecl *FD) {
+  // The parameters of the compiler generated SYCL kernel caller function
+  // are generated using the parameters of the SYCL kernel entry point
+  // function. The first parameter of the SYCL kernel entry point function
+  // (i.e. FD), is the SYCL kernel object. If the SYCL kernel object does
+  // not contain SYCL special types, it can be passed as-is to the device.
+  // In this case, parameters of the SYCL kernel caller function are the
+  // same as that of the the SYCL kernel entry point function. However, if
+  // the SYCL kernel object contains a SYCL special type, it is decomposed
+  // to it's data members and the parameters of the kernel caller function
+  // are generated using these decomposed fields, instead of the kernel
+  // object.
+
+  // FIXME: SYCL special types are not currently supported and therefore we
+  // assume there is no decomposition and return the parameter count of SYCL
+  // kernel entry point function.
+  return FD->param_size();
+}
+
+static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
+                                          CanQualType KernelNameType,
+                                          const FunctionDecl *FD) {
+  // Get the mangled name.
+  std::string KernelCallerName =
+      GetSYCLKernelCallerName(Context, KernelNameType);
+  // Get number of arguments.
+  int ParamCount = GetSYCLKernelCallerParamCount(FD);
+
+  return {KernelNameType, FD, KernelCallerName, ParamCount};
 }
 
 void ASTContext::registerSYCLEntryPointFunction(FunctionDecl *FD) {
