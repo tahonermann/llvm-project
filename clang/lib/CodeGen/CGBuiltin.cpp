@@ -2539,14 +2539,16 @@ static RValue EmitHipStdParUnsupportedBuiltin(CodeGenFunction *CGF,
   return RValue::get(CGF->Builder.CreateCall(UBF, Args));
 }
 
-const SYCLKernelInfo *GetSYCLKernelInfo(ASTContext &Ctx, const CallExpr *E) {
-  // Argument to the builtin is a kernel_id_t type trait which is used
-  // to retrieve the kernel name type.
+static const SYCLKernelInfo *GetSYCLKernelInfo(ASTContext &Ctx,
+                                               const CallExpr *E) {
+  // Argument to the builtin is a type trait which is used to retrieve the
+  // kernel name type.
+  // FIXME: Improve the comment.
   RecordDecl *RD = E->getArg(0)->getType()->castAs<RecordType>()->getDecl();
   IdentifierTable &IdentTable = Ctx.Idents;
   auto Name = DeclarationName(&(IdentTable.get("type")));
   NamedDecl *ND = (RD->lookup(Name)).front();
-  TypeAliasDecl *TD = cast<TypeAliasDecl>(ND);
+  TypedefNameDecl *TD = cast<TypedefNameDecl>(ND);
   CanQualType KernelNameType = Ctx.getCanonicalType(TD->getUnderlyingType());
 
   // Retrieve KernelInfo using the kernel name.

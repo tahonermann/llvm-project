@@ -37,8 +37,8 @@ void test() {
   int test1 = __builtin_sycl_kernel_param_count(kernel_id_1<kernel_name_1>()); // Valid
   int test2 = __builtin_sycl_kernel_param_count(kernel_id_1<kernel_name_TD>()); // Valid
   int test3 = __builtin_sycl_kernel_param_count(kernel_id_2()); // Valid
-  int test4 = __builtin_sycl_kernel_param_count(kernel_id_3()); // expected-error {{invalid argument; argument must be a class or struct type with a member type alias named 'type'}}
-  int test5 = __builtin_sycl_kernel_param_count("str"); // expected-error {{invalid argument; argument must be a class or struct type with a member type alias named 'type'}}
-  int test6 = __builtin_sycl_kernel_param_count(kernel_id_2(), kernel_id_2()); // expected-error {{builtin requires exactly 1 argument}}
+  int test4 = __builtin_sycl_kernel_param_count(kernel_id_3()); // expected-error {{invalid argument; expected a class or structure with a member typedef or type alias alias named 'type'}}
+  int test5 = __builtin_sycl_kernel_param_count("str"); // expected-error {{invalid argument; expected a class or structure with a member typedef or type alias alias named 'type'}}
+  int test6 = __builtin_sycl_kernel_param_count(kernel_id_2(), kernel_id_2()); // expected-error {{builtin takes one argument}}
 }
 

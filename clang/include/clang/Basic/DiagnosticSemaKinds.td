@@ -744,6 +744,9 @@ def warn_unreachable_association : Warning<
   InGroup<UnreachableCodeGenericAssoc>;
 
 /// Built-in functions.
+def err_builtin_invalid_argument_count : Error<
+  "builtin %plural{0:takes no arguments|1:takes one argument|"
+  ":requires exactly %0 arguments}0">;
 def ext_implicit_lib_function_decl : ExtWarn<
   "implicitly declaring library function '%0' with type %1">,
   InGroup<ImplicitFunctionDeclare>;
@@ -12199,9 +12202,9 @@ def err_sycl_kernel_name_type : Error<
 def err_sycl_kernel_name_conflict : Error<
   "'sycl_kernel_entry_point' kernel name argument conflicts with a previous"
   " declaration">;
-def err_builtin_invalid_argument_count : Error<"builtin requires exactly 1 argument">;
-def err_builtin_invalid_argument : Error<"invalid argument; argument must be a class or struct type"
-                                         " with a member type alias named 'type'">;
+def err_sycl_kernel_name_invalid_arg : Error<"invalid argument; expected a class "
+                                             "or structure with a member typedef "
+                                             "or type alias alias named 'type'">;
 
 def warn_cuda_maxclusterrank_sm_90 : Warning<
   "maxclusterrank requires sm_90 or higher, CUDA arch provided: %0, ignoring "
