@@ -47,6 +47,7 @@ void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
   // Retrieve the generated name for the SYCL kernel caller function
   const auto *KernelEntryPointAttr =
       KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>();
+  assert(KernelEntryPointAttr && "Missing sycl_kernel_entry_point attribute");
   CanQualType KernelNameType =
       Ctx.getCanonicalType(KernelEntryPointAttr->getKernelName());
   const SYCLKernelInfo *KernelInfo = Ctx.findSYCLKernelInfo(KernelNameType);

@@ -3170,7 +3170,9 @@ void CodeGenModule::EmitDeferred() {
   for (GlobalDecl &D : CurDeclsToEmit) {
     // If the Decl corresponds to a SYCL kernel entry point function, generate
     // and emit the corresponding the SYCL kernel caller function i.e the
-    // offload kernel.
+    // offload kernel. The generation of the offload kernel needs to happen
+    // first in this loop, in order to avoid generating IR for the SYCL kernel
+    // entry point function.
     if (const auto *FD = D.getDecl()->getAsFunction()) {
       if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>() &&
           FD->isDefined()) {
