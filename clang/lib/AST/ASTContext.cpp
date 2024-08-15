@@ -13848,6 +13848,24 @@ static int GetSYCLKernelCallerParamCount(const FunctionDecl *FD) {
   return FD->param_size();
 }
 
+static void CreateSYCLKernelParamDesc(ASTContext &Ctx, const FunctionDecl *FD,
+                                      SYCLKernelInfo &KernelInfo) {
+  llvm::ArrayRef<ParmVarDecl *> KernelParameters = FD->parameters();
+
+  if (KernelParameters.size() == 0)
+    return;
+
+  // First parameter always corresponds to SYCL Kernel Object.
+  KernelInfo.addParamDesc(
+      SYCLKernelInfo::kind_std_layout,
+      Ctx.getTypeSizeInChars(KernelParameters[0]->getType()).getQuantity());
+  for (size_t I = 1; I < KernelParameters.size(); I++) {
+    KernelInfo.addParamDesc(
+        SYCLKernelInfo::kind_other,
+        Ctx.getTypeSizeInChars(KernelParameters[I]->getType()).getQuantity());
+  }
+}
+
 static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
                                           CanQualType KernelNameType,
                                           const FunctionDecl *FD) {
@@ -13857,7 +13875,11 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   // Get number of arguments.
   int ParamCount = GetSYCLKernelCallerParamCount(FD);
 
-  return {KernelNameType, FD, KernelCallerName, ParamCount};
+  SYCLKernelInfo KernelInfo{KernelNameType, FD, KernelCallerName, ParamCount};
+
+  CreateSYCLKernelParamDesc(Context, FD, KernelInfo);
+
+  return KernelInfo;
 }
 
 void ASTContext::registerSYCLEntryPointFunction(FunctionDecl *FD) {

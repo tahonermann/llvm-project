@@ -6022,9 +6022,41 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     // Retrieve the kernel info corresponding to kernel name type.
     const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
     assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    return RValue::get(
+        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamCount()));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_kind: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
     // Emit total number of parameters of kernel caller function.
-    int test = KernelInfo->GetParamCount();
-    return RValue::get(llvm::ConstantInt::get(Int32Ty, test));
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    ParamNoExpr->EvaluateAsInt(Result, getContext());
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    return RValue::get(
+        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamKind(ParamNo)));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_size: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // Emit total number of parameters of kernel caller function.
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    ParamNoExpr->EvaluateAsInt(Result, getContext());
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    return RValue::get(
+        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamSize(ParamNo)));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_offset: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // FIXME: Offset is used only when kernel object is decomposed to identify
+    // offset of field in kernel object. What should the offset be for
+    // additional non-kernel object parameters?
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
   }
   }
 

@@ -4611,6 +4611,24 @@ def SYCLKernelParamCount : LangBuiltin<"SYCL_LANG"> {
   let Prototype = "int(...)";
 }
 
+def SYCLKernelParamKind : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_kind"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamSize : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_size"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamOffset : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_offset"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
 // HLSL
 def HLSLAll : LangBuiltin<"HLSL_LANG"> {
   let Spellings = ["__builtin_hlsl_elementwise_all"];

@@ -21,6 +21,9 @@ namespace clang {
 
 class SYCLKernelInfo {
 public:
+  enum kernel_param_kind_t { kind_std_layout, kind_other };
+
+public:
   SYCLKernelInfo(CanQualType KernelNameType,
                  const FunctionDecl *KernelEntryPointDecl,
                  const std::string &KernelName, int ParamCount)
@@ -42,11 +45,32 @@ public:
 
   const int &GetParamCount() const { return ParamCount; }
 
+  void addParamDesc(kernel_param_kind_t Kind, int Size) {
+    KernelParamDesc PD;
+    PD.Kind = Kind;
+    PD.Size = Size;
+    Params.push_back(PD);
+  }
+
+  const kernel_param_kind_t &GetParamKind(int i) const {
+    return Params[i].Kind;
+  }
+
+  const int &GetParamSize(int i) const { return Params[i].Size; }
+
 private:
+  // Kernel caller function parameter descriptor.
+  struct KernelParamDesc {
+    kernel_param_kind_t Kind = kind_other;
+    int Size = 0;
+    KernelParamDesc() = default;
+  };
+
   CanQualType KernelNameType;
   const FunctionDecl *KernelEntryPointDecl;
   std::string KernelName;
   int ParamCount;
+  SmallVector<KernelParamDesc, 8> Params;
 };
 
 } // namespace clang

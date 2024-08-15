@@ -3289,6 +3289,33 @@ Sema::CheckBuiltinFunctionCall(FunctionDecl *FDecl, unsigned BuiltinID,
 
     break;
   }
+  case Builtin::BI__builtin_sycl_kernel_param_kind:
+  case Builtin::BI__builtin_sycl_kernel_param_offset:
+  case Builtin::BI__builtin_sycl_kernel_param_size: {
+    // Builtin takes 1 argument
+    if (TheCall->getNumArgs() != 2) {
+      Diag(TheCall->getBeginLoc(), diag::err_builtin_invalid_argument_count)
+          << 2;
+      return ExprError();
+    }
+
+    if (CheckBuiltinSyclKernelName(*this, TheCall)) {
+      Diag(TheCall->getArg(0)->getBeginLoc(),
+           diag::err_sycl_kernel_name_invalid_arg);
+      return ExprError();
+    }
+
+    const Expr *Arg = TheCall->getArg(1);
+    QualType ArgTy = Arg->getType();
+
+    if (!ArgTy->isIntegerType()) {
+      Diag(Arg->getBeginLoc(), diag::err_builtin_invalid_arg_type)
+          << 2 << /* integer ty */ 8 << ArgTy;
+      return ExprError();
+    }
+
+    break;
+  }
   case Builtin::BI__builtin_popcountg:
     if (BuiltinPopcountg(*this, TheCall))
       return ExprError();
