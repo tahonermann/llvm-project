@@ -3291,7 +3291,8 @@ Sema::CheckBuiltinFunctionCall(FunctionDecl *FDecl, unsigned BuiltinID,
   }
   case Builtin::BI__builtin_sycl_kernel_param_kind:
   case Builtin::BI__builtin_sycl_kernel_param_offset:
-  case Builtin::BI__builtin_sycl_kernel_param_size: {
+  case Builtin::BI__builtin_sycl_kernel_param_size:
+  case Builtin::BI__builtin_sycl_kernel_param_access_target: {
     // Builtin takes 1 argument
     if (TheCall->getNumArgs() != 2) {
       Diag(TheCall->getBeginLoc(), diag::err_builtin_invalid_argument_count)

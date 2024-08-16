@@ -6058,6 +6058,11 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     // additional non-kernel object parameters?
     return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
   }
+  case Builtin::BI__builtin_sycl_kernel_param_access_target: {
+    // FIXME: This is a dummy value. This builtin will be implemented when
+    // support for special sycl types is implemented.
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
+  }
   }
 
   // If this is an alias for a lib function (e.g. __builtin_sin), emit

@@ -4629,6 +4629,12 @@ def SYCLKernelParamOffset : LangBuiltin<"SYCL_LANG"> {
   let Prototype = "int(...)";
 }
 
+def SYCLKernelParamAccessTarget : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_access_target"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
 // HLSL
 def HLSLAll : LangBuiltin<"HLSL_LANG"> {
   let Spellings = ["__builtin_hlsl_elementwise_all"];
