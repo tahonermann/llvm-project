@@ -13850,19 +13850,13 @@ static int GetSYCLKernelCallerParamCount(const FunctionDecl *FD) {
 
 static void CreateSYCLKernelParamDesc(ASTContext &Ctx, const FunctionDecl *FD,
                                       SYCLKernelInfo &KernelInfo) {
-  llvm::ArrayRef<ParmVarDecl *> KernelParameters = FD->parameters();
-
-  if (KernelParameters.size() == 0)
+  if (FD->getNumParams() == 0)
     return;
 
-  // First parameter always corresponds to SYCL Kernel Object.
-  KernelInfo.addParamDesc(
-      SYCLKernelInfo::kind_std_layout,
-      Ctx.getTypeSizeInChars(KernelParameters[0]->getType()).getQuantity());
-  for (size_t I = 1; I < KernelParameters.size(); I++) {
+  for (const ParmVarDecl *KernelParam : FD->parameters()) {
     KernelInfo.addParamDesc(
-        SYCLKernelInfo::kind_other,
-        Ctx.getTypeSizeInChars(KernelParameters[I]->getType()).getQuantity());
+        SYCLKernelInfo::kind_std_layout,
+        Ctx.getTypeSizeInChars(KernelParam->getType()).getQuantity());
   }
 }
 

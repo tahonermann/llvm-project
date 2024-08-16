@@ -49,7 +49,7 @@ void test() {
 // CHECK: %test1 = alloca i32, align 4
 // CHECK: %test2 = alloca i32, align 4
 // CHECK: %test3 = alloca i32, align 4
-// CHECK: store i32 0, ptr %test1, align 4
+// CHECK: store i32 1, ptr %test1, align 4
 // CHECK: store i32 1, ptr %test2, align 4
 // CHECK: store i32 1, ptr %test3, align 4
 
