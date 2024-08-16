@@ -55,10 +55,10 @@ public:
 
   size_t GetParamCount() const { return Params.size(); }
 
-  void addParamDesc(kernel_param_kind_t Kind, int Size) {
+  void addParamDesc(kernel_param_kind_t Kind, QualType Ty) {
     KernelParamDesc PD;
     PD.Kind = Kind;
-    PD.Size = Size;
+    PD.Type = Ty;
     Params.push_back(PD);
   }
 
@@ -66,13 +66,13 @@ public:
     return Params[i].Kind;
   }
 
-  const int &GetParamSize(int i) const { return Params[i].Size; }
+  const QualType &GetParamTy(int i) const { return Params[i].Type; }
 
 private:
   // Kernel caller function parameter descriptor.
   struct KernelParamDesc {
     kernel_param_kind_t Kind = kind_last;
-    int Size = 0;
+    QualType Type;
     KernelParamDesc() = default;
   };
 

@@ -6046,8 +6046,10 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     Expr::EvalResult Result;
     ParamNoExpr->EvaluateAsInt(Result, getContext());
     unsigned ParamNo = Result.Val.getInt().getZExtValue();
-    return RValue::get(
-        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamSize(ParamNo)));
+    QualType ParamTy = KernelInfo->GetParamTy(ParamNo);
+    // FIXME: Add check to ensure complete type.
+    return RValue::get(llvm::ConstantInt::get(
+        Int32Ty, getContext().getTypeSizeInChars(ParamTy).getQuantity()));
   }
   case Builtin::BI__builtin_sycl_kernel_param_offset: {
     // Retrieve the kernel info corresponding to kernel name type.
