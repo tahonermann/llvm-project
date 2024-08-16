@@ -13829,25 +13829,6 @@ static std::string GetSYCLKernelCallerName(ASTContext &Context,
   return Out.str();
 }
 
-static int GetSYCLKernelCallerParamCount(const FunctionDecl *FD) {
-  // The parameters of the compiler generated SYCL kernel caller function
-  // are generated using the parameters of the SYCL kernel entry point
-  // function. The first parameter of the SYCL kernel entry point function
-  // (i.e. FD), is the SYCL kernel object. If the SYCL kernel object does
-  // not contain SYCL special types, it can be passed as-is to the device.
-  // In this case, parameters of the SYCL kernel caller function are the
-  // same as that of the the SYCL kernel entry point function. However, if
-  // the SYCL kernel object contains a SYCL special type, it is decomposed
-  // to it's data members and the parameters of the kernel caller function
-  // are generated using these decomposed fields, instead of the kernel
-  // object.
-
-  // FIXME: SYCL special types are not currently supported and therefore we
-  // assume there is no decomposition and return the parameter count of SYCL
-  // kernel entry point function.
-  return FD->param_size();
-}
-
 static void CreateSYCLKernelParamDesc(ASTContext &Ctx, const FunctionDecl *FD,
                                       SYCLKernelInfo &KernelInfo) {
   if (FD->getNumParams() == 0)
@@ -13866,10 +13847,8 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   // Get the mangled name.
   std::string KernelCallerName =
       GetSYCLKernelCallerName(Context, KernelNameType);
-  // Get number of arguments.
-  int ParamCount = GetSYCLKernelCallerParamCount(FD);
 
-  SYCLKernelInfo KernelInfo{KernelNameType, FD, KernelCallerName, ParamCount};
+  SYCLKernelInfo KernelInfo{KernelNameType, FD, KernelCallerName};
 
   CreateSYCLKernelParamDesc(Context, FD, KernelInfo);
 

@@ -37,10 +37,9 @@ public:
 public:
   SYCLKernelInfo(CanQualType KernelNameType,
                  const FunctionDecl *KernelEntryPointDecl,
-                 const std::string &KernelName, int ParamCount)
+                 const std::string &KernelName)
       : KernelNameType(KernelNameType),
-        KernelEntryPointDecl(KernelEntryPointDecl), KernelName(KernelName),
-        ParamCount(ParamCount) {}
+        KernelEntryPointDecl(KernelEntryPointDecl), KernelName(KernelName) {}
 
   CanQualType GetKernelNameType() const {
     return KernelNameType;
@@ -54,7 +53,7 @@ public:
     return KernelName;
   }
 
-  const int &GetParamCount() const { return ParamCount; }
+  size_t GetParamCount() const { return Params.size(); }
 
   void addParamDesc(kernel_param_kind_t Kind, int Size) {
     KernelParamDesc PD;
@@ -80,7 +79,6 @@ private:
   CanQualType KernelNameType;
   const FunctionDecl *KernelEntryPointDecl;
   std::string KernelName;
-  int ParamCount;
   SmallVector<KernelParamDesc, 8> Params;
 };
 
