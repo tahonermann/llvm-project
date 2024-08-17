@@ -4635,6 +4635,30 @@ def SYCLKernelParamAccessTarget : LangBuiltin<"SYCL_LANG"> {
   let Prototype = "int(...)";
 }
 
+def SYCLKernelFileName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_file_name"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelFunctionName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_function_name"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelLineNumber : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_line_number"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "unsigned int(...)";
+}
+
+def SYCLKernelColumnNumber : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_column_number"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "unsigned int(...)";
+}
+
 // HLSL
 def HLSLAll : LangBuiltin<"HLSL_LANG"> {
   let Spellings = ["__builtin_hlsl_elementwise_all"];

@@ -6065,6 +6065,25 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     // support for special sycl types is implemented.
     return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
   }
+  case Builtin::BI__builtin_sycl_kernel_file_name:
+  case Builtin::BI__builtin_sycl_kernel_function_name: {
+    // FIXME: This is a dummy value. These builtins provide information
+    // about the kernel object. In the new design, the we do not have
+    // special status for the kernel object, so it is unclear what these
+    // builtins should return, or if they even need to exist. Support will
+    // be added or removed after investigation.
+    auto Str = CGM.GetAddrOfConstantCString("DummyString", "");
+    return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_line_number:
+  case Builtin::BI__builtin_sycl_kernel_column_number: {
+    // FIXME: This is a dummy value. These builtins provide information
+    // about the kernel object. In the new design, the we do not have
+    // special status for the kernel object, so it is unclear what these
+    // builtins should return, or if they even need to exist. Support will
+    // be added or removed after investigation.
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
+  }
   }
 
   // If this is an alias for a lib function (e.g. __builtin_sin), emit

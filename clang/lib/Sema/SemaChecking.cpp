@@ -3273,7 +3273,11 @@ Sema::CheckBuiltinFunctionCall(FunctionDecl *FDecl, unsigned BuiltinID,
     break;
   }
   case Builtin::BI__builtin_sycl_kernel_name:
-  case Builtin::BI__builtin_sycl_kernel_param_count: {
+  case Builtin::BI__builtin_sycl_kernel_param_count:
+  case Builtin::BI__builtin_sycl_kernel_file_name:
+  case Builtin::BI__builtin_sycl_kernel_function_name:
+  case Builtin::BI__builtin_sycl_kernel_line_number:
+  case Builtin::BI__builtin_sycl_kernel_column_number: {
     // Builtin takes 1 argument
     if (TheCall->getNumArgs() != 1) {
       Diag(TheCall->getBeginLoc(), diag::err_builtin_invalid_argument_count)
