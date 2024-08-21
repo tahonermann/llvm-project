@@ -236,5 +236,40 @@ void skep6(const S6 &k) {
 // CHECK-NEXT: | |       `-DeclRefExpr {{.*}} 'const S6' lvalue ImplicitParam {{.*}} 'k' 'const S6 &'
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<6>
 
+// Parameter types are not required to be complete at the point of a
+// non-defining declaration.
+struct S7;
+[[clang::sycl_kernel_entry_point(KN<7>)]]
+void skep7(S7 k);
+struct S7 {
+  void operator()() const;
+};
+[[clang::sycl_kernel_entry_point(KN<7>)]]
+void skep7(S7 k) {
+  k();
+}
+// CHECK:      |-FunctionDecl {{.*}} skep7 'void (S7)'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} k 'S7'
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<7>
+// CHECK:      |-FunctionDecl {{.*}} prev {{.*}} skep7 'void (S7)'
+// CHECK-NEXT: | |-ParmVarDecl {{.*}} used k 'S7'
+// CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const S7' lvalue <NoOp>
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'S7' lvalue ParmVar {{.*}} 'k' 'S7'
+// CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
+// CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'S7'
+// CHECK-NEXT: | |   `-CompoundStmt {{.*}}
+// CHECK-NEXT: | |     `-CXXOperatorCallExpr {{.*}} 'void' '()'
+// CHECK-NEXT: | |       |-ImplicitCastExpr {{.*}} 'void (*)() const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |       | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
+// CHECK-NEXT: | |       `-ImplicitCastExpr {{.*}} 'const S7' lvalue <NoOp>
+// CHECK-NEXT: | |         `-DeclRefExpr {{.*}} 'S7' lvalue ImplicitParam {{.*}} 'k' 'S7'
+// CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<7>
+
+
 void the_end() {}
 // CHECK:      `-FunctionDecl {{.*}} the_end 'void ()'
