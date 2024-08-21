@@ -114,8 +114,6 @@ struct TransferrableTargetInfo {
   unsigned char DecimalFloat64Width, DecimalFloat64Align;
   unsigned char DecimalFloat128Width, DecimalFloat128Align;
 
-  enum DecimalFloat { Libgcc_BID, Libgcc_DPD, Hard } DecimalFloatABI;
-
   // Fixed point bit widths
   unsigned char ShortAccumWidth, ShortAccumAlign;
   unsigned char AccumWidth, AccumAlign;
@@ -288,10 +286,6 @@ protected:
   unsigned MaxOpenCLWorkGroupSize;
 
   std::optional<unsigned> MaxBitIntWidth;
-
-  // If disengaged, decimal floating-point extensions are not supported,
-  // otherwise, the decimal floating-point mode that is enabled.
-  std::optional<DecimalFloatMode> DecimalFloatEnablementAndMode;
 
   std::optional<llvm::Triple> DarwinTargetVariantTriple;
 
@@ -724,20 +718,6 @@ public:
 
   /// Determine whether constrained floating point is supported on this target.
   virtual bool hasStrictFP() const { return HasStrictFP; }
-
-  /// Determine whether decimal floating-point extensions are enabled on this
-  /// target.
-  bool hasDecimalFloatingPoint() const {
-    return DecimalFloatEnablementAndMode.has_value();
-  }
-
-  /// Determine the encoding used for decimal floating-point values on this
-  /// target if decimal floating-point extensions are enabled.
-  DecimalFloatMode getDecimalFloatingPointMode() const {
-    assert(hasDecimalFloatingPoint() &&
-           "Decimal floating-point extensions are not enabled");
-    return DecimalFloatEnablementAndMode.value();
-  }
 
   /// Return the alignment that is the largest alignment ever used for any
   /// scalar/SIMD data type on the target machine you are compiling for

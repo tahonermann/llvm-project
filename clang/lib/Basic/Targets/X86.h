@@ -165,7 +165,6 @@ class LLVM_LIBRARY_VISIBILITY X86TargetInfo : public TargetInfo {
   bool HasUINTR = false;
   bool HasCRC32 = false;
   bool HasX87 = false;
-  bool HasBIDENCODING = false;
 
 protected:
   llvm::X86::CPUKind CPU = llvm::X86::CK_None;
@@ -719,6 +718,11 @@ public:
     IntMaxType = IsX32 ? SignedLongLong : SignedLong;
     Int64Type = IsX32 ? SignedLongLong : SignedLong;
     RegParmMax = 6;
+
+    // TODO
+    // Here we would test for the value of Opts.DecimalFloatEnablementMode.
+    // If it is set we would make sure that it has the correct value for this
+    // target and set the datalayout accordingly.
 
     // Pointers are 32-bit in x32.
     resetDataLayout(IsX32 ? "e-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-"
