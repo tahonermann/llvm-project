@@ -30,6 +30,7 @@
 #include "clang/Basic/TargetBuiltins.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/TargetOptions.h"
+#include "clang/Basic/IdentifierTable.h"
 #include "clang/CodeGen/CGFunctionInfo.h"
 #include "clang/Frontend/FrontendDiagnostic.h"
 #include "llvm/ADT/APFloat.h"
@@ -2536,6 +2537,22 @@ static RValue EmitHipStdParUnsupportedBuiltin(CodeGenFunction *CGF,
     Args.push_back(llvm::PoisonValue::get(FormalTy));
 
   return RValue::get(CGF->Builder.CreateCall(UBF, Args));
+}
+
+static const SYCLKernelInfo *GetSYCLKernelInfo(ASTContext &Ctx,
+                                               const CallExpr *E) {
+  // Argument to the builtin is a type trait which is used to retrieve the
+  // kernel name type.
+  // FIXME: Improve the comment.
+  RecordDecl *RD = E->getArg(0)->getType()->castAs<RecordType>()->getDecl();
+  IdentifierTable &IdentTable = Ctx.Idents;
+  auto Name = DeclarationName(&(IdentTable.get("type")));
+  NamedDecl *ND = (RD->lookup(Name)).front();
+  TypedefNameDecl *TD = cast<TypedefNameDecl>(ND);
+  CanQualType KernelNameType = Ctx.getCanonicalType(TD->getUnderlyingType());
+
+  // Retrieve KernelInfo using the kernel name.
+  return Ctx.findSYCLKernelInfo(KernelNameType);
 }
 
 RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
@@ -5991,6 +6008,81 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
         cast<DeclRefExpr>(E->getArg(0)->IgnoreImpCasts())->getDecl());
     auto Str = CGM.GetAddrOfConstantCString(Name, "");
     return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_name: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    
+    // Emit the mangled name.
+    auto Str = CGM.GetAddrOfConstantCString(KernelInfo->GetKernelName(), "");
+    return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_count: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    return RValue::get(
+        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamCount()));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_kind: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // Emit total number of parameters of kernel caller function.
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    ParamNoExpr->EvaluateAsInt(Result, getContext());
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    return RValue::get(
+        llvm::ConstantInt::get(Int32Ty, KernelInfo->GetParamKind(ParamNo)));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_size: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // Emit total number of parameters of kernel caller function.
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    ParamNoExpr->EvaluateAsInt(Result, getContext());
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    QualType ParamTy = KernelInfo->GetParamTy(ParamNo);
+    // FIXME: Add check to ensure complete type.
+    return RValue::get(llvm::ConstantInt::get(
+        Int32Ty, getContext().getTypeSizeInChars(ParamTy).getQuantity()));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_offset: {
+    // Retrieve the kernel info corresponding to kernel name type.
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(getContext(), E);
+    assert(KernelInfo && "Type does not correspond to a SYCL kernel name.");
+    // FIXME: Offset is used only when kernel object is decomposed to identify
+    // offset of field in kernel object. What should the offset be for
+    // additional non-kernel object parameters?
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
+  }
+  case Builtin::BI__builtin_sycl_kernel_param_access_target: {
+    // FIXME: This is a dummy value. This builtin will be implemented when
+    // support for special sycl types is implemented.
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
+  }
+  case Builtin::BI__builtin_sycl_kernel_file_name:
+  case Builtin::BI__builtin_sycl_kernel_function_name: {
+    // FIXME: This is a dummy value. These builtins provide information
+    // about the kernel object. In the new design, the we do not have
+    // special status for the kernel object, so it is unclear what these
+    // builtins should return, or if they even need to exist. Support will
+    // be added or removed after investigation.
+    auto Str = CGM.GetAddrOfConstantCString("DummyString", "");
+    return RValue::get(Str.getPointer());
+  }
+  case Builtin::BI__builtin_sycl_kernel_line_number:
+  case Builtin::BI__builtin_sycl_kernel_column_number: {
+    // FIXME: This is a dummy value. These builtins provide information
+    // about the kernel object. In the new design, the we do not have
+    // special status for the kernel object, so it is unclear what these
+    // builtins should return, or if they even need to exist. Support will
+    // be added or removed after investigation.
+    return RValue::get(llvm::ConstantInt::get(Int32Ty, 0));
   }
   }
 
