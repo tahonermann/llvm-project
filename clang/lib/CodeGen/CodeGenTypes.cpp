@@ -419,13 +419,13 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
       break;
 
     case BuiltinType::DecimalFloat32:
-      ResultType = llvm::Type::getDecimal32Ty(getLLVMContext());
+      ResultType = llvm::Type::getDecimalFloat32Ty(getLLVMContext());
       break;
     case BuiltinType::DecimalFloat64:
-      ResultType = llvm::Type::getDecimal64Ty(getLLVMContext());
+      ResultType = llvm::Type::getDecimalFloat64Ty(getLLVMContext());
       break;
     case BuiltinType::DecimalFloat128:
-      ResultType = llvm::Type::getDecimal128Ty(getLLVMContext());
+      ResultType = llvm::Type::getDecimalFloat128Ty(getLLVMContext());
       break;
 
     case BuiltinType::NullPtr:

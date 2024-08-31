@@ -149,7 +149,8 @@ struct TransferrableTargetInfo {
   unsigned MaxTLSAlign;
 
   const llvm::fltSemantics *HalfFormat, *BFloat16Format, *FloatFormat,
-      *DoubleFormat, *LongDoubleFormat, *Float128Format, *Ibm128Format;
+      *DoubleFormat, *LongDoubleFormat, *Float128Format, *Ibm128Format,
+      *DecimalFloat32Format, *DecimalFloat64Format, *DecimalFloat128Format;
 
   ///===---- Target Data Type Query Methods -------------------------------===//
   enum IntType {
@@ -535,14 +536,23 @@ public:
   /// DecimalFloat32Width/Align - Return the size/align of '_Decimal32'.
   unsigned getDecimalFloat32Width() const { return DecimalFloat32Width; }
   unsigned getDecimalFloat32Align() const { return DecimalFloat32Align; }
+  const llvm::fltSemantics &getDecimalFloat32Format() const {
+    return *DecimalFloat32Format;
+  }
 
   /// DecimalFloat64Width/Align - Return the size/align of '_Decimal64'.
   unsigned getDecimalFloat64Width() const { return DecimalFloat64Width; }
   unsigned getDecimalFloat64Align() const { return DecimalFloat64Align; }
+  const llvm::fltSemantics &getDecimalFloat64Format() const {
+    return *DecimalFloat64Format;
+  }
 
   /// DecimalFloat128Width/Align - Return the size/align of '_Decimal128'.
   unsigned getDecimalFloat128Width() const { return DecimalFloat128Width; }
   unsigned getDecimalFloat128Align() const { return DecimalFloat128Align; }
+  const llvm::fltSemantics &getDecimalFloat128Format() const {
+    return *DecimalFloat128Format;
+  }
 
   /// getShortAccumWidth/Align - Return the size of 'signed short _Accum' and
   /// 'unsigned short _Accum' for this target, in bits.

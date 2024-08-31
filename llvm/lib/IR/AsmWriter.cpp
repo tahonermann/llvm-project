@@ -561,9 +561,15 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
   case Type::IntegerTyID:
     OS << 'i' << cast<IntegerType>(Ty)->getBitWidth();
     return;
-  case Type::Decimal32TyID:  OS << "decimal32"; return;
-  case Type::Decimal64TyID:  OS << "decimal64"; return;
-  case Type::Decimal128TyID: OS << "decimal128"; return;
+  case Type::DecimalFloat32TyID:
+    OS << "decimal32";
+    return;
+  case Type::DecimalFloat64TyID:
+    OS << "decimal64";
+    return;
+  case Type::DecimalFloat128TyID:
+    OS << "decimal128";
+    return;
 
   case Type::FunctionTyID: {
     FunctionType *FTy = cast<FunctionType>(Ty);

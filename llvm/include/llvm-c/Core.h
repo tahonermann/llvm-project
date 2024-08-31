@@ -163,13 +163,13 @@ typedef enum {
   LLVMMetadataTypeKind,  /**< Metadata */
   LLVMX86_MMXTypeKind,   /**< X86 MMX */
   LLVMTokenTypeKind,     /**< Tokens */
-  LLVMScalableVectorTypeKind, /**< Scalable SIMD vector type */
-  LLVMBFloatTypeKind,         /**< 16 bit brain floating point type */
-  LLVMX86_AMXTypeKind,        /**< X86 AMX */
-  LLVMTargetExtTypeKind,      /**< Target extension type */
-  LLVMDecimal32TypeKind,      /**< 32 bit decimal floating point type */
-  LLVMDecimal64TypeKind,      /**< 64 bit decimal floating point type */
-  LLVMDecimal128TypeKind,     /**< 128 bit decimal floating point type */
+  LLVMScalableVectorTypeKind,  /**< Scalable SIMD vector type */
+  LLVMBFloatTypeKind,          /**< 16 bit brain floating point type */
+  LLVMX86_AMXTypeKind,         /**< X86 AMX */
+  LLVMTargetExtTypeKind,       /**< Target extension type */
+  LLVMDecimalFloat32TypeKind,  /**< 32 bit decimal floating point type */
+  LLVMDecimalFloat64TypeKind,  /**< 64 bit decimal floating point type */
+  LLVMDecimalFloat128TypeKind, /**< 128 bit decimal floating point type */
 } LLVMTypeKind;
 
 typedef enum {
