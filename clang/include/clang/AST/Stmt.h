@@ -397,9 +397,9 @@ protected:
     unsigned : NumExprBits;
 
     static_assert(
-        llvm::APFloat::S_MaxSemantics < 16,
-        "Too many Semantics enum values to fit in bitfield of size 4");
-    unsigned Semantics : 4; // Provides semantics for APFloat construction
+        llvm::APFloat::S_MaxSemantics < 32,
+        "Too many Semantics enum values to fit in bitfield of size 5");
+    unsigned Semantics : 5; // Provides semantics for APFloat construction
     unsigned IsExact : 1;
   };
 
