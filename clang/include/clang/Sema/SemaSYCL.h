@@ -28,6 +28,10 @@ class SemaSYCL : public SemaBase {
 public:
   SemaSYCL(Sema &S);
 
+  using ContextNotes = SmallVector<PartialDiagnosticAt, 1>;
+  llvm::DenseMap<CanonicalDeclPtr<const FunctionDecl>, ContextNotes>
+      SYCLKernelEntryContextNotes;
+
   /// Creates a SemaDiagnosticBuilder that emits the diagnostic if the current
   /// context is "used as device code".
   ///

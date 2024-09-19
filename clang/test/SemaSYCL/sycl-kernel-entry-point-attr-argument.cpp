@@ -209,8 +209,40 @@ struct B25_2;
   clang::sycl_kernel_entry_point(B25_2)]]
 void bad25();
 
-struct B26;
-// expected-error@+3 {{'sycl_kernel_entry_point' kernel name argument conflicts with a previous declaration}}
+struct B26 { void operator()() const {} };
+// expected-error@+3 {{'sycl_kernel_entry_point' kernel name 'B26' conflicts with a previous declaration}}
 // expected-note@+1  {{previous declaration is here}}
-[[clang::sycl_kernel_entry_point(B26)]] void bad26_1();
-[[clang::sycl_kernel_entry_point(B26)]] void bad24_2();
+[[clang::sycl_kernel_entry_point(B26)]] void bad26_1(B26 k) { k(); }
+[[clang::sycl_kernel_entry_point(B26)]] void bad24_2(B26 k) { k(); }
+
+
+struct kernel_name;
+
+template<typename KN, typename K>
+[[clang::sycl_kernel_entry_point(KN)]]
+void sycl_entry_point(K ker, int i) { ker(); }
+
+template<typename KN, typename K>
+void sycl_entry_point(K ker, long i) { ker(); }
+
+void proxy() {
+  int i = 0;
+  long l = 0;
+  // expected-error@-8 {{'sycl_kernel_entry_point' kernel name 'kernel_name' conflicts with a previous declaration}}
+  // expected-note-re@+4  {{in instantiation of function template specialization 'sycl_entry_point<kernel_name, (lambda at{{.*}}}}
+  // expected-note@-10  {{previous declaration is here}}
+  // expected-note-re@+1  {{in instantiation of function template specialization 'sycl_entry_point<kernel_name, (lambda at{{.*}}}}
+  sycl_entry_point<kernel_name>([]{}, i);
+  sycl_entry_point<kernel_name>([]{}, i);
+  // this doesn't trigger any error.
+  sycl_entry_point<kernel_name>([]{}, l);
+}
+
+void proxy2() {
+  int i = 0;
+  // expected-error@-20 {{'sycl_kernel_entry_point' kernel name 'kernel_name' conflicts with a previous declaration}}
+  // expected-note-re@+3  {{in instantiation of function template specialization 'sycl_entry_point<kernel_name, (lambda at{{.*}}}}
+  // expected-note@-22  {{previous declaration is here}}
+  // expected-note-re@-11  {{in instantiation of function template specialization 'sycl_entry_point<kernel_name, (lambda at{{.*}}}}
+  sycl_entry_point<kernel_name>([]{}, i);
+}

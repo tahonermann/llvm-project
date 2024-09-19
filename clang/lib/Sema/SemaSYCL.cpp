@@ -346,16 +346,12 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   if (!FD->isInvalidDecl() && !FD->isDependentContext()) {
     const SYCLKernelInfo *SKI =
         getASTContext().findSYCLKernelInfo(SKEPAttr->getKernelName());
-    if (SKI) {
-      if (!declaresSameEntity(FD, SKI->GetKernelEntryPointDecl())) {
-        // FIXME: This diagnostic should include the origin of the kernel
-        // FIXME: names; not just the locations of the conflicting declarations.
-        Diag(FD->getLocation(), diag::err_sycl_kernel_name_conflict);
-        Diag(SKI->GetKernelEntryPointDecl()->getLocation(),
-             diag::note_previous_declaration);
-        FD->setInvalidDecl();
-      }
-    } else {
+    if (!SKI) {
+      // Note: In order to not interfere with SFINAE, we delay the diagnostic of
+      // conflicting names to when we act on the attribute.
+      ContextNotes &Notes = SYCLKernelEntryContextNotes[FD];
+      SemaRef.PrintInstantiationStack(
+          [&](const PartialDiagnosticAt &PD) { Notes.push_back(PD); });
       getASTContext().registerSYCLEntryPointFunction(FD);
     }
   }
@@ -373,8 +369,20 @@ StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   // stored declaration matches.
   const SYCLKernelInfo &SKI =
         getASTContext().getSYCLKernelInfo(SKEPAttr->getKernelName());
-  if (!declaresSameEntity(SKI.GetKernelEntryPointDecl(), FD))
-    llvm::report_fatal_error("SYCL kernel name conflict");
+  if (!declaresSameEntity(SKI.GetKernelEntryPointDecl(), FD)) {
+    Diag(FD->getLocation(), diag::err_sycl_kernel_name_conflict)
+        << SKEPAttr->getKernelName();
+    Diag(SKI.GetKernelEntryPointDecl()->getLocation(),
+         diag::note_previous_declaration);
+    for (const PartialDiagnosticAt &PD :
+         SYCLKernelEntryContextNotes.at(SKI.GetKernelEntryPointDecl())) {
+      DiagnosticBuilder Builder(
+          SemaRef.Diags.Report(PD.first, PD.second.getDiagID()));
+      PD.second.Emit(Builder);
+    }
+    FD->setInvalidDecl();
+    return {/*Invalid=*/true};
+  }
 
   using ParmDeclMap = OutlinedFunctionDeclBodyInstantiator::ParmDeclMap;
   ParmDeclMap ParmMap;
