@@ -29,21 +29,10 @@ int foo() {
 }
 
 template <typename Name, typename Func>
-__attribute__((sycl_kernel)) void kernel_single_task(const Func &kernelFunc) {
+__attribute__((sycl_kernel_entry_point(Name))) void kernel_single_task(const Func &kernelFunc) {
   kernelFunc();
 }
 
-// CHECK-LABEL: define dso_local noundef i32 @main(
-// CHECK-SAME: ) #[[ATTR0]] {
-// CHECK-NEXT:  entry:
-// CHECK-NEXT:    [[RETVAL:%.*]] = alloca i32, align 4
-// CHECK-NEXT:    [[REF_TMP:%.*]] = alloca [[CLASS_ANON:%.*]], align 1
-// CHECK-NEXT:    [[RETVAL_ASCAST:%.*]] = addrspacecast ptr [[RETVAL]] to ptr addrspace(4)
-// CHECK-NEXT:    [[REF_TMP_ASCAST:%.*]] = addrspacecast ptr [[REF_TMP]] to ptr addrspace(4)
-// CHECK-NEXT:    store i32 0, ptr addrspace(4) [[RETVAL_ASCAST]], align 4
-// CHECK-NEXT:    call spir_func void @_Z18kernel_single_taskIZ4mainE11fake_kernelZ4mainEUlvE_EvRKT0_(ptr addrspace(4) noundef align 1 dereferenceable(1) [[REF_TMP_ASCAST]]) #[[ATTR1]]
-// CHECK-NEXT:    ret i32 0
-//
 int main() {
   kernel_single_task<class fake_kernel>([] { bar(); });
   return 0;
