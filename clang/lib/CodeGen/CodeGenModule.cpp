@@ -3178,8 +3178,8 @@ void CodeGenModule::EmitDeferred() {
           FD->isDefined()) {
         // Generate and emit the offload kernel
         EmitSYCLKernelCaller(FD, getContext());
-        // The offload kernel invokes the operator method of the SYCL kernel
-        // object i.e. the SYCL kernel function is invoked. Emit this function.
+        // Recurse to emit any symbols referenced by the SYCL kernel
+        // caller function.
         EmitDeferred();
         // Do not emit the SYCL kernel entry point function.
         continue;
