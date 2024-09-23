@@ -3,17 +3,17 @@
 
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel(Func F){
   F();
 }
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel2(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel2(Func F){
   F(1);
 }
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel3(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel3(Func F){
   F(1.1);
 }
 
