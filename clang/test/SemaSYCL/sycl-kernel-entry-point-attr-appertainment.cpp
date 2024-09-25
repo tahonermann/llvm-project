@@ -103,7 +103,7 @@ const void ok11();
 ////////////////////////////////////////////////////////////////////////////////
 
 struct Smain;
-// expected-error@+1 {{'main' cannot be declared with the 'sycl_kernel_entry_point' attribute}}
+// expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions with a 'void' return type}}
 [[clang::sycl_kernel_entry_point(Smain)]]
 int main();
 
