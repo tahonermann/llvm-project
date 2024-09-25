@@ -11684,6 +11684,8 @@ DeclResult Sema::ActOnExplicitInstantiation(Scope *S,
          diag::ext_explicit_instantiation_without_qualified_id)
     << Specialization << D.getCXXScopeSpec().getRange();
 
+  SYCL().EmitDelayedKernelEntryPointDiagnostics(Specialization);
+
   CheckExplicitInstantiation(
       *this,
       FunTmpl ? (NamedDecl *)FunTmpl

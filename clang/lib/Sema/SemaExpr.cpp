@@ -255,6 +255,7 @@ bool Sema::DiagnoseUseOfDecl(NamedDecl *D, ArrayRef<SourceLocation> Locs,
 
     diagnoseUnavailableAlignedAllocation(*cast<FunctionDecl>(D), Loc);
   }
+  SYCL().EmitDelayedKernelEntryPointDiagnostics(D->getCanonicalDecl());
 
   // See if this is an auto-typed variable whose initializer we are parsing.
   if (ParsingInitForAutoVars.count(D)) {

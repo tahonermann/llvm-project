@@ -12197,7 +12197,7 @@ def err_sycl_entry_point_on_main : Error<
 def err_sycl_kernel_name_type : Error<
   "'sycl_kernel_entry_point' kernel name argument must be a class type">;
 def err_sycl_kernel_name_conflict : Error<
-  "'sycl_kernel_entry_point' kernel name argument conflicts with a previous"
+  "'sycl_kernel_entry_point' kernel name %0 conflicts with a previous"
   " declaration">;
 
 def warn_cuda_maxclusterrank_sm_90 : Warning<

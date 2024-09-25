@@ -10348,6 +10348,8 @@ public:
       PrintPragmaAttributeInstantiationPoint();
   }
   void PrintInstantiationStack();
+  void
+      PrintInstantiationStack(std::function<void(const PartialDiagnosticAt &)>);
 
   /// Determines whether we are currently in a context where
   /// template argument substitution failures are not considered

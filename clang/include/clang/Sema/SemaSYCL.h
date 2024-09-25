@@ -28,6 +28,19 @@ class SemaSYCL : public SemaBase {
 public:
   SemaSYCL(Sema &S);
 
+  using ContextNotes = SmallVector<PartialDiagnosticAt, 1>;
+  llvm::DenseMap<CanonicalDeclPtr<const FunctionDecl>, ContextNotes>
+      SYCLKernelEntryContextNotes;
+  // Similar to SuppressedDiagnostics,
+  // we don't emit diagnostics straight away in case of template instantiation.
+  // This is to work around the fact that during overload resolution we end up
+  // instantiating decls without commiting to use them. During attribute checks
+  // we can not tell if the decl will actually be selected and therefore needed.
+  // We emit the diagnostic and raise them iff they are required.
+  typedef llvm::DenseMap<Decl *, SmallVector<PartialDiagnosticAt, 1>>
+      SuppressedDiagnosticsMap;
+  SuppressedDiagnosticsMap EntryPointSuppressedDiagnostics;
+
   /// Creates a SemaDiagnosticBuilder that emits the diagnostic if the current
   /// context is "used as device code".
   ///
@@ -66,6 +79,7 @@ public:
 
   void CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD);
   StmtResult BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body);
+  bool EmitDelayedKernelEntryPointDiagnostics(Decl *FD);
 };
 
 } // namespace clang
