@@ -212,6 +212,40 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
                                                               AL, TSI));
 }
 
+static SourceLocation SourceLocationForType(QualType QT) {
+  SourceLocation Loc;
+  const Type *T = QT->getUnqualifiedDesugaredType();
+  if (const TagType *TT = dyn_cast<TagType>(T))
+    Loc = TT->getDecl()->getLocation();
+  else if (const ObjCInterfaceType *ObjCIT = dyn_cast<ObjCInterfaceType>(T))
+    Loc = ObjCIT->getDecl()->getLocation();
+  return Loc;
+}
+
+static bool CheckSYCLKernelName(Sema &S, SourceLocation Loc,
+                                QualType KernelName) {
+  assert(!KernelName->isDependentType());
+
+  if (!KernelName->isStructureOrClassType()) {
+    // SYCL 2020 section 5.2, "Naming of kernels", only requires that the
+    // kernel name be a C++ typename. However, the definition of "kernel name"
+    // in the glossary states that a kernel name is a class type. Neither
+    // section explicitly states whether the kernel name type can be
+    // cv-qualified. For now, kernel name types are required to be class types
+    // and that they may be cv-qualified. The following issue requests
+    // clarification from the SYCL WG.
+    //   https://github.com/KhronosGroup/SYCL-Docs/issues/568
+    S.Diag(Loc, diag::warn_sycl_kernel_name_not_a_class_type) << KernelName;
+    SourceLocation DeclTypeLoc = SourceLocationForType(KernelName);
+    if (DeclTypeLoc.isValid())
+      S.Diag(DeclTypeLoc, diag::note_entity_declared_at)
+          << KernelName;
+    return true;
+  }
+
+  return false;
+}
+
 void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   // Ensure that all attributes present on the declaration are consistent
   // and warn about any redundant ones.
@@ -237,11 +271,11 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   }
   assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
 
-  // Ensure the kernel name type is a class type.
+  // Ensure the kernel name type is valid.
   if (!SKEPAttr->getKernelName()->isDependentType() &&
-      !SKEPAttr->getKernelName()->isStructureOrClassType()) {
-      Diag(SKEPAttr->getLocation(), diag::err_sycl_kernel_name_type);
-      FD->setInvalidDecl();
+      CheckSYCLKernelName(SemaRef, SKEPAttr->getLocation(),
+                          SKEPAttr->getKernelName())) {
+    FD->setInvalidDecl();
   }
 
   // Ensure that an attribute present on the previous declaration

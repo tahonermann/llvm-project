@@ -103,19 +103,19 @@ struct B4;
 // expected-error@+1 {{expected a type}}
 [[clang::sycl_kernel_entry_point(1)]] void bad5();
 
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+// expected-error@+1 {{'int' is not a valid SYCL kernel name type; a class type is required}}
 [[clang::sycl_kernel_entry_point(int)]] void bad6();
 
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+// expected-error@+1 {{'int ()' is not a valid SYCL kernel name type; a class type is required}}
 [[clang::sycl_kernel_entry_point(int())]] void bad7();
 
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+// expected-error@+1 {{'int (*)()' is not a valid SYCL kernel name type; a class type is required}}
 [[clang::sycl_kernel_entry_point(int(*)())]] void bad8();
 
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+// expected-error@+1 {{'int (&)()' is not a valid SYCL kernel name type; a class type is required}}
 [[clang::sycl_kernel_entry_point(int(&)())]] void bad9();
 
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+// expected-error@+1 {{'decltype(nullptr)' (aka 'std::nullptr_t') is not a valid SYCL kernel name type; a class type is required}}
 [[clang::sycl_kernel_entry_point(decltype(nullptr))]] void bad10();
 
 void f11();
@@ -130,16 +130,19 @@ void f11();
 // expected-note@#TTA-decl {{template is declared here}}
 [[clang::sycl_kernel_entry_point(TTA)]] void bad13();
 
-union U;
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+union U; // #U-decl
+// expected-error@+2 {{'U' is not a valid SYCL kernel name type; a class type is required}}
+// expected-note@#U-decl {{'U' declared here}}
 [[clang::sycl_kernel_entry_point(U)]] void bad14();
 
-enum E15 {};
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+enum E15 {}; // #E15-decl
+// expected-error@+2 {{'E15' is not a valid SYCL kernel name type; a class type is required}}
+// expected-note@#E15-decl {{'E15' declared here}}
 [[clang::sycl_kernel_entry_point(E15)]] void bad15();
 
-enum E16 : int;
-// expected-error@+1 {{'sycl_kernel_entry_point' kernel name argument must be a class type}}
+enum E16 : int; // #E16-decl
+// expected-error@+2 {{'E16' is not a valid SYCL kernel name type; a class type is required}}
+// expected-note@#E16-decl {{'E16' declared here}}
 [[clang::sycl_kernel_entry_point(E16)]] void bad16();
 
 enum {
