@@ -3103,7 +3103,7 @@ static void checkNewAttributesAfterDef(Sema &S, Decl *New, const Decl *Old) {
     } else if (isa<SYCLKernelEntryPointAttr>(NewAttribute)) {
       // Elevate latent uses of the sycl_kernel_entry_point attribute to an
       // error since the definition will have already been created without
-      // a SYCLKernelCallStmt.
+      // the semantic effects of the attribute having been applied.
       S.Diag(NewAttribute->getLocation(),
              diag::err_sycl_entry_point_after_definition);
       S.Diag(Def->getLocation(), diag::note_previous_definition);

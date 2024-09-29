@@ -212,55 +212,6 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
                                                               AL, TSI));
 }
 
-namespace {
-
-// The body of a function declared with the [[sycl_kernel_entry_point]]
-// attribute is cloned and transformed to substitute references to the original
-// function parameters with references to replacement variables that stand in
-// for SYCL kernel parameters or local variables that reconstitute a decomposed
-// SYCL kernel argument.
-class OutlinedFunctionDeclBodyInstantiator
-    : public TreeTransform<OutlinedFunctionDeclBodyInstantiator> {
-public:
-  using ParmDeclMap = llvm::DenseMap<ParmVarDecl*, VarDecl*>;
-
-  OutlinedFunctionDeclBodyInstantiator(Sema &S, ParmDeclMap &M)
-      : TreeTransform<OutlinedFunctionDeclBodyInstantiator>(S),
-        SemaRef(S), MapRef(M) {}
-
-  // A new set of AST nodes is always required.
-  bool AlwaysRebuild() {
-    return true;
-  }
-
-  // Transform ParmVarDecl references to the supplied replacement variables.
-  ExprResult TransformDeclRefExpr(DeclRefExpr *DRE) {
-    const ParmVarDecl *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
-    if (PVD) {
-      ParmDeclMap::iterator I = MapRef.find(PVD);
-      if (I != MapRef.end()) {
-        VarDecl *VD = I->second;
-        assert(SemaRef.getASTContext().hasSameUnqualifiedType(PVD->getType(),
-                                                              VD->getType()));
-        assert(!VD->getType().isMoreQualifiedThan(PVD->getType()));
-        VD->setIsUsed();
-        // The replacement DeclRefExpr
-        return DeclRefExpr::Create(
-            SemaRef.getASTContext(), DRE->getQualifierLoc(),
-            DRE->getTemplateKeywordLoc(), VD, false, DRE->getNameInfo(),
-            DRE->getType(), DRE->getValueKind());
-      }
-    }
-    return DRE;
-  }
-
-private:
-  Sema &SemaRef;
-  ParmDeclMap &MapRef;
-};
-
-} // unnamed namespace
-
 void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   // Ensure that all attributes present on the declaration are consistent
   // and warn about any redundant ones.
@@ -360,6 +311,55 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
     }
   }
 }
+
+namespace {
+
+// The body of a function declared with the [[sycl_kernel_entry_point]]
+// attribute is cloned and transformed to substitute references to the original
+// function parameters with references to replacement variables that stand in
+// for SYCL kernel parameters or local variables that reconstitute a decomposed
+// SYCL kernel argument.
+class OutlinedFunctionDeclBodyInstantiator
+    : public TreeTransform<OutlinedFunctionDeclBodyInstantiator> {
+public:
+  using ParmDeclMap = llvm::DenseMap<ParmVarDecl*, VarDecl*>;
+
+  OutlinedFunctionDeclBodyInstantiator(Sema &S, ParmDeclMap &M)
+      : TreeTransform<OutlinedFunctionDeclBodyInstantiator>(S),
+        SemaRef(S), MapRef(M) {}
+
+  // A new set of AST nodes is always required.
+  bool AlwaysRebuild() {
+    return true;
+  }
+
+  // Transform ParmVarDecl references to the supplied replacement variables.
+  ExprResult TransformDeclRefExpr(DeclRefExpr *DRE) {
+    const ParmVarDecl *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
+    if (PVD) {
+      ParmDeclMap::iterator I = MapRef.find(PVD);
+      if (I != MapRef.end()) {
+        VarDecl *VD = I->second;
+        assert(SemaRef.getASTContext().hasSameUnqualifiedType(PVD->getType(),
+                                                              VD->getType()));
+        assert(!VD->getType().isMoreQualifiedThan(PVD->getType()));
+        VD->setIsUsed();
+        // The replacement DeclRefExpr
+        return DeclRefExpr::Create(
+            SemaRef.getASTContext(), DRE->getQualifierLoc(),
+            DRE->getTemplateKeywordLoc(), VD, false, DRE->getNameInfo(),
+            DRE->getType(), DRE->getValueKind());
+      }
+    }
+    return DRE;
+  }
+
+private:
+  Sema &SemaRef;
+  ParmDeclMap &MapRef;
+};
+
+} // unnamed namespace
 
 StmtResult SemaSYCL::BuildSYCLKernelCallStmt(FunctionDecl *FD, Stmt *Body) {
   assert(!FD->isInvalidDecl());

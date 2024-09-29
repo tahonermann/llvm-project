@@ -213,4 +213,4 @@ struct B26;
 // expected-error@+3 {{'sycl_kernel_entry_point' kernel name argument conflicts with a previous declaration}}
 // expected-note@+1  {{previous declaration is here}}
 [[clang::sycl_kernel_entry_point(B26)]] void bad26_1();
-[[clang::sycl_kernel_entry_point(B26)]] void bad24_2();
+[[clang::sycl_kernel_entry_point(B26)]] void bad26_2();
