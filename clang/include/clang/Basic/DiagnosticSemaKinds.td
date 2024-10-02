@@ -12190,7 +12190,19 @@ def err_sycl_kernel_name_conflict : Error<
   " declaration">;
 def warn_sycl_kernel_name_not_a_class_type : Warning<
   "%0 is not a valid SYCL kernel name type; a class type is required">,
-  InGroup<DiagGroup<"nonportable-sycl">>, DefaultError;
+  InGroup<SYCLNonPortable>, DefaultError;
+def warn_sycl_kernel_name_invalid : Warning<
+  "%0 is not a valid SYCL kernel name type">,
+  InGroup<SYCLNonPortable>, DefaultError;
+def note_sycl_kernel_name_not_forward_declarable : Note<
+  "%0 is not forward declarable because %select{"
+  "it has a template argument that is not forward declarable|"
+  "it is an unnamed type|"
+  "it is an alias of an unnamed type|"
+  "it is an unscoped enumeration type without a fixed underlying type|"
+  "it is not declared at global or namespace scope|"
+  "it is declared within the 'std' namespace|"
+  "it conflicts with a declaration in an enclosing namspace scope}1">;
 def warn_sycl_entry_point_redundant_declaration : Warning<
   "redundant 'sycl_kernel_entry_point' attribute">, InGroup<RedundantAttribute>;
 def err_sycl_entry_point_after_definition : Error<

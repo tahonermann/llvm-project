@@ -1536,3 +1536,6 @@ def BitIntExtension : DiagGroup<"bit-int-extension">;
 
 // Warnings about misuse of ExtractAPI options.
 def ExtractAPIMisuse : DiagGroup<"extractapi-misuse">;
+
+// SYCL diagnostic groups
+def SYCLNonPortable : DiagGroup<"nonportable-sycl">;

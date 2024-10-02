@@ -212,7 +212,13 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
                                                               AL, TSI));
 }
 
-static SourceLocation SourceLocationForType(QualType QT) {
+namespace {
+
+// Some diagnostics are produced by detecting a condition and then constructing
+// notes on a stack while unwinding.
+using PartialDiagStack = SmallVector<PartialDiagnosticAt, 1>;
+
+SourceLocation SourceLocationForType(QualType QT) {
   SourceLocation Loc;
   const Type *T = QT->getUnqualifiedDesugaredType();
   if (const TagType *TT = dyn_cast<TagType>(T))
@@ -222,8 +228,166 @@ static SourceLocation SourceLocationForType(QualType QT) {
   return Loc;
 }
 
-static bool CheckSYCLKernelName(Sema &S, SourceLocation Loc,
-                                QualType KernelName) {
+bool CheckDeclIsNamed(Sema &S, TagDecl *TD, PartialDiagStack &DiagNotes) {
+  if (TD->getIdentifier() == nullptr) {
+    if (TD->getTypedefNameForAnonDecl() == nullptr) {
+      DiagNotes.push_back(
+        { TD->getLocation(),
+          S.PDiag(diag::note_sycl_kernel_name_not_forward_declarable) << TD
+                  << 1 /* it is an unnamed type */ });
+    } else {
+      DiagNotes.push_back(
+        { TD->getLocation(),
+          S.PDiag(diag::note_sycl_kernel_name_not_forward_declarable) << TD
+                  << 2 /* it is an alias of an unnamed type */ });
+    }
+    return true;
+  }
+  return false;
+}
+
+bool CheckDeclarableAtNamespaceScope(Sema &S, NamedDecl *ND,
+                                     PartialDiagStack &DiagNotes) {
+  // From SYCL 2020 section 5.2, "Naming of kernels":
+  // - The kernel name must be forward declarable at namespace scope (including
+  //   global namespace scope) and may not be forward declared other than at
+  //   namespace scope. If it isn't forward declared but is specified as a
+  //   template argument in a kernel invoking interface, as described in
+  //   Section 4.9.4.2, then it may not conflict with a name in any enclosing
+  //   namespace scope.
+  // That section also includes the following note:
+  // - The requirement that a kernel name be forward declarable makes some
+  //   types for kernel names illegal, such as anything declared in the std
+  //   namespace (adding a declaration to namespace std leads to undefined
+  //   behavior).
+  // The note and its allegation that kernel name types cannot be composed from
+  // members of the std namespace is disputed as reported at
+  // https://github.com/KhronosGroup/SYCL-Docs/issues/629.
+
+  assert(ND->getIdentifier() &&
+         "Declaration must have its own name, not a name for linkage purposes");
+
+  if (!isa<TranslationUnitDecl, NamespaceDecl, LinkageSpecDecl>(
+           ND->getDeclContext())) {
+    DiagNotes.push_back(
+      { ND->getLocation(),
+        S.PDiag(diag::note_sycl_kernel_name_not_forward_declarable) << ND
+                << 4 /* it is not declared at global or namespace scope */ });
+    return true;
+  }
+
+  for (const DeclContext *DeclCtx = ND->getDeclContext();
+       !isa<TranslationUnitDecl>(DeclCtx); DeclCtx = DeclCtx->getParent()) {
+    if (const auto *NSD = dyn_cast<NamespaceDecl>(DeclCtx)) {
+      if (NSD->isStdNamespace()) {
+        DiagNotes.push_back(
+          { ND->getLocation(),
+            S.PDiag(diag::note_sycl_kernel_name_not_forward_declarable) << ND
+                    << 5 /* it is declared within the 'std' namespace */ });
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// SYCL 2020 section 5.2, "Naming of kernels", requires that types used as
+// kernel names be forward declarable. This requirement is present to support
+// implementations that separately compile source code for the host target vs
+// device targets and where the host compiler is not SYCL aware. Such
+// implementations generate an "integration header" during device compilation
+// that is then pre-included during host compilation in order to make SYCL
+// kernel information available to the SYCL library. Since this header is
+// pre-included with kernel information indexed by kernel name type, it is
+// necessary that kernel name types be forward declarable. Since Clang is SYCL
+// aware and does not require nor use an integration header, it has no need to
+// require that kernel name types be forward declarable. However, diagnostics
+// are issued for types that are not forward declarable to identify portability
+// concerns.
+bool CheckForwardDeclarableHelper(Sema &S, const Type *T,
+                                  PartialDiagStack &DiagNotes);
+bool CheckForwardDeclarableHelper(Sema &S, TagDecl *TD,
+                                  PartialDiagStack &DiagNotes);
+bool CheckForwardDeclarableHelper(Sema &S, EnumDecl *ED,
+                                  PartialDiagStack &DiagNotes);
+bool CheckForwardDeclarableHelper(Sema &S, RecordDecl *RD,
+                                  PartialDiagStack &DiagNotes);
+
+bool CheckForwardDeclarable(Sema &S, QualType QT, PartialDiagStack &DiagNotes) {
+  // Qualifiers don't affect forward declarability.
+  const Type *T = QT.getTypePtr();
+  return CheckForwardDeclarableHelper(S, T, DiagNotes);
+}
+
+bool CheckForwardDeclarableHelper(Sema &S, const Type *T,
+                                  PartialDiagStack &DiagNotes) {
+  // Sugared types don't affect forward declarability.
+  T = T->getUnqualifiedDesugaredType();
+  if (auto *TT = T->getAs<TagType>()) {
+    TagDecl *TD = TT->getDecl();
+    return CheckForwardDeclarableHelper(S, TD, DiagNotes);
+  }
+
+  return false;
+}
+
+bool CheckForwardDeclarableHelper(Sema &S, TagDecl *TD,
+                                  PartialDiagStack &DiagNotes) {
+  if (auto *ED = dyn_cast<EnumDecl>(TD))
+    return CheckForwardDeclarableHelper(S, ED, DiagNotes);
+  if (auto *RD = dyn_cast<RecordDecl>(TD))
+    return CheckForwardDeclarableHelper(S, RD, DiagNotes);
+  assert(0 && "TagDecl that is neither an EnumDecl or a RecordDecl");
+  return false;
+}
+
+bool CheckForwardDeclarableHelper(Sema &S, EnumDecl *ED,
+                                  PartialDiagStack &DiagNotes) {
+  if (CheckDeclIsNamed(S, ED, DiagNotes))
+    return true;
+  if (CheckDeclarableAtNamespaceScope(S, ED, DiagNotes))
+    return true;
+  if (!ED->isScoped() && !ED->isFixed()) {
+    DiagNotes.push_back(
+      { ED->getLocation(),
+        S.PDiag(diag::note_sycl_kernel_name_not_forward_declarable) << ED
+                << 3 /* it is an unscoped enumeration type without a fixed
+                        underlying type */ });
+    return true;
+  }
+  return false;
+}
+
+bool CheckForwardDeclarableHelper(Sema &S, RecordDecl *RD,
+                                  PartialDiagStack &DiagNotes) {
+  // From SYCL 2020 section 5.2, "Naming of kernels":
+  // - If the kernel is defined as a lambda, a typename can optionally be
+  //   provided to the kernel invoking interface as described in Section
+  //   4.9.4.2, so that the developer can control the kernel name for
+  //   purposes such as debugging or referring to the kernel when applying
+  //   build options.
+  // When an explicit kernel name is not provided, the type of the lambda
+  // closure class is the only unique identifier available and thus must
+  // be used directly or indirectly in the implicit kernel name type.
+  // SYCL 2020 acknowledges the implementation challenges posed by implicit
+  // kernel name types for lambdas and therefore specifies a reduced feature
+  // set that does not include support for them. A pedantic warning could be
+  // issued to note use of a lambda closure type in a kernel name as a
+  // non-portable SYCL feature, but such use is very common and so far
+  // considered unwarranted. Support for implici kernel names for lambda
+  // kernels is not an extension.
+  if (RD->isLambda())
+    return false;
+
+  if (CheckDeclIsNamed(S, RD, DiagNotes))
+    return true;
+  if (CheckDeclarableAtNamespaceScope(S, RD, DiagNotes))
+    return true;
+  return false;
+}
+
+bool CheckSYCLKernelName(Sema &S, SourceLocation Loc, QualType KernelName) {
   assert(!KernelName->isDependentType());
 
   if (!KernelName->isStructureOrClassType()) {
@@ -238,13 +402,24 @@ static bool CheckSYCLKernelName(Sema &S, SourceLocation Loc,
     S.Diag(Loc, diag::warn_sycl_kernel_name_not_a_class_type) << KernelName;
     SourceLocation DeclTypeLoc = SourceLocationForType(KernelName);
     if (DeclTypeLoc.isValid())
-      S.Diag(DeclTypeLoc, diag::note_entity_declared_at)
-          << KernelName;
+      S.Diag(DeclTypeLoc, diag::note_entity_declared_at) << KernelName;
     return true;
+  }
+
+  PartialDiagStack DiagNotes;
+  if (CheckForwardDeclarable(S, KernelName, DiagNotes)) {
+    S.Diag(Loc, diag::warn_sycl_kernel_name_invalid) << KernelName;
+    while (!DiagNotes.empty()) {
+      PartialDiagnosticAt &NoteAt = DiagNotes.back();
+      S.Diag(NoteAt.first, NoteAt.second);
+      DiagNotes.pop_back();
+    }
   }
 
   return false;
 }
+
+} // unnamed namespace
 
 void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   // Ensure that all attributes present on the declaration are consistent
@@ -259,9 +434,11 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
     }
     if (!getASTContext().hasSameType(SAI->getKernelName(),
                                      SKEPAttr->getKernelName())) {
-      Diag(SAI->getLocation(), diag::err_sycl_entry_point_invalid_redeclaration)
+      Diag(SAI->getKernelNameLoc()->getTypeLoc().getBeginLoc(),
+           diag::err_sycl_entry_point_invalid_redeclaration)
           << SAI->getKernelName() << SKEPAttr->getKernelName();
-      Diag(SKEPAttr->getLocation(), diag::note_previous_attribute);
+      Diag(SKEPAttr->getKernelNameLoc()->getTypeLoc().getBeginLoc(),
+           diag::note_previous_attribute);
       FD->setInvalidDecl();
     } else {
       Diag(SAI->getLocation(),
@@ -271,13 +448,6 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   }
   assert(SKEPAttr && "Missing sycl_kernel_entry_point attribute");
 
-  // Ensure the kernel name type is valid.
-  if (!SKEPAttr->getKernelName()->isDependentType() &&
-      CheckSYCLKernelName(SemaRef, SKEPAttr->getLocation(),
-                          SKEPAttr->getKernelName())) {
-    FD->setInvalidDecl();
-  }
-
   // Ensure that an attribute present on the previous declaration
   // matches the one on this declaration.
   FunctionDecl *PrevFD = FD->getPreviousDecl();
@@ -286,10 +456,11 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
     if (PrevSKEPAttr) {
       if (!getASTContext().hasSameType(SKEPAttr->getKernelName(),
                                        PrevSKEPAttr->getKernelName())) {
-        Diag(SKEPAttr->getLocation(),
+        Diag(SKEPAttr->getKernelNameLoc()->getTypeLoc().getBeginLoc(),
              diag::err_sycl_entry_point_invalid_redeclaration)
             << SKEPAttr->getKernelName() << PrevSKEPAttr->getKernelName();
-        Diag(PrevSKEPAttr->getLocation(), diag::note_previous_decl)
+        Diag(PrevSKEPAttr->getKernelNameLoc()->getTypeLoc().getBeginLoc(),
+             diag::note_previous_decl)
             << PrevFD;;
         FD->setInvalidDecl();
       }
@@ -325,6 +496,15 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
 
   if (!FD->getReturnType()->isVoidType()) {
     Diag(SKEPAttr->getLocation(), diag::err_sycl_entry_point_return_type);
+    FD->setInvalidDecl();
+  }
+
+  // Ensure the kernel name type is valid.
+  if (!SKEPAttr->getKernelName()->isDependentType() &&
+      CheckSYCLKernelName(SemaRef,
+                          SKEPAttr->getKernelNameLoc()->getTypeLoc()
+                              .getBeginLoc(),
+                          SKEPAttr->getKernelName())) {
     FD->setInvalidDecl();
   }
 
