@@ -12297,7 +12297,7 @@ def err_sycl_entry_point_invalid_redeclaration : Error<
   "'sycl_kernel_entry_point' kernel name argument does not match prior"
   " declaration%diff{: $ vs $|}0,1">;
 def err_sycl_kernel_name_conflict : Error<
-  "'sycl_kernel_entry_point' kernel name argument conflicts with a previous"
+  "'sycl_kernel_entry_point' kernel name %0 conflicts with a previous"
   " declaration">;
 def warn_sycl_kernel_name_not_a_class_type : Warning<
   "%0 is not a valid SYCL kernel name type; a class type is required">,

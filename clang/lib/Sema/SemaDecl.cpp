@@ -15862,33 +15862,32 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
       CheckCoroutineWrapper(FD);
   }
 
-  // Create SYCL kernel entry point function outline.
-  if (FD && !FD->isInvalidDecl() && !FD->isDependentContext() &&
-      FD->hasAttr<SYCLKernelEntryPointAttr>()) {
-    if (FD->isDeleted()) {
-      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
-           diag::err_sycl_entry_point_invalid)
-          << /*deleted function*/2;
-      FD->setInvalidDecl();
-    } else if (FD->isDefaulted()) {
-      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
-           diag::err_sycl_entry_point_invalid)
-          << /*defaulted function*/3;
-      FD->setInvalidDecl();
-    } else if (FSI->isCoroutine()) {
-      Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
-           diag::err_sycl_entry_point_invalid)
-          << /*coroutine*/7;
-      FD->setInvalidDecl();
-    }
-  }
-
   {
     // Do not call PopExpressionEvaluationContext() if it is a lambda because
     // one is already popped when finishing the lambda in BuildLambdaExpr().
     // This is meant to pop the context added in ActOnStartOfFunctionDef().
     ExitFunctionBodyRAII ExitRAII(*this, isLambdaCallOperator(FD));
     if (FD) {
+      // Create SYCL kernel entry point function outline.
+      if (!FD->isInvalidDecl() && !FD->isDependentContext() &&
+          FD->hasAttr<SYCLKernelEntryPointAttr>()) {
+        if (FD->isDeleted()) {
+          Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+              diag::err_sycl_entry_point_invalid)
+              << /*deleted function*/2;
+          FD->setInvalidDecl();
+        } else if (FD->isDefaulted()) {
+          Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+              diag::err_sycl_entry_point_invalid)
+              << /*defaulted function*/3;
+          FD->setInvalidDecl();
+        } else if (FSI->isCoroutine()) {
+          Diag(FD->getAttr<SYCLKernelEntryPointAttr>()->getLocation(),
+              diag::err_sycl_entry_point_invalid)
+              << /*coroutine*/7;
+          FD->setInvalidDecl();
+        }
+      }
       // If this is called by Parser::ParseFunctionDefinition() after marking
       // the declaration as deleted, and if the deleted-function-body contains
       // a message (C++26), then a DefaultedOrDeletedInfo will have already been

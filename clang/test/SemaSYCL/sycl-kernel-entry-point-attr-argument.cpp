@@ -212,8 +212,57 @@ struct B25_2;
   clang::sycl_kernel_entry_point(B25_2)]]
 void bad25();
 
+// Validate that conflicting kernel names are diagnosed for non-defining declarations.
 struct B26;
-// expected-error@+3 {{'sycl_kernel_entry_point' kernel name argument conflicts with a previous declaration}}
+// expected-error@+3 {{'sycl_kernel_entry_point' kernel name 'B26' conflicts with a previous declaration}}
 // expected-note@+1  {{previous declaration is here}}
 [[clang::sycl_kernel_entry_point(B26)]] void bad26_1();
 [[clang::sycl_kernel_entry_point(B26)]] void bad26_2();
+
+
+struct B27;
+
+template<typename KN, typename K>
+[[clang::sycl_kernel_entry_point(KN)]]
+void bad27(K ker, int i) { ker(); } // #bad27-decl
+
+// Overload to ensure attribute checks don't affect overload resolution.
+template<typename KN, typename K>
+void bad27(K ker, long i) { ker(); }
+
+void test_bad27_1() {
+  int i = 0;
+  long l = 0;
+  // expected-error@#bad27-decl {{'sycl_kernel_entry_point' kernel name 'B27' conflicts with a previous declaration}}
+  // expected-note-re@+4  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  // expected-note@#bad27-decl  {{previous declaration is here}}
+  // expected-note-re@+1  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  bad27<B27>([]{}, i); // #bad27-FirstUse
+  bad27<B27>([]{}, i);
+  // this doesn't trigger any error as overload doesn't have the attribute.
+  bad27<B27>([]{}, l);
+}
+
+void test_bad27_2() {
+  int i = 0;
+  // expected-error@#bad27-decl {{'sycl_kernel_entry_point' kernel name 'B27' conflicts with a previous declaration}}
+  // expected-note-re@+3  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  // expected-note@#bad27-decl  {{previous declaration is here}}
+  // expected-note-re@#bad27-FirstUse  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  bad27<B27>([]{}, i);
+}
+
+template<typename T>
+void test_bad27_3() {
+  int i = 0;
+  // expected-error@#bad27-decl {{'sycl_kernel_entry_point' kernel name 'B27' conflicts with a previous declaration}}
+  // expected-note-re@+4  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  // expected-note@#test_bad27_3-call  {{in instantiation of function template specialization 'test_bad27_3<B27>' requested here}}
+  // expected-note@#bad27-decl  {{previous declaration is here}}
+  // expected-note-re@#bad27-FirstUse  {{in instantiation of function template specialization 'bad27<B27, (lambda at{{.*}}}}
+  bad27<T>([]{}, i);
+}
+
+void test_bad27_4() {
+  test_bad27_3<B27>(); // #test_bad27_3-call
+}
