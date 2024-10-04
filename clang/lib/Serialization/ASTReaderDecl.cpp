@@ -1161,8 +1161,19 @@ void ASTDeclReader::VisitFunctionDecl(FunctionDecl *FD) {
   // associated metadata is recreated.
   if (!FD->isInvalidDecl() && !FD->isDependentContext() &&
       FD->hasAttr<SYCLKernelEntryPointAttr>()) {
+    const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
     ASTContext &C = Reader.getContext();
-    C.registerSYCLEntryPointFunction(FD);
+    const SYCLKernelInfo *SKI =
+        C.findSYCLKernelInfo(SKEPAttr->getKernelName());
+    if (SKI) {
+      if (!declaresSameEntity(FD, SKI->getKernelEntryPointDecl())) {
+        Reader.Diag(FD->getLocation(), diag::err_sycl_kernel_name_conflict);
+        Reader.Diag(SKI->getKernelEntryPointDecl()->getLocation(),
+             diag::note_previous_declaration);
+      }
+    } else {
+      C.registerSYCLEntryPointFunction(FD);
+    }
   }
 }
 
