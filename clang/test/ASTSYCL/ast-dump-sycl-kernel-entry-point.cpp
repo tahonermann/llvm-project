@@ -110,10 +110,15 @@ void skep5<KN<5,2>>(long) {
 // FIXME: C++23 [temp.expl.spec]p12 states:
 // FIXME:   ... Similarly, attributes appearing in the declaration of a template
 // FIXME:   have no effect on an explicit specialization of that template.
-// FIXME: Clang currently instantiates and propagates attributes from a function
-// FIXME: template to its explicit specializations resulting in a diagnostic
-// FIXME: being incorrectly issued for the following explicit specialization
-// FIXME: due to conflicting kernel name types (KN<5,3> vs the incorrectly
+// FIXME: Clang currently instantiates a function template specialization from
+// FIXME: the function template declaration and links it as a previous
+// FIXME: declaration of an explicit specialization. The instantiated
+// FIXME: declaration includes attributes instantiated from the function
+// FIXME: template declaration. When the instantiated declaration and the
+// FIXME: explicit specialization both specify a sycl_kernel_entry_point
+// FIXME: attribute with different kernel name types, a spurious diagnostic
+// FIXME: is issued. The following test case is incorrectly diagnosed as
+// FIXME: having conflicting kernel name types (KN<5,3> vs the incorrectly
 // FIXME: inherited KN<5,-1>).
 #if 0
 template<>
