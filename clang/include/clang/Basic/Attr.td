@@ -151,11 +151,6 @@ def NonTLSGlobalVar : SubsetSubject<Var,
 def InlineFunction : SubsetSubject<Function,
                              [{S->isInlineSpecified()}], "inline functions">;
 
-def FunctionTmpl
-    : SubsetSubject<Function, [{S->getTemplatedKind() ==
-                                 FunctionDecl::TK_FunctionTemplate}],
-                    "function templates">;
-
 def HLSLEntry
     : SubsetSubject<Function,
                     [{S->isExternallyVisible() && !isa<CXXMethodDecl>(S)}],
@@ -1486,13 +1481,6 @@ def CUDAShared : InheritableAttr {
   let Documentation = [Undocumented];
 }
 def : MutualExclusions<[CUDAConstant, CUDAShared, HIPManaged]>;
-
-def SYCLKernel : InheritableAttr {
-  let Spellings = [Clang<"sycl_kernel">];
-  let Subjects = SubjectList<[FunctionTmpl]>;
-  let LangOpts = [SYCLDevice];
-  let Documentation = [SYCLKernelDocs];
-}
 
 def SYCLKernelEntryPoint : InheritableAttr {
   let Spellings = [Clang<"sycl_kernel_entry_point">];
