@@ -3,7 +3,8 @@
 // expected-no-diagnostics
 
 template <typename Name, typename Func>
-__attribute__((sycl_kernel)) void kernel_single_task(const Func &kernelFunc) {
+__attribute__((sycl_kernel_entry_point(Name)))
+void kernel_single_task(const Func &kernelFunc) {
   kernelFunc();
 }
 
