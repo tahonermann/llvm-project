@@ -665,15 +665,6 @@ static void instantiateDependentAMDGPUMaxNumWorkGroupsAttr(
   S.AMDGPU().addAMDGPUMaxNumWorkGroupsAttr(New, Attr, XExpr, YExpr, ZExpr);
 }
 
-// This doesn't take any template parameters, but we have a custom action that
-// needs to happen when the kernel itself is instantiated. We need to run the
-// ItaniumMangler to mark the names required to name this kernel.
-static void instantiateDependentSYCLKernelAttr(
-    Sema &S, const MultiLevelTemplateArgumentList &TemplateArgs,
-    const SYCLKernelAttr &Attr, Decl *New) {
-  New->addAttr(Attr.clone(S.getASTContext()));
-}
-
 /// Determine whether the attribute A might be relevant to the declaration D.
 /// If not, we can skip instantiating it. The attribute may or may not have
 /// been instantiated yet.
@@ -909,11 +900,6 @@ void Sema::InstantiateAttrs(const MultiLevelTemplateArgumentList &TemplateArgs,
     if (auto *A = dyn_cast<OwnerAttr>(TmplAttr)) {
       if (!New->hasAttr<OwnerAttr>())
         New->addAttr(A->clone(Context));
-      continue;
-    }
-
-    if (auto *A = dyn_cast<SYCLKernelAttr>(TmplAttr)) {
-      instantiateDependentSYCLKernelAttr(*this, TemplateArgs, *A, New);
       continue;
     }
 

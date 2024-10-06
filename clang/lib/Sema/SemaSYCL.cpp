@@ -163,45 +163,6 @@ ExprResult SemaSYCL::ActOnUniqueStableNameExpr(SourceLocation OpLoc,
   return BuildUniqueStableNameExpr(OpLoc, LParen, RParen, TSI);
 }
 
-void SemaSYCL::handleKernelAttr(Decl *D, const ParsedAttr &AL) {
-  // The 'sycl_kernel' attribute applies only to function templates.
-  const auto *FD = cast<FunctionDecl>(D);
-  const FunctionTemplateDecl *FT = FD->getDescribedFunctionTemplate();
-  assert(FT && "Function template is expected");
-
-  // Function template must have at least two template parameters.
-  const TemplateParameterList *TL = FT->getTemplateParameters();
-  if (TL->size() < 2) {
-    Diag(FT->getLocation(), diag::warn_sycl_kernel_num_of_template_params);
-    return;
-  }
-
-  // Template parameters must be typenames.
-  for (unsigned I = 0; I < 2; ++I) {
-    const NamedDecl *TParam = TL->getParam(I);
-    if (isa<NonTypeTemplateParmDecl>(TParam)) {
-      Diag(FT->getLocation(),
-           diag::warn_sycl_kernel_invalid_template_param_type);
-      return;
-    }
-  }
-
-  // Function must have at least one argument.
-  if (getFunctionOrMethodNumParams(D) != 1) {
-    Diag(FT->getLocation(), diag::warn_sycl_kernel_num_of_function_params);
-    return;
-  }
-
-  // Function must return void.
-  QualType RetTy = getFunctionOrMethodResultType(D);
-  if (!RetTy->isVoidType()) {
-    Diag(FT->getLocation(), diag::warn_sycl_kernel_return_type);
-    return;
-  }
-
-  handleSimpleAttribute<SYCLKernelAttr>(*this, D, AL);
-}
-
 void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
   ParsedType PT = AL.getTypeArg();
   TypeSourceInfo *TSI = nullptr;

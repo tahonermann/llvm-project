@@ -4,7 +4,8 @@
 // a zero-length array inside device code.
 
 template <typename Name, typename Func>
-__attribute__((sycl_kernel)) void kernel(const Func &kernelFunc) {
+__attribute__((sycl_kernel_entry_point(Name)))
+void kernel(const Func &kernelFunc) {
   // expected-note@+1 5{{called by 'kernel}}
   kernelFunc(); // #KernelObjCall
 }

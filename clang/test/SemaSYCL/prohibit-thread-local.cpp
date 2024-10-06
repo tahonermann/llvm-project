@@ -36,7 +36,7 @@ void usage() {
 }
 
 template <typename name, typename Func>
-__attribute__((sycl_kernel))
+__attribute__((sycl_kernel_entry_point(name)))
 // expected-note@+2 2{{called by}}
 void
 kernel_single_task(Func kernelFunc) { kernelFunc(); }
