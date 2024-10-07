@@ -1348,12 +1348,6 @@ void JSONNodeDumper::VisitDeclRefExpr(const DeclRefExpr *DRE) {
   attributeOnlyIfTrue("isImmediateEscalating", DRE->isImmediateEscalating());
 }
 
-void JSONNodeDumper::VisitSYCLUniqueStableNameExpr(
-    const SYCLUniqueStableNameExpr *E) {
-  JOS.attribute("typeSourceInfo",
-                createQualType(E->getTypeSourceInfo()->getType()));
-}
-
 void JSONNodeDumper::VisitPredefinedExpr(const PredefinedExpr *PE) {
   JOS.attribute("name", PredefinedExpr::getIdentKindName(PE->getIdentKind()));
 }

@@ -582,16 +582,6 @@ void ASTStmtReader::VisitConstantExpr(ConstantExpr *E) {
   E->setSubExpr(Record.readSubExpr());
 }
 
-void ASTStmtReader::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
-  VisitExpr(E);
-
-  E->setLocation(readSourceLocation());
-  E->setLParenLocation(readSourceLocation());
-  E->setRParenLocation(readSourceLocation());
-
-  E->setTypeSourceInfo(Record.readTypeSourceInfo());
-}
-
 void ASTStmtReader::VisitPredefinedExpr(PredefinedExpr *E) {
   VisitExpr(E);
   bool HasFunctionName = Record.readInt();
@@ -3059,10 +3049,6 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       S = ConstantExpr::CreateEmpty(
           Context, static_cast<ConstantResultStorageKind>(
                        /*StorageKind=*/Record[ASTStmtReader::NumExprFields]));
-      break;
-
-    case EXPR_SYCL_UNIQUE_STABLE_NAME:
-      S = SYCLUniqueStableNameExpr::CreateEmpty(Context);
       break;
 
     case EXPR_PREDEFINED:
