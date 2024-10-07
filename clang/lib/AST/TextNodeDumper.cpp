@@ -1431,11 +1431,6 @@ void TextNodeDumper::VisitObjCIvarRefExpr(const ObjCIvarRefExpr *Node) {
     OS << " isFreeIvar";
 }
 
-void TextNodeDumper::VisitSYCLUniqueStableNameExpr(
-    const SYCLUniqueStableNameExpr *Node) {
-  dumpType(Node->getTypeSourceInfo()->getType());
-}
-
 void TextNodeDumper::VisitPredefinedExpr(const PredefinedExpr *Node) {
   OS << " " << PredefinedExpr::getIdentKindName(Node->getIdentKind());
 }

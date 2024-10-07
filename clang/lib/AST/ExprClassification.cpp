@@ -470,9 +470,6 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
   case Expr::CoawaitExprClass:
   case Expr::CoyieldExprClass:
     return ClassifyInternal(Ctx, cast<CoroutineSuspendExpr>(E)->getResumeExpr());
-  case Expr::SYCLUniqueStableNameExprClass:
-    return Cl::CL_PRValue;
-    break;
 
   case Expr::CXXParenListInitExprClass:
     if (isa<ArrayType>(E->getType()))

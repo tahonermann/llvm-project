@@ -9295,24 +9295,6 @@ public:
     return true;
   }
 
-  bool VisitSYCLUniqueStableNameExpr(const SYCLUniqueStableNameExpr *E) {
-    std::string ResultStr = E->ComputeName(Info.Ctx);
-
-    QualType CharTy = Info.Ctx.CharTy.withConst();
-    APInt Size(Info.Ctx.getTypeSize(Info.Ctx.getSizeType()),
-               ResultStr.size() + 1);
-    QualType ArrayTy = Info.Ctx.getConstantArrayType(
-        CharTy, Size, nullptr, ArraySizeModifier::Normal, 0);
-
-    StringLiteral *SL =
-        StringLiteral::Create(Info.Ctx, ResultStr, StringLiteralKind::Ordinary,
-                              /*Pascal*/ false, ArrayTy, E->getLocation());
-
-    evaluateLValue(SL, Result);
-    Result.addArray(Info, E, cast<ConstantArrayType>(ArrayTy));
-    return true;
-  }
-
   // FIXME: Missing: @protocol, @selector
 };
 } // end anonymous namespace
@@ -16670,7 +16652,6 @@ static ICEDiag CheckICE(const Expr* E, const ASTContext &Ctx) {
   case Expr::CoawaitExprClass:
   case Expr::DependentCoawaitExprClass:
   case Expr::CoyieldExprClass:
-  case Expr::SYCLUniqueStableNameExprClass:
   case Expr::CXXParenListInitExprClass:
   case Expr::HLSLOutArgExprClass:
     return ICEDiag(IK_NotICE, E->getBeginLoc());
