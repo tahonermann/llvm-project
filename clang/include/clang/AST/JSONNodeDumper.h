@@ -285,7 +285,6 @@ public:
   void VisitOpenACCRoutineDecl(const OpenACCRoutineDecl *D);
 
   void VisitDeclRefExpr(const DeclRefExpr *DRE);
-  void VisitSYCLUniqueStableNameExpr(const SYCLUniqueStableNameExpr *E);
   void VisitOpenACCAsteriskSizeExpr(const OpenACCAsteriskSizeExpr *E);
   void VisitPredefinedExpr(const PredefinedExpr *PE);
   void VisitUnaryOperator(const UnaryOperator *UO);

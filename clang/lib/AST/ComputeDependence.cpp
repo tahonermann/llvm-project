@@ -630,11 +630,6 @@ ExprDependence clang::computeDependence(RecoveryExpr *E) {
   return D;
 }
 
-ExprDependence clang::computeDependence(SYCLUniqueStableNameExpr *E) {
-  return toExprDependenceAsWritten(
-      E->getTypeSourceInfo()->getType()->getDependence());
-}
-
 ExprDependence clang::computeDependence(PredefinedExpr *E) {
   return toExprDependenceForImpliedType(E->getType()->getDependence());
 }

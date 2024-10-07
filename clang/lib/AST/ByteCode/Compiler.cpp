@@ -2457,30 +2457,6 @@ bool Compiler<Emitter>::VisitObjCEncodeExpr(const ObjCEncodeExpr *E) {
 }
 
 template <class Emitter>
-bool Compiler<Emitter>::VisitSYCLUniqueStableNameExpr(
-    const SYCLUniqueStableNameExpr *E) {
-  if (DiscardResult)
-    return true;
-
-  assert(!Initializing);
-
-  auto &A = Ctx.getASTContext();
-  std::string ResultStr = E->ComputeName(A);
-
-  QualType CharTy = A.CharTy.withConst();
-  APInt Size(A.getTypeSize(A.getSizeType()), ResultStr.size() + 1);
-  QualType ArrayTy = A.getConstantArrayType(CharTy, Size, nullptr,
-                                            ArraySizeModifier::Normal, 0);
-
-  StringLiteral *SL =
-      StringLiteral::Create(A, ResultStr, StringLiteralKind::Ordinary,
-                            /*Pascal=*/false, ArrayTy, E->getLocation());
-
-  unsigned StringIndex = P.createGlobalString(SL);
-  return this->emitGetPtrGlobal(StringIndex, E);
-}
-
-template <class Emitter>
 bool Compiler<Emitter>::VisitCharacterLiteral(const CharacterLiteral *E) {
   if (DiscardResult)
     return true;

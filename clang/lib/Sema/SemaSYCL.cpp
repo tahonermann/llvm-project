@@ -140,29 +140,6 @@ void SemaSYCL::deepTypeCheckForDevice(SourceLocation UsedAt,
   } while (!StackForRecursion.empty());
 }
 
-ExprResult SemaSYCL::BuildUniqueStableNameExpr(SourceLocation OpLoc,
-                                               SourceLocation LParen,
-                                               SourceLocation RParen,
-                                               TypeSourceInfo *TSI) {
-  return SYCLUniqueStableNameExpr::Create(getASTContext(), OpLoc, LParen,
-                                          RParen, TSI);
-}
-
-ExprResult SemaSYCL::ActOnUniqueStableNameExpr(SourceLocation OpLoc,
-                                               SourceLocation LParen,
-                                               SourceLocation RParen,
-                                               ParsedType ParsedTy) {
-  TypeSourceInfo *TSI = nullptr;
-  QualType Ty = SemaRef.GetTypeFromParser(ParsedTy, &TSI);
-
-  if (Ty.isNull())
-    return ExprError();
-  if (!TSI)
-    TSI = getASTContext().getTrivialTypeSourceInfo(Ty, LParen);
-
-  return BuildUniqueStableNameExpr(OpLoc, LParen, RParen, TSI);
-}
-
 void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
   ParsedType PT = AL.getTypeArg();
   TypeSourceInfo *TSI = nullptr;

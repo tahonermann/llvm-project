@@ -1423,13 +1423,6 @@ void StmtPrinter::VisitObjCSubscriptRefExpr(ObjCSubscriptRefExpr *Node) {
   OS << "]";
 }
 
-void StmtPrinter::VisitSYCLUniqueStableNameExpr(
-    SYCLUniqueStableNameExpr *Node) {
-  OS << "__builtin_sycl_unique_stable_name(";
-  Node->getTypeSourceInfo()->getType().print(OS, Policy);
-  OS << ")";
-}
-
 void StmtPrinter::VisitPredefinedExpr(PredefinedExpr *Node) {
   OS << PredefinedExpr::getIdentKindName(Node->getIdentKind());
 }

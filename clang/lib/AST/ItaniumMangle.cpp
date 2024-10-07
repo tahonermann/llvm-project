@@ -5924,16 +5924,6 @@ recurse:
     Out << "v18co_yield";
     mangleExpression(cast<CoawaitExpr>(E)->getOperand());
     break;
-  case Expr::SYCLUniqueStableNameExprClass: {
-    const auto *USN = cast<SYCLUniqueStableNameExpr>(E);
-    NotPrimaryExpr();
-
-    Out << "u33__builtin_sycl_unique_stable_name";
-    mangleType(USN->getTypeSourceInfo()->getType());
-
-    Out << "E";
-    break;
-  }
   case Expr::HLSLOutArgExprClass:
     llvm_unreachable(
         "cannot mangle hlsl temporary value; mangling wrong thing?");

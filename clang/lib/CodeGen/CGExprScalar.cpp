@@ -533,7 +533,6 @@ public:
     return CGF.EmitPseudoObjectRValue(E).getScalarVal();
   }
 
-  Value *VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E);
   Value *VisitEmbedExpr(EmbedExpr *E);
 
   Value *VisitOpaqueValueExpr(OpaqueValueExpr *E) {
@@ -1841,19 +1840,6 @@ Value *ScalarExprEmitter::VisitExpr(Expr *E) {
   if (E->getType()->isVoidType())
     return nullptr;
   return llvm::PoisonValue::get(CGF.ConvertType(E->getType()));
-}
-
-Value *
-ScalarExprEmitter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
-  ASTContext &Context = CGF.getContext();
-  unsigned AddrSpace =
-      Context.getTargetAddressSpace(CGF.CGM.GetGlobalConstantAddressSpace());
-  llvm::Constant *GlobalConstStr = Builder.CreateGlobalString(
-      E->ComputeName(Context), "__usn_str", AddrSpace);
-
-  llvm::Type *ExprTy = ConvertType(E->getType());
-  return Builder.CreatePointerBitCastOrAddrSpaceCast(GlobalConstStr, ExprTy,
-                                                     "usn_addr_cast");
 }
 
 Value *ScalarExprEmitter::VisitEmbedExpr(EmbedExpr *E) {

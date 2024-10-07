@@ -659,17 +659,6 @@ void ASTStmtWriter::VisitOpenACCAsteriskSizeExpr(OpenACCAsteriskSizeExpr *E) {
   Code = serialization::EXPR_OPENACC_ASTERISK_SIZE;
 }
 
-void ASTStmtWriter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
-  VisitExpr(E);
-
-  Record.AddSourceLocation(E->getLocation());
-  Record.AddSourceLocation(E->getLParenLocation());
-  Record.AddSourceLocation(E->getRParenLocation());
-  Record.AddTypeSourceInfo(E->getTypeSourceInfo());
-
-  Code = serialization::EXPR_SYCL_UNIQUE_STABLE_NAME;
-}
-
 void ASTStmtWriter::VisitPredefinedExpr(PredefinedExpr *E) {
   VisitExpr(E);
 

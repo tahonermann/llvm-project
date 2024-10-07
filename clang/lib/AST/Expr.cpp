@@ -558,61 +558,6 @@ SourceLocation DeclRefExpr::getEndLoc() const {
   return getNameInfo().getEndLoc();
 }
 
-SYCLUniqueStableNameExpr::SYCLUniqueStableNameExpr(SourceLocation OpLoc,
-                                                   SourceLocation LParen,
-                                                   SourceLocation RParen,
-                                                   QualType ResultTy,
-                                                   TypeSourceInfo *TSI)
-    : Expr(SYCLUniqueStableNameExprClass, ResultTy, VK_PRValue, OK_Ordinary),
-      OpLoc(OpLoc), LParen(LParen), RParen(RParen) {
-  setTypeSourceInfo(TSI);
-  setDependence(computeDependence(this));
-}
-
-SYCLUniqueStableNameExpr::SYCLUniqueStableNameExpr(EmptyShell Empty,
-                                                   QualType ResultTy)
-    : Expr(SYCLUniqueStableNameExprClass, ResultTy, VK_PRValue, OK_Ordinary) {}
-
-SYCLUniqueStableNameExpr *
-SYCLUniqueStableNameExpr::Create(const ASTContext &Ctx, SourceLocation OpLoc,
-                                 SourceLocation LParen, SourceLocation RParen,
-                                 TypeSourceInfo *TSI) {
-  QualType ResultTy = Ctx.getPointerType(Ctx.CharTy.withConst());
-  return new (Ctx)
-      SYCLUniqueStableNameExpr(OpLoc, LParen, RParen, ResultTy, TSI);
-}
-
-SYCLUniqueStableNameExpr *
-SYCLUniqueStableNameExpr::CreateEmpty(const ASTContext &Ctx) {
-  QualType ResultTy = Ctx.getPointerType(Ctx.CharTy.withConst());
-  return new (Ctx) SYCLUniqueStableNameExpr(EmptyShell(), ResultTy);
-}
-
-std::string SYCLUniqueStableNameExpr::ComputeName(ASTContext &Context) const {
-  return SYCLUniqueStableNameExpr::ComputeName(Context,
-                                               getTypeSourceInfo()->getType());
-}
-
-std::string SYCLUniqueStableNameExpr::ComputeName(ASTContext &Context,
-                                                  QualType Ty) {
-  auto MangleCallback = [](ASTContext &Ctx,
-                           const NamedDecl *ND) -> UnsignedOrNone {
-    if (const auto *RD = dyn_cast<CXXRecordDecl>(ND))
-      return RD->getDeviceLambdaManglingNumber();
-    return std::nullopt;
-  };
-
-  std::unique_ptr<MangleContext> Ctx{ItaniumMangleContext::create(
-      Context, Context.getDiagnostics(), MangleCallback)};
-
-  std::string Buffer;
-  Buffer.reserve(128);
-  llvm::raw_string_ostream Out(Buffer);
-  Ctx->mangleCanonicalTypeName(Ty, Out);
-
-  return Buffer;
-}
-
 PredefinedExpr::PredefinedExpr(SourceLocation L, QualType FNTy,
                                PredefinedIdentKind IK, bool IsTransparent,
                                StringLiteral *SL)
@@ -3664,7 +3609,6 @@ bool Expr::HasSideEffects(const ASTContext &Ctx,
   case EmbedExprClass:
   case ConceptSpecializationExprClass:
   case RequiresExprClass:
-  case SYCLUniqueStableNameExprClass:
   case PackIndexingExprClass:
   case HLSLOutArgExprClass:
   case OpenACCAsteriskSizeExprClass:
