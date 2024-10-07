@@ -165,7 +165,6 @@ public:
   bool VisitStringLiteral(const StringLiteral *E);
   bool VisitObjCStringLiteral(const ObjCStringLiteral *E);
   bool VisitObjCEncodeExpr(const ObjCEncodeExpr *E);
-  bool VisitSYCLUniqueStableNameExpr(const SYCLUniqueStableNameExpr *E);
   bool VisitCharacterLiteral(const CharacterLiteral *E);
   bool VisitCompoundAssignOperator(const CompoundAssignOperator *E);
   bool VisitFloatCompoundAssignOperator(const CompoundAssignOperator *E);
