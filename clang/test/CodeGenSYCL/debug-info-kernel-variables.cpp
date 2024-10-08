@@ -11,10 +11,10 @@
 // space.
 //
 
-#define KERNEL __attribute__((sycl_kernel))
+#define KERNEL(Name) __attribute__((sycl_kernel_entry_point(Name)))
 
 template <typename KernelName, typename KernelType>
-KERNEL void parallel_for(const KernelType &KernelFunc) {
+KERNEL(KernelName) void parallel_for(const KernelType &KernelFunc) {
   KernelFunc();
 }
 

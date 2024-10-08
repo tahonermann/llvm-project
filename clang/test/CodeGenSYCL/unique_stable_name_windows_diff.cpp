@@ -3,37 +3,37 @@
 
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel(Func F){
   F();
 }
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel2(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel2(Func F){
   F(1);
 }
 
 template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel3(Func F){
+__attribute__((sycl_kernel_entry_point(KN))) void kernel3(Func F){
   F(1.1);
 }
 
+template<typename Func>
+void kernel_wrapper(Func F) {
+  kernel<Func>(F);
+}
+
 int main() {
-  int i;
-  double d;
-  float f;
   auto lambda1 = [](){};
   auto lambda2 = [](int){};
   auto lambda3 = [](double){};
 
-  kernel<class K1>(lambda1);
-  kernel2<class K2>(lambda2);
-  kernel3<class K3>(lambda3);
-
   // Ensure the kernels are named the same between the device and host
   // invocations.
+  kernel_wrapper([](){
   (void)__builtin_sycl_unique_stable_name(decltype(lambda1));
   (void)__builtin_sycl_unique_stable_name(decltype(lambda2));
   (void)__builtin_sycl_unique_stable_name(decltype(lambda3));
+  });
 
   // Make sure the following 3 are the same between the host and device compile.
   // Note that these are NOT the same value as eachother, they differ by the
