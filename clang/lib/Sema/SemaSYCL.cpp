@@ -277,7 +277,16 @@ static bool CheckSYCLKernelName(Sema &S, SourceLocation Loc,
   return false;
 }
 
-void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
+void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD, bool CheckUseOfDecl) {
+  // Delay diagnostic of templated decls until use or explicit instantiation.
+  //if (SemaRef.inTemplateInstantiation())
+  //  return;
+  if (FD->isTemplateInstantiation()) {
+    // For template instantiation, defer diagnostic until use.
+    if (!CheckUseOfDecl || DiagnosedSYCLKernelEntryPoint.count(FD))
+      return;
+    DiagnosedSYCLKernelEntryPoint.insert(FD);
+  }
   // Ensure that all attributes present on the declaration are consistent
   // and warn about any redundant ones.
   const SYCLKernelEntryPointAttr *SKEPAttr = nullptr;

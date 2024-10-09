@@ -31,6 +31,8 @@ public:
   using ContextNotes = SmallVector<PartialDiagnosticAt, 1>;
   llvm::DenseMap<CanonicalDeclPtr<const FunctionDecl>, ContextNotes>
       SYCLKernelEntryContextNotes;
+  llvm::DenseSet<CanonicalDeclPtr<const FunctionDecl>>
+      DiagnosedSYCLKernelEntryPoint;
 
   /// Creates a SemaDiagnosticBuilder that emits the diagnostic if the current
   /// context is "used as device code".
@@ -68,7 +70,7 @@ public:
   void handleKernelAttr(Decl *D, const ParsedAttr &AL);
   void handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL);
 
-  void CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD);
+  void CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD, bool CheckUseOfDecl);
 };
 
 } // namespace clang

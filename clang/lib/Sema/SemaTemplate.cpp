@@ -10364,6 +10364,9 @@ DeclResult Sema::ActOnExplicitInstantiation(Scope *S,
          diag::ext_explicit_instantiation_without_qualified_id)
     << Specialization << D.getCXXScopeSpec().getRange();
 
+  if (LangOpts.isSYCL() && Specialization->hasAttr<SYCLKernelEntryPointAttr>())
+    SYCL().CheckSYCLEntryPointFunctionDecl(Specialization, /*CheckUseOfDecl=*/true);
+
   CheckExplicitInstantiation(
       *this,
       FunTmpl ? (NamedDecl *)FunTmpl

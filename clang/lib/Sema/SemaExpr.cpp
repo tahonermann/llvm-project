@@ -221,7 +221,8 @@ bool Sema::DiagnoseUseOfDecl(NamedDecl *D, ArrayRef<SourceLocation> Locs,
                              ObjCInterfaceDecl *ClassReceiver,
                              bool SkipTrailingRequiresClause) {
   SourceLocation Loc = Locs.front();
-  if (getLangOpts().CPlusPlus && isa<FunctionDecl>(D)) {
+  if (FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
+      getLangOpts().CPlusPlus && FD) {
     // If there were any diagnostics suppressed by template argument deduction,
     // emit them now.
     auto Pos = SuppressedDiagnostics.find(D->getCanonicalDecl());
@@ -235,6 +236,9 @@ bool Sema::DiagnoseUseOfDecl(NamedDecl *D, ArrayRef<SourceLocation> Locs,
       // diagnostics again.
       Pos->second.clear();
     }
+
+    if (LangOpts.isSYCL() && FD->hasAttr<SYCLKernelEntryPointAttr>())
+      SYCL().CheckSYCLEntryPointFunctionDecl(FD, /*CheckUseOfDecl=*/true);
 
     // C++ [basic.start.main]p3:
     //   The function 'main' shall not be used within a program.
