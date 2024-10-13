@@ -10,6 +10,7 @@
 
 #include "clang/Sema/SemaSYCL.h"
 #include "TreeTransform.h"
+#include "clang/AST/ASTContext.h"
 #include "clang/AST/Mangle.h"
 #include "clang/AST/SYCLKernelInfo.h"
 #include "clang/AST/StmtSYCL.h"

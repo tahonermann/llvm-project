@@ -103,7 +103,8 @@ TargetCodeGenInfo::getDependentLibraryOption(llvm::StringRef Lib,
   Opt += Lib;
 }
 
-unsigned TargetCodeGenInfo::getOpenCLKernelCallingConv() const {
+unsigned
+TargetCodeGenInfo::getOpenCLKernelCallingConv(CodeGenModule &CGM) const {
   // OpenCL kernels are called via an explicit runtime API with arguments
   // set with clSetKernelArg(), not as normal sub-functions.
   // Return SPIR_KERNEL by default as the kernel calling convention to

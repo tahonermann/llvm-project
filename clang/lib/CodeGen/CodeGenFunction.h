@@ -2184,9 +2184,10 @@ private:
   /// the constructor, but could be overwritten to true if this is a coroutine.
   bool ShouldEmitLifetimeMarkers;
 
-  /// Add OpenCL kernel arg metadata and the kernel attribute metadata to
+  /// Add kernel arg metadata and the kernel attribute metadata to
   /// the function metadata.
-  void EmitKernelMetadata(const FunctionDecl *FD, llvm::Function *Fn);
+  void EmitKernelMetadata(const Decl *D, llvm::Function *Fn,
+                          const OutlinedFunctionDecl *OFD);
 
 public:
   CodeGenFunction(CodeGenModule &cgm, bool suppressNewContext = false);
@@ -2422,7 +2423,8 @@ public:
   void StartFunction(GlobalDecl GD, QualType RetTy, llvm::Function *Fn,
                      const CGFunctionInfo &FnInfo, const FunctionArgList &Args,
                      SourceLocation Loc = SourceLocation(),
-                     SourceLocation StartLoc = SourceLocation());
+                     SourceLocation StartLoc = SourceLocation(),
+                     const OutlinedFunctionDecl *OutlinedFnDecl = nullptr);
 
   static bool IsConstructorDelegationValid(const CXXConstructorDecl *Ctor);
 

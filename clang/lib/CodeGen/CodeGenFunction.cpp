@@ -619,21 +619,17 @@ CodeGenFunction::getUBSanFunctionTypeHash(QualType Ty) const {
       CGM.Int32Ty, static_cast<uint32_t>(llvm::xxh3_64bits(Mangled)));
 }
 
-void CodeGenFunction::EmitKernelMetadata(const FunctionDecl *FD,
-                                         llvm::Function *Fn) {
-  if (!FD->hasAttr<OpenCLKernelAttr>() && !FD->hasAttr<CUDAGlobalAttr>())
-    return;
-
+void CodeGenFunction::EmitKernelMetadata(const Decl *D, llvm::Function *Fn,
+                                         const OutlinedFunctionDecl *OFD) {
   llvm::LLVMContext &Context = getLLVMContext();
-
-  CGM.GenKernelArgMetadata(Fn, FD, this);
+  CGM.GenKernelArgMetadata(Fn, D, this, OFD);
 
   if (!(getLangOpts().OpenCL ||
         (getLangOpts().CUDA &&
          getContext().getTargetInfo().getTriple().isSPIRV())))
     return;
 
-  if (const VecTypeHintAttr *A = FD->getAttr<VecTypeHintAttr>()) {
+  if (const VecTypeHintAttr *A = D->getAttr<VecTypeHintAttr>()) {
     QualType HintQTy = A->getTypeHint();
     const ExtVectorType *HintEltQTy = HintQTy->getAs<ExtVectorType>();
     bool IsSignedInteger =
@@ -648,7 +644,7 @@ void CodeGenFunction::EmitKernelMetadata(const FunctionDecl *FD,
     Fn->setMetadata("vec_type_hint", llvm::MDNode::get(Context, AttrMDArgs));
   }
 
-  if (const WorkGroupSizeHintAttr *A = FD->getAttr<WorkGroupSizeHintAttr>()) {
+  if (const WorkGroupSizeHintAttr *A = D->getAttr<WorkGroupSizeHintAttr>()) {
     llvm::Metadata *AttrMDArgs[] = {
         llvm::ConstantAsMetadata::get(Builder.getInt32(A->getXDim())),
         llvm::ConstantAsMetadata::get(Builder.getInt32(A->getYDim())),
@@ -656,7 +652,7 @@ void CodeGenFunction::EmitKernelMetadata(const FunctionDecl *FD,
     Fn->setMetadata("work_group_size_hint", llvm::MDNode::get(Context, AttrMDArgs));
   }
 
-  if (const ReqdWorkGroupSizeAttr *A = FD->getAttr<ReqdWorkGroupSizeAttr>()) {
+  if (const ReqdWorkGroupSizeAttr *A = D->getAttr<ReqdWorkGroupSizeAttr>()) {
     llvm::Metadata *AttrMDArgs[] = {
         llvm::ConstantAsMetadata::get(Builder.getInt32(A->getXDim())),
         llvm::ConstantAsMetadata::get(Builder.getInt32(A->getYDim())),
@@ -665,7 +661,7 @@ void CodeGenFunction::EmitKernelMetadata(const FunctionDecl *FD,
   }
 
   if (const OpenCLIntelReqdSubGroupSizeAttr *A =
-          FD->getAttr<OpenCLIntelReqdSubGroupSizeAttr>()) {
+          D->getAttr<OpenCLIntelReqdSubGroupSizeAttr>()) {
     llvm::Metadata *AttrMDArgs[] = {
         llvm::ConstantAsMetadata::get(Builder.getInt32(A->getSubGroupSize()))};
     Fn->setMetadata("intel_reqd_sub_group_size",
@@ -745,16 +741,23 @@ static llvm::Constant *getPrologueSignature(CodeGenModule &CGM,
   return CGM.getTargetCodeGenInfo().getUBSanFunctionSignature(CGM);
 }
 
-void CodeGenFunction::StartFunction(GlobalDecl GD, QualType RetTy,
-                                    llvm::Function *Fn,
-                                    const CGFunctionInfo &FnInfo,
-                                    const FunctionArgList &Args,
-                                    SourceLocation Loc,
-                                    SourceLocation StartLoc) {
+void CodeGenFunction::StartFunction(
+    GlobalDecl GD, QualType RetTy, llvm::Function *Fn,
+    const CGFunctionInfo &FnInfo, const FunctionArgList &Args,
+    SourceLocation Loc, SourceLocation StartLoc,
+    const OutlinedFunctionDecl *OutlinedFnDecl) {
   assert(!CurFn &&
          "Do not use a CodeGenFunction object for more than one function");
 
   const Decl *D = GD.getDecl();
+
+  bool GeneratingSYCLOffloadKernel = false;
+  // The presence of OutlinedFnDecl indicates that we are currently
+  // generating the SYCL offload kernel.
+  if (getLangOpts().SYCLIsDevice && OutlinedFnDecl) {
+    D = OutlinedFnDecl;
+    GeneratingSYCLOffloadKernel = true;
+  }
 
   DidCallStackSave = false;
   CurCodeDecl = D;
@@ -1020,13 +1023,14 @@ void CodeGenFunction::StartFunction(GlobalDecl GD, QualType RetTy,
       Fn->addFnAttr(llvm::Attribute::FnRetThunkExtern);
   }
 
-  if (FD && (getLangOpts().OpenCL ||
-             (getLangOpts().CUDA &&
-              getContext().getTargetInfo().getTriple().isSPIRV()) ||
-             ((getLangOpts().HIP || getLangOpts().OffloadViaLLVM) &&
-              getLangOpts().CUDAIsDevice))) {
+  if (GeneratingSYCLOffloadKernel ||
+      (FD && ((getLangOpts().OpenCL && D->hasAttr<OpenCLKernelAttr>()) ||
+              (getLangOpts().CUDA &&
+               getContext().getTargetInfo().getTriple().isSPIRV()) ||
+              ((getLangOpts().HIP || getLangOpts().OffloadViaLLVM) &&
+               getLangOpts().CUDAIsDevice)))) {
     // Add metadata for a kernel function.
-    EmitKernelMetadata(FD, Fn);
+    EmitKernelMetadata(D, Fn, OutlinedFnDecl);
   }
 
   if (FD && FD->hasAttr<ClspvLibclcBuiltinAttr>()) {

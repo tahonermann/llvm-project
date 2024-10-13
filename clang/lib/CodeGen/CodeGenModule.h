@@ -1684,9 +1684,11 @@ public:
   /// \param FN is a pointer to IR function being generated.
   /// \param FD is a pointer to function declaration if any.
   /// \param CGF is a pointer to CodeGenFunction that generates this function.
-  void GenKernelArgMetadata(llvm::Function *FN,
-                            const FunctionDecl *FD = nullptr,
-                            CodeGenFunction *CGF = nullptr);
+  /// \param OFD is a pointer to the outlined function if we are generating a
+  ///        SYCL offload kernel.
+  void GenKernelArgMetadata(llvm::Function *FN, const Decl *D = nullptr,
+                            CodeGenFunction *CGF = nullptr,
+                            const OutlinedFunctionDecl *OFD = nullptr);
 
   /// Get target specific null pointer.
   /// \param T is the LLVM type of the null pointer.
@@ -1977,6 +1979,10 @@ private:
   /// Emit the llvm.gcov metadata used to tell LLVM where to emit the .gcno and
   /// .gcda files in a way that persists in .bc files.
   void EmitCoverageFile();
+
+  /// Emit the offload kernel.
+  void EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
+                            ASTContext &Ctx);
 
   /// Determine whether the definition must be emitted; if this returns \c
   /// false, the definition can be emitted lazily if it's used.
