@@ -3293,6 +3293,26 @@ void CodeGenModule::EmitDeferred() {
   CurDeclsToEmit.swap(DeferredDeclsToEmit);
 
   for (GlobalDecl &D : CurDeclsToEmit) {
+    // If the Decl corresponds to a SYCL kernel entry point function, generate
+    // and emit the corresponding SYCL kernel caller function i.e the
+    // offload kernel. The generation of the offload kernel needs to happen
+    // first in this loop, in order to avoid generating IR for the SYCL kernel
+    // entry point function.
+    if (const auto *FD = D.getDecl()->getAsFunction()) {
+      if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>() &&
+          FD->isDefined()) {
+        if (!FD->getAttr<SYCLKernelEntryPointAttr>()->isInvalidAttr()) {
+          // Generate and emit the offload kernel.
+          EmitSYCLKernelCaller(FD, getContext());
+          // Emit deffered declarations corresponding to references from the
+          // offload kernel; e.g., the call operator of the SYCL kernel.
+          EmitDeferred();
+        }
+        // Do not emit the SYCL kernel entry point function.
+        continue;
+      }
+    }
+
     // We should call GetAddrOfGlobal with IsForDefinition set to true in order
     // to get GlobalValue with exactly the type we need, not something that
     // might had been created for another decl with the same mangled name but
@@ -3627,6 +3647,9 @@ bool CodeGenModule::MayBeEmittedEagerly(const ValueDecl *Global) {
       return false;
     // Defer until all versions have been semantically checked.
     if (FD->hasAttr<TargetVersionAttr>() && !FD->isMultiVersion())
+      return false;
+    // Defer emission of SYCL kernel entry point functions.
+    if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>())
       return false;
   }
   if (const auto *VD = dyn_cast<VarDecl>(Global)) {
