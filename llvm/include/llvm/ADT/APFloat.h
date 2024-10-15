@@ -146,6 +146,8 @@ struct APFloatBase {
   /// A signed type to represent a floating point numbers unbiased exponent.
   typedef int32_t ExponentType;
 
+  enum Radix { BaseTwo, BaseTen };
+
   /// \name Floating Point Semantics.
   /// @{
   enum Semantics {
@@ -190,7 +192,10 @@ struct APFloatBase {
     S_FloatTF32,
 
     S_x87DoubleExtended,
-    S_MaxSemantics = S_x87DoubleExtended,
+    S_DecimalFloat32,
+    S_DecimalFloat64,
+    S_DecimalFloat128,
+    S_MaxSemantics = S_DecimalFloat128,
   };
 
   static const llvm::fltSemantics &EnumToSemantics(Semantics S);
@@ -209,6 +214,9 @@ struct APFloatBase {
   static const fltSemantics &Float8E4M3B11FNUZ() LLVM_READNONE;
   static const fltSemantics &FloatTF32() LLVM_READNONE;
   static const fltSemantics &x87DoubleExtended() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat32() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat64() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat128() LLVM_READNONE;
 
   /// A Pseudo fltsemantic used to construct APFloats that cannot conflict with
   /// anything real.
@@ -767,6 +775,230 @@ public:
   friend DoubleAPFloat scalbn(const DoubleAPFloat &X, int Exp, roundingMode);
   friend DoubleAPFloat frexp(const DoubleAPFloat &X, int &Exp, roundingMode);
   friend hash_code hash_value(const DoubleAPFloat &Arg);
+};
+
+class DFPFloat final : public APFloatBase {
+public:
+  /// \name Constructors
+  /// @{
+
+  DFPFloat(const fltSemantics &) {} // Default construct to +0.0
+  DFPFloat(const fltSemantics &, integerPart) {
+    assert(false && "Not Implemented");
+  }
+  DFPFloat(const fltSemantics &, uninitializedTag) {
+    assert(false && "Not Implemented");
+  }
+  DFPFloat(const fltSemantics &, const APInt &) {
+    assert(false && "Not Implemented");
+  }
+  DFPFloat(const DFPFloat &) { assert(false && "Not Implemented"); }
+  DFPFloat(DFPFloat &&) { assert(false && "Not Implemented"); }
+  ~DFPFloat() {}
+
+  /// @}
+
+  /// Returns whether this instance allocated memory.
+  bool needsCleanup() const { return partCount() > 1; }
+
+  /// \name Arithmetic
+  /// @{
+
+  // FIXME: Not implemented
+  opStatus add(const DFPFloat &, roundingMode) = delete;
+  opStatus subtract(const DFPFloat &, roundingMode) = delete;
+  opStatus multiply(const DFPFloat &, roundingMode) = delete;
+  opStatus divide(const DFPFloat &, roundingMode) = delete;
+
+  opStatus remainder(const DFPFloat &) = delete;
+
+  opStatus mod(const DFPFloat &) = delete;
+  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode) = delete;
+  opStatus roundToIntegral(roundingMode) = delete;
+
+  opStatus next(bool nextDown) = delete;
+
+  /// @}
+
+  /// \name Sign operations.
+  /// @{
+
+  void changeSign() = delete;
+
+  /// @}
+
+  /// \name Conversions
+  /// @{
+
+  opStatus convert(const fltSemantics &, roundingMode, bool *) = delete;
+  opStatus convertToInteger(MutableArrayRef<integerPart>, unsigned int, bool,
+                            roundingMode, bool *) const = delete;
+  opStatus convertFromAPInt(const APInt &, bool, roundingMode);
+  opStatus convertFromSignExtendedInteger(const integerPart *, unsigned int,
+                                          bool, roundingMode) = delete;
+  opStatus convertFromZeroExtendedInteger(const integerPart *, unsigned int,
+                                          bool, roundingMode) = delete;
+  Expected<opStatus> convertFromString(StringRef, roundingMode);
+  APInt bitcastToAPInt() const;
+  double convertToDouble() const = delete;
+  float convertToFloat() const = delete;
+
+  /// @}
+
+  bool operator==(const DFPFloat &) const = delete;
+
+  // Note: Non-canonical values are unordered with respect to other (non-canonical or canonical) equal values per IEEE 754:2008 5.10
+  cmpResult compare(const DFPFloat &) const = delete;
+  cmpResult compareAbsoluteValue(const DFPFloat &) const = delete;
+  cmpResult compareQuantum(const DFPFloat &) const = delete;
+
+  bool bitwiseIsEqual(const DFPFloat &) const = delete;
+
+  unsigned int convertToHexString(char *dst, unsigned int hexDigits,
+                                  bool upperCase, roundingMode) const = delete;
+
+  bool isNegative() const { return sign; }
+
+  bool isNormal() const { return !isDenormal() && isFiniteNonZero(); }
+
+  bool isFinite() const { return !isNaN() && !isInfinity(); }
+
+  bool isZero() const { return category == fcZero; }
+
+  bool isDenormal() const { return false;}
+  bool isNonCanonical() const = delete;
+
+  bool isInfinity() const { return category == fcInfinity; }
+
+  bool isNaN() const { return category == fcNaN; }
+
+  bool isSignaling() const = delete;
+
+  /// @}
+
+  /// \name Simple Queries
+  /// @{
+
+  fltCategory getCategory() const { return category; }
+  const fltSemantics &getSemantics() const { return *semantics; }
+  bool isNonZero() const { return category != fcZero; }
+  bool isFiniteNonZero() const { return isFinite() && !isZero(); }
+  bool isPosZero() const { return isZero() && !isNegative(); }
+  bool isNegZero() const { return isZero() && isNegative(); }
+
+  /// Returns true if and only if the number has the smallest possible non-zero
+  /// magnitude in the current semantics.
+  bool isSmallest() const = delete;
+
+  /// Returns true if and only if the number has the largest possible finite
+  /// magnitude in the current semantics.
+  bool isLargest() const = delete;
+
+  /// Returns true if and only if the number is an exact integer.
+  bool isInteger() const = delete;
+
+  /// @}
+
+  DFPFloat &operator=(const DFPFloat &) = delete;
+  DFPFloat &operator=(DFPFloat &&) = delete;
+
+  /// Overload to compute a hash code for an DFPFloat value.
+  ///
+  friend hash_code hash_value(const DFPFloat &Arg);
+
+  /// FIXME rewrite for DFP
+  /// Converts this value into a decimal string.
+  ///
+  /// \param FormatPrecision The maximum number of digits of
+  ///   precision to output.  If there are fewer digits available,
+  ///   zero padding will not be used unless the value is
+  ///   integral and small enough to be expressed in
+  ///   FormatPrecision digits.  0 means to use the natural
+  ///   precision of the number.
+  /// \param FormatMaxPadding The maximum number of zeros to
+  ///   consider inserting before falling back to scientific
+  ///   notation.  0 means to always use scientific notation.
+  ///
+  /// \param TruncateZero Indicate whether to remove the trailing zero in
+  ///   fraction part or not. Also setting this parameter to false forcing
+  ///   producing of output more similar to default printf behavior.
+  ///   Specifically the lower e is used as exponent delimiter and exponent
+  ///   always contains no less than two digits.
+  ///
+  /// Number       Precision    MaxPadding      Result
+  /// ------       ---------    ----------      ------
+  /// 1.01E+4              5             2       10100
+  /// 1.01E+4              4             2       1.01E+4
+  /// 1.01E+4              5             1       1.01E+4
+  /// 1.01E-2              5             2       0.0101
+  /// 1.01E-2              4             2       0.0101
+  /// 1.01E-2              4             1       1.01E-2
+  void toString(SmallVectorImpl<char> &Str, unsigned FormatPrecision = 0,
+                unsigned FormatMaxPadding = 3, bool TruncateZero = true) const;
+
+  /// If this value has an exact multiplicative inverse, store it in inv and
+  /// return true.
+  bool getExactInverse(DFPFloat *inv) const = delete;
+
+  // If this is an exact power of two, return the exponent while ignoring the
+  // sign bit. If it's not an exact power of 2, return INT_MIN
+  LLVM_READONLY
+  int getExactLog2Abs() const = delete;
+
+
+  /// \name Special value setters.
+  /// @{
+
+  void makeLargest(bool Neg = false) = delete;
+  void makeSmallest(bool Neg = false) = delete;
+  void makeNaN(bool SNaN = false, bool Neg = false,
+               const APInt *fill = nullptr);
+  void makeInf(bool Neg = false);
+  void makeZero(bool Neg = false);
+  void makeQuiet() = delete;
+
+
+  /// @}
+
+  
+
+private:
+  /// \name Simple Queries
+  /// @{
+
+  integerPart *significandParts();
+  const integerPart *significandParts() const;
+  unsigned int partCount() const;
+
+  /// @}
+
+  void assign(const DFPFloat &);
+  void copySignificand(const DFPFloat &);
+  void freeSignificand();
+
+  /// Note: this must be the first data member.
+  /// The semantics that this value obeys.
+  const fltSemantics *semantics;
+
+  /// A binary fraction with an explicit integer bit.
+  ///
+  /// The significand must be at least one bit wider than the target precision.
+  union Significand {
+    integerPart part;
+    integerPart *parts;
+  } significand;
+
+  /// The signed unbiased exponent of the value.
+  ExponentType exponent;
+
+  /// What kind of floating point number this is.
+  ///
+  /// Only 2 bits are required, but VisualStudio incorrectly sign extends it.
+  /// Using the extra bit keeps it from failing under VisualStudio.
+  fltCategory category : 3;
+
+  /// Sign bit of the number.
+  unsigned int sign : 1;
 };
 
 hash_code hash_value(const DoubleAPFloat &Arg);

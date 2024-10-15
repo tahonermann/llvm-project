@@ -1681,6 +1681,12 @@ const llvm::fltSemantics &ASTContext::getFloatTypeSemantics(QualType T) const {
     if (getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice)
       return AuxTarget->getFloat128Format();
     return Target->getFloat128Format();
+  case BuiltinType::DecimalFloat32:
+    return Target->getDecimalFloat32Format();
+  case BuiltinType::DecimalFloat64:
+    return Target->getDecimalFloat64Format();
+  case BuiltinType::DecimalFloat128:
+    return Target->getDecimalFloat128Format();
   }
 }
 

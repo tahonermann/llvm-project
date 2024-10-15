@@ -563,12 +563,12 @@ LLVMTypeKind LLVMGetTypeKind(LLVMTypeRef Ty) {
     return LLVMFP128TypeKind;
   case Type::PPC_FP128TyID:
     return LLVMPPC_FP128TypeKind;
-  case Type::Decimal32TyID:
-    return LLVMDecimal32TypeKind;
-  case Type::Decimal64TyID:
-    return LLVMDecimal64TypeKind;
-  case Type::Decimal128TyID:
-    return LLVMDecimal128TypeKind;
+  case Type::DecimalFloat32TyID:
+    return LLVMDecimalFloat32TypeKind;
+  case Type::DecimalFloat64TyID:
+    return LLVMDecimalFloat64TypeKind;
+  case Type::DecimalFloat128TyID:
+    return LLVMDecimalFloat128TypeKind;
   case Type::LabelTyID:
     return LLVMLabelTypeKind;
   case Type::MetadataTyID:
