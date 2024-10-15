@@ -1083,8 +1083,8 @@ void CharacterLiteral::print(unsigned Val, CharacterKind Kind,
 }
 
 FloatingLiteral::FloatingLiteral(const ASTContext &C, const llvm::APFloat &V,
-                                 bool isexact, QualType Type, SourceLocation L)
-    : Expr(FloatingLiteralClass, Type, VK_PRValue, OK_Ordinary), Loc(L) {
+                                 bool isexact, QualType Type, SourceLocation L, bool isDFP)
+    : Expr(FloatingLiteralClass, Type, VK_PRValue, OK_Ordinary), Loc(L), DFP(isDFP) {
   setSemantics(V.getSemantics());
   FloatingLiteralBits.IsExact = isexact;
   setValue(C, V);
@@ -1100,7 +1100,7 @@ FloatingLiteral::FloatingLiteral(const ASTContext &C, EmptyShell Empty)
 FloatingLiteral *
 FloatingLiteral::Create(const ASTContext &C, const llvm::APFloat &V,
                         bool isexact, QualType Type, SourceLocation L) {
-  return new (C) FloatingLiteral(C, V, isexact, Type, L);
+  return new (C) FloatingLiteral(C, V, isexact, Type, L, V.isDFP());
 }
 
 FloatingLiteral *

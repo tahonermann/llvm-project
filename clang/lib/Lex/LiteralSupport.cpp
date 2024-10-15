@@ -911,6 +911,7 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
   saw_period = false;
   saw_ud_suffix = false;
   saw_fixed_point_suffix = false;
+  saw_decimal_float_suffix = false;
   isLong = false;
   isUnsigned = false;
   isLongLong = false;
@@ -920,6 +921,10 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
   isImaginary = false;
   isFloat16 = false;
   isFloat128 = false;
+  isDecimalFloat = false;
+  isDecimal32 = false;
+  isDecimal64 = false;
+  isDecimal128 = false;
   MicrosoftInteger = 0;
   isFract = false;
   isAccum = false;
@@ -975,6 +980,26 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
   // we break out of the loop.
   for (; s != ThisTokEnd; ++s) {
     switch (*s) {
+    case 'd':
+    case 'D':
+      switch (s[1]) {
+      case 'f':
+      case 'F':
+        isDecimal32 = true;
+        saw_decimal_float_suffix = true;
+        break;
+      case 'd':
+      case 'D':
+        isDecimal64 = true;
+        saw_decimal_float_suffix = true;
+        break;
+      case 'l':
+      case 'L':
+        isDecimal128 = true;
+        saw_decimal_float_suffix = true;
+        break;
+      }
+      continue;
     case 'R':
     case 'r':
       if (!LangOpts.FixedPoint)
@@ -1155,6 +1180,7 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
         isBitInt = false;
         MicrosoftInteger = 0;
         saw_fixed_point_suffix = false;
+        saw_decimal_float_suffix = false;
         isFract = false;
         isAccum = false;
       }
@@ -1502,6 +1528,27 @@ NumericLiteralParser::GetFloatValue(llvm::APFloat &Result) {
   return !errorToBool(StatusOrErr.takeError()) ? *StatusOrErr
                                                : APFloat::opInvalidOp;
 }
+
+ llvm::APFloat::opStatus NumericLiteralParser::GetDecimalFloatValue(llvm::APFloat &Result) {
+   using llvm::APFloat;
+
+  unsigned n = std::min(SuffixBegin - ThisTokBegin, ThisTokEnd - ThisTokBegin);
+
+  llvm::SmallString<16> Buffer;
+  StringRef Str(ThisTokBegin, n);
+  if (Str.contains('\'')) {
+    Buffer.reserve(n);
+    std::remove_copy_if(Str.begin(), Str.end(), std::back_inserter(Buffer),
+                        &isDigitSeparator);
+    Str = Buffer;
+  }
+
+  auto StatusOrErr =
+      Result.convertFromString(Str, APFloat::rmNearestTiesToEven);
+  assert(StatusOrErr && "Invalid floating point representation");
+  return !errorToBool(StatusOrErr.takeError()) ? *StatusOrErr
+                                               : APFloat::opInvalidOp;
+ }
 
 static inline bool IsExponentPart(char c) {
   return c == 'p' || c == 'P' || c == 'e' || c == 'E';
