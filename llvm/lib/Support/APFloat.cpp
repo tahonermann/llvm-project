@@ -132,46 +132,19 @@ static constexpr fltSemantics semIEEEsingle = {127, -126, 24, 32};
 static constexpr fltSemantics semIEEEdouble = {1023, -1022, 53, 64};
 static constexpr fltSemantics semIEEEquad = {16383, -16382, 113, 128};
 static constexpr fltSemantics semFloat8E5M2 = {15, -14, 3, 8};
-static constexpr fltSemantics semFloat8E5M2FNUZ = {
-    15,
-    -15,
-    3,
-    8,
-    APFloatBase::BaseTwo,
-    fltNonfiniteBehavior::NanOnly,
-    fltNanEncoding::NegativeZero};
-static constexpr fltSemantics semFloat8E4M3FN = {8,
-                                                 -6,
-                                                 4,
-                                                 8,
-                                                 APFloatBase::BaseTwo,
-                                                 fltNonfiniteBehavior::NanOnly,
-                                                 fltNanEncoding::AllOnes};
-static constexpr fltSemantics semFloat8E4M3FNUZ = {
-    7,
-    -7,
-    4,
-    8,
-    APFloatBase::BaseTwo,
-    fltNonfiniteBehavior::NanOnly,
-    fltNanEncoding::NegativeZero};
-static constexpr fltSemantics semFloat8E4M3B11FNUZ = {
-    4,
-    -10,
-    4,
-    8,
-    APFloatBase::BaseTwo,
-    fltNonfiniteBehavior::NanOnly,
-    fltNanEncoding::NegativeZero};
+// clang-format off
+static constexpr fltSemantics semFloat8E5M2FNUZ = {15,-15,3,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
+static constexpr fltSemantics semFloat8E4M3FN = {8,-6,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::AllOnes};
+static constexpr fltSemantics semFloat8E4M3FNUZ = {7,-7,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
+static constexpr fltSemantics semFloat8E4M3B11FNUZ = {4,-10,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
 static constexpr fltSemantics semFloatTF32 = {127, -126, 11, 19};
 static constexpr fltSemantics semX87DoubleExtended = {16383, -16382, 64, 80};
 static constexpr fltSemantics semBogus = {0, 0, 0, 0};
 // Values come from  "Decimal interchange format parameters" table in C23 H.2.1
 static constexpr fltSemantics semDFP32 = {97, -94, 7, 32, APFloatBase::BaseTen};
-static constexpr fltSemantics semDFP64 = {385, -382, 16, 64,
-                                          APFloatBase::BaseTen};
-static constexpr fltSemantics semDFP128 = {6145, -6142, 34, 128,
-                                           APFloatBase::BaseTen};
+static constexpr fltSemantics semDFP64 = {385, -382, 16, 64,APFloatBase::BaseTen};
+static constexpr fltSemantics semDFP128 = {6145, -6142, 34, 128,APFloatBase::BaseTen};
+// clang-format on
 
 /* The IBM double-double semantics. Such a number consists of a pair of IEEE
    64-bit doubles (Hi, Lo), where |Hi| > |Lo|, and if normal,
@@ -239,12 +212,12 @@ const llvm::fltSemantics &APFloatBase::EnumToSemantics(Semantics S) {
     return FloatTF32();
   case S_x87DoubleExtended:
     return x87DoubleExtended();
-  case S_DFP32:
-    return DFP32();
-  case S_DFP64:
-    return DFP64();
-  case S_DFP128:
-    return DFP128();
+  case S_DecimalFloat32:
+    return DecimalFloat32();
+  case S_DecimalFloat64:
+    return DecimalFloat64();
+  case S_DecimalFloat128:
+    return DecimalFloat128();
   }
   llvm_unreachable("Unrecognised floating semantics");
 }
@@ -277,12 +250,12 @@ APFloatBase::SemanticsToEnum(const llvm::fltSemantics &Sem) {
     return S_FloatTF32;
   else if (&Sem == &llvm::APFloat::x87DoubleExtended())
     return S_x87DoubleExtended;
-  else if (&Sem == &llvm::APFloat::DFP32())
-    return S_DFP32;
-  else if (&Sem == &llvm::APFloat::DFP64())
-    return S_DFP64;
-  else if (&Sem == &llvm::APFloat::DFP128())
-    return S_DFP128;
+  else if (&Sem == &llvm::APFloat::DecimalFloat32())
+    return S_DecimalFloat32;
+  else if (&Sem == &llvm::APFloat::DecimalFloat64())
+    return S_DecimalFloat64;
+  else if (&Sem == &llvm::APFloat::DecimalFloat128())
+    return S_DecimalFloat128;
   else
     llvm_unreachable("Unknown floating semantics");
 }
@@ -306,9 +279,9 @@ const fltSemantics &APFloatBase::FloatTF32() { return semFloatTF32; }
 const fltSemantics &APFloatBase::x87DoubleExtended() {
   return semX87DoubleExtended;
 }
-const fltSemantics &APFloatBase::DFP32() { return semDFP32; }
-const fltSemantics &APFloatBase::DFP64() { return semDFP64; }
-const fltSemantics &APFloatBase::DFP128() { return semDFP128; }
+const fltSemantics &APFloatBase::DecimalFloat32() { return semDFP32; }
+const fltSemantics &APFloatBase::DecimalFloat64() { return semDFP64; }
+const fltSemantics &APFloatBase::DecimalFloat128() { return semDFP128; }
 const fltSemantics &APFloatBase::Bogus() { return semBogus; }
 
 constexpr RoundingMode APFloatBase::rmNearestTiesToEven;

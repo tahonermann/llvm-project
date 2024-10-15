@@ -192,10 +192,10 @@ struct APFloatBase {
     S_FloatTF32,
 
     S_x87DoubleExtended,
-    S_DFP32,
-    S_DFP64,
-    S_DFP128,
-    S_MaxSemantics = S_DFP128,
+    S_DecimalFloat32,
+    S_DecimalFloat64,
+    S_DecimalFloat128,
+    S_MaxSemantics = S_DecimalFloat128,
   };
 
   static const llvm::fltSemantics &EnumToSemantics(Semantics S);
@@ -214,9 +214,9 @@ struct APFloatBase {
   static const fltSemantics &Float8E4M3B11FNUZ() LLVM_READNONE;
   static const fltSemantics &FloatTF32() LLVM_READNONE;
   static const fltSemantics &x87DoubleExtended() LLVM_READNONE;
-  static const fltSemantics &DFP32() LLVM_READNONE;
-  static const fltSemantics &DFP64() LLVM_READNONE;
-  static const fltSemantics &DFP128() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat32() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat64() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat128() LLVM_READNONE;
 
   /// A Pseudo fltsemantic used to construct APFloats that cannot conflict with
   /// anything real.
@@ -804,54 +804,58 @@ public:
   /// \name Arithmetic
   /// @{
 
-  opStatus add(const DFPFloat &, roundingMode);
-  opStatus subtract(const DFPFloat &, roundingMode);
-  opStatus multiply(const DFPFloat &, roundingMode);
-  opStatus divide(const DFPFloat &, roundingMode);
+  // FIXME: Not implemented
+  opStatus add(const DFPFloat &, roundingMode) = delete;
+  opStatus subtract(const DFPFloat &, roundingMode) = delete;
+  opStatus multiply(const DFPFloat &, roundingMode) = delete;
+  opStatus divide(const DFPFloat &, roundingMode) = delete;
 
-  opStatus remainder(const DFPFloat &);
+  opStatus remainder(const DFPFloat &) = delete;
 
-  opStatus mod(const DFPFloat &);
-  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode);
-  opStatus roundToIntegral(roundingMode);
+  opStatus mod(const DFPFloat &) = delete;
+  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode) = delete;
+  opStatus roundToIntegral(roundingMode) = delete;
 
-  opStatus next(bool nextDown);
+  opStatus next(bool nextDown) = delete;
 
   /// @}
 
   /// \name Sign operations.
   /// @{
 
-  void changeSign();
+  void changeSign() = delete;
 
   /// @}
 
   /// \name Conversions
   /// @{
 
-  opStatus convert(const fltSemantics &, roundingMode, bool *);
+  opStatus convert(const fltSemantics &, roundingMode, bool *) = delete;
   opStatus convertToInteger(MutableArrayRef<integerPart>, unsigned int, bool,
-                            roundingMode, bool *) const;
+                            roundingMode, bool *) const = delete;
   opStatus convertFromAPInt(const APInt &, bool, roundingMode);
   opStatus convertFromSignExtendedInteger(const integerPart *, unsigned int,
-                                          bool, roundingMode);
+                                          bool, roundingMode) = delete;
   opStatus convertFromZeroExtendedInteger(const integerPart *, unsigned int,
-                                          bool, roundingMode);
+                                          bool, roundingMode) = delete;
   Expected<opStatus> convertFromString(StringRef, roundingMode);
   APInt bitcastToAPInt() const;
-  double convertToDouble() const;
-  float convertToFloat() const;
+  double convertToDouble() const = delete;
+  float convertToFloat() const = delete;
 
   /// @}
 
   bool operator==(const DFPFloat &) const = delete;
 
-  cmpResult compare(const DFPFloat &) const;
+  // Note: Non-canonical values are unordered with respect to other (non-canonical or canonical) equal values per IEEE 754:2008 5.10
+  cmpResult compare(const DFPFloat &) const = delete;
+  cmpResult compareAbsoluteValue(const DFPFloat &) const = delete;
+  cmpResult compareQuantum(const DFPFloat &) const = delete;
 
-  bool bitwiseIsEqual(const DFPFloat &) const;
+  bool bitwiseIsEqual(const DFPFloat &) const = delete;
 
   unsigned int convertToHexString(char *dst, unsigned int hexDigits,
-                                  bool upperCase, roundingMode) const;
+                                  bool upperCase, roundingMode) const = delete;
 
   bool isNegative() const { return sign; }
 
@@ -861,13 +865,14 @@ public:
 
   bool isZero() const { return category == fcZero; }
 
-  bool isDenormal() const;
+  bool isDenormal() const { return false;}
+  bool isNonCanonical() const = delete;
 
   bool isInfinity() const { return category == fcInfinity; }
 
   bool isNaN() const { return category == fcNaN; }
 
-  bool isSignaling() const;
+  bool isSignaling() const = delete;
 
   /// @}
 
@@ -883,23 +888,19 @@ public:
 
   /// Returns true if and only if the number has the smallest possible non-zero
   /// magnitude in the current semantics.
-  bool isSmallest() const;
-
-  /// Returns true if this is the smallest (by magnitude) normalized finite
-  /// number in the given semantics.
-  bool isSmallestNormalized() const;
+  bool isSmallest() const = delete;
 
   /// Returns true if and only if the number has the largest possible finite
   /// magnitude in the current semantics.
-  bool isLargest() const;
+  bool isLargest() const = delete;
 
   /// Returns true if and only if the number is an exact integer.
-  bool isInteger() const;
+  bool isInteger() const = delete;
 
   /// @}
 
-  DFPFloat &operator=(const DFPFloat &);
-  DFPFloat &operator=(DFPFloat &&);
+  DFPFloat &operator=(const DFPFloat &) = delete;
+  DFPFloat &operator=(DFPFloat &&) = delete;
 
   /// Overload to compute a hash code for an DFPFloat value.
   ///
@@ -937,46 +938,29 @@ public:
 
   /// If this value has an exact multiplicative inverse, store it in inv and
   /// return true.
-  bool getExactInverse(DFPFloat *inv) const;
+  bool getExactInverse(DFPFloat *inv) const = delete;
 
   // If this is an exact power of two, return the exponent while ignoring the
   // sign bit. If it's not an exact power of 2, return INT_MIN
   LLVM_READONLY
-  int getExactLog2Abs() const;
+  int getExactLog2Abs() const = delete;
 
-  // If this is an exact power of two, return the exponent. If it's not an exact
-  // power of 2, return INT_MIN
-  LLVM_READONLY
-  int getExactLog2() const {
-    return isNegative() ? INT_MIN : getExactLog2Abs();
-  }
-
-  friend int ilogb(const DFPFloat &Arg);
-
-  friend DFPFloat scalbn(DFPFloat X, int Exp, roundingMode);
-
-  friend DFPFloat frexp(const DFPFloat &X, int &Exp, roundingMode);
 
   /// \name Special value setters.
   /// @{
 
-  void makeLargest(bool Neg = false);
-  void makeSmallest(bool Neg = false);
+  void makeLargest(bool Neg = false) = delete;
+  void makeSmallest(bool Neg = false) = delete;
   void makeNaN(bool SNaN = false, bool Neg = false,
                const APInt *fill = nullptr);
   void makeInf(bool Neg = false);
   void makeZero(bool Neg = false);
-  void makeQuiet();
+  void makeQuiet() = delete;
 
-  /// Returns the smallest (by magnitude) normalized finite number in the given
-  /// semantics.
-  ///
-  /// \param Negative - True iff the number should be negative
-  void makeSmallestNormalized(bool Negative = false);
 
   /// @}
 
-  cmpResult compareAbsoluteValue(const DFPFloat &) const;
+  
 
 private:
   /// \name Simple Queries

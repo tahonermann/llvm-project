@@ -1101,7 +1101,7 @@ public:
   CanQualType HalfTy; // [OpenCL 6.1.1.1], ARM NEON
   CanQualType BFloat16Ty;
   CanQualType Float16Ty; // C11 extension ISO/IEC TS 18661-3
-  // ISO/IEC TS 18661-2:2015 c23 conditionally supported
+  // ISO/IEC TS 18661-2:2015, C23 conditionally supported
   CanQualType DecimalFloat32Ty, DecimalFloat64Ty, DecimalFloat128Ty;
   CanQualType VoidPtrTy, NullPtrTy;
   CanQualType DependentTy, OverloadTy, BoundMemberTy, UnknownAnyTy;
