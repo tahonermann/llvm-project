@@ -33,6 +33,15 @@
     llvm_unreachable("Unexpected semantics");                                  \
   } while (false)
 
+  #define APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(METHOD_CALL)                             \
+  do {                                                                         \
+    if (usesLayout<IEEEFloat>(getSemantics()))                                 \
+      return U.IEEE.METHOD_CALL;                                               \
+    if (usesLayout<DoubleAPFloat>(getSemantics()))                             \
+      return U.Double.METHOD_CALL;                                             \
+    llvm_unreachable("Unexpected semantics");                                  \
+  } while (false)
+
 namespace llvm {
 
 struct fltSemantics;
@@ -804,39 +813,39 @@ public:
   /// @{
 
   // FIXME: Not implemented
-  opStatus add(const DFPFloat &, roundingMode) = delete;
-  opStatus subtract(const DFPFloat &, roundingMode) = delete;
-  opStatus multiply(const DFPFloat &, roundingMode) = delete;
-  opStatus divide(const DFPFloat &, roundingMode) = delete;
+  opStatus add(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus subtract(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus multiply(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus divide(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
 
-  opStatus remainder(const DFPFloat &) = delete;
+  opStatus remainder(const DFPFloat &) { assert(false && "Not implemented"); }
 
-  opStatus mod(const DFPFloat &) = delete;
-  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode) = delete;
-  opStatus roundToIntegral(roundingMode) = delete;
+  opStatus mod(const DFPFloat &) { assert(false && "Not implemented"); }
+  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus roundToIntegral(roundingMode) { assert( false && "Not implemented"); };
 
-  opStatus next(bool nextDown) = delete;
+  opStatus next(bool nextDown) { assert( false && "Not Implemented"); };
 
   /// @}
 
   /// \name Sign operations.
   /// @{
 
-  void changeSign() = delete;
+  void changeSign();
 
   /// @}
 
   /// \name Conversions
   /// @{
 
-  opStatus convert(const fltSemantics &, roundingMode, bool *) = delete;
+  opStatus convert(const fltSemantics &, roundingMode, bool *) { assert(false && "Not implemented"); }
   opStatus convertToInteger(MutableArrayRef<integerPart>, unsigned int, bool,
-                            roundingMode, bool *) const = delete;
-  opStatus convertFromAPInt(const APInt &, bool, roundingMode);
+                            roundingMode, bool *) const { assert(false && "Not Implemented"); }
+  opStatus convertFromAPInt(const APInt &, bool, roundingMode) { assert(false && "Not Implemented"); }
   opStatus convertFromSignExtendedInteger(const integerPart *, unsigned int,
-                                          bool, roundingMode) = delete;
+                                          bool, roundingMode) { assert(false && "Not Implemented"); }
   opStatus convertFromZeroExtendedInteger(const integerPart *, unsigned int,
-                                          bool, roundingMode) = delete;
+                                          bool, roundingMode) { assert(false && "Not Implemented"); }
   Expected<opStatus> convertFromString(StringRef, roundingMode);
   Expected<opStatus> convertFromStringDFP32(StringRef, roundingMode);
   Expected<opStatus> convertFromStringDFP64(StringRef, roundingMode);
@@ -847,22 +856,21 @@ public:
   template <const fltSemantics &S>
   APInt convertDFPToAPInt() const;
   
-  double convertToDouble() const = delete  { assert(false && "Not Implemented"); }
-  float convertToFloat() const = delete  { assert(false && "Not Implemented"); }
-
+  double convertToDouble() const { assert(false && "Not implemented"); }
+  float convertToFloat() const { assert(false && "Not implemented"); }
   /// @}
 
-  bool operator==(const DFPFloat &) const = delete;
+  bool operator==(const DFPFloat &) = delete;
 
   // Note: Non-canonical values are unordered with respect to other (non-canonical or canonical) equal values per IEEE 754:2008 5.10
-  cmpResult compare(const DFPFloat &) const = delete;
-  cmpResult compareAbsoluteValue(const DFPFloat &) const = delete;
-  cmpResult compareQuantum(const DFPFloat &) const = delete;
+  cmpResult compare(const DFPFloat &) const { assert(false && "Not implemented"); }
+  cmpResult compareAbsoluteValue(const DFPFloat &) const { assert(false && "Not implemented"); }
+  cmpResult compareQuantum(const DFPFloat &) const { assert(false && "Not implemented"); }
 
-  bool bitwiseIsEqual(const DFPFloat &) const = delete;
+  bool bitwiseIsEqual(const DFPFloat &) const { assert(false && "Not implemented"); }
 
   unsigned int convertToHexString(char *dst, unsigned int hexDigits,
-                                  bool upperCase, roundingMode) const = delete;
+                                  bool upperCase, roundingMode) const { assert(false && "Not Implemented"); }
 
   bool isNegative() const { return sign; }
 
@@ -895,19 +903,22 @@ public:
 
   /// Returns true if and only if the number has the smallest possible non-zero
   /// magnitude in the current semantics.
-  bool isSmallest() const = delete;
+  bool isSmallest() const  { assert(false && "Not Implemented"); }
+
 
   /// Returns true if and only if the number has the largest possible finite
   /// magnitude in the current semantics.
-  bool isLargest() const = delete;
+  bool isLargest() const  { assert(false && "Not Implemented"); }
+
 
   /// Returns true if and only if the number is an exact integer.
-  bool isInteger() const = delete;
+  bool isInteger() const  { assert(false && "Not Implemented"); }
+
 
   /// @}
 
-  DFPFloat &operator=(const DFPFloat &) = delete;
-  DFPFloat &operator=(DFPFloat &&) = delete;
+  DFPFloat &operator=(const DFPFloat &) { assert(false && "Not Implemented"); }
+  DFPFloat &operator=(DFPFloat &&){ assert(false && "Not Implemented"); }
 
   /// Overload to compute a hash code for an DFPFloat value.
   ///
@@ -951,26 +962,29 @@ public:
 
   /// If this value has an exact multiplicative inverse, store it in inv and
   /// return true.
-  bool getExactInverse(DFPFloat *inv) const = delete;
+  bool getExactInverse(DFPFloat *inv) const  { assert(false && "Not Implemented"); }
+
 
   // If this is an exact power of two, return the exponent while ignoring the
   // sign bit. If it's not an exact power of 2, return INT_MIN
   LLVM_READONLY
-  int getExactLog2Abs() const = delete;
+  int getExactLog2Abs() const  { assert(false && "Not Implemented"); }
+
 
 
   /// \name Special value setters.
   /// @{
 
-  void makeLargest(bool Neg = false) = delete { assert(false && "Not Implemented"); }
-  void makeSmallest(bool Neg = false) = delete { assert(false && "Not Implemented"); }
+  void makeLargest(bool Neg = false) { assert(false && "Not implemented"); }
+  void makeSmallest(bool Neg = false) { assert(false && "Not implemented"); }
   void makeNaN(bool SNaN = false, bool Neg = false, const APInt *fill = nullptr);
   void makeInf(bool Neg = false, bool ExplicitPlus = false);
   void makeZero(bool Neg = false);
   void makeZeroInternalDFP32(bool Neg = false, int right_of_radix_leading_zero=0);
   void makeZeroInternalDFP64(bool Neg = false, int right_of_radix_leading_zero=0);
   void makeZeroInternalDFP128(bool Neg = false, int right_of_radix_leading_zero=0);
-  void makeQuiet() = delete;
+  void makeQuiet()  { assert(false && "Not Implemented"); }
+
 
 
   /// @}
@@ -1177,9 +1191,9 @@ class APFloat : public APFloatBase {
              &Semantics == &IEEEquad();
  
     } else if (std::is_same<T, DFPFloat>::value) {
-      return &Semantics == &DFP32() ||
-             &Semantics == &DFP64() ||
-             &Semantics == &DFP128();
+      return &Semantics == &DecimalFloat32() ||
+             &Semantics == &DecimalFloat64() ||
+             &Semantics == &DecimalFloat128();
     }
      llvm_unreachable("Unexpected semantics");
   }
@@ -1217,7 +1231,7 @@ class APFloat : public APFloatBase {
   }
 
   void makeSmallestNormalized(bool Neg) {
-    APFLOAT_DISPATCH_ON_SEMANTICS(makeSmallestNormalized(Neg));
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(makeSmallestNormalized(Neg));
   }
 
   explicit APFloat(IEEEFloat F, const fltSemantics &S) : U(std::move(F), S) {}
@@ -1617,7 +1631,7 @@ public:
   bool isDFP() const { return usesLayout<DFPFloat>(getSemantics());}
 
   bool isSmallestNormalized() const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(isSmallestNormalized());
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(isSmallestNormalized());
   }
 
   /// Return the FPClassTest which will return true for the value.
@@ -1636,7 +1650,7 @@ public:
   void dump() const;
 
   bool getExactInverse(APFloat *inv) const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(getExactInverse(inv));
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(getExactInverse(inv));
   }
 
   LLVM_READONLY
@@ -1646,7 +1660,7 @@ public:
 
   LLVM_READONLY
   int getExactLog2() const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(getExactLog2());
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(getExactLog2());
   }
 
   friend hash_code hash_value(const APFloat &Arg);

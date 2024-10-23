@@ -151,6 +151,7 @@ static constexpr fltSemantics semDFP64 = {385, -382, 53, 64,
 // BID significand can be up to 113 bits but DPD can be up to 110
 static constexpr fltSemantics semDFP128 = {6145, -6142, 113, 128,
                                            APFloatBase::BaseTen};
+// clang-format on
 
 /* The IBM double-double semantics. Such a number consists of a pair of IEEE
    64-bit doubles (Hi, Lo), where |Hi| > |Lo|, and if normal,
@@ -4550,6 +4551,13 @@ void IEEEFloat::toString(SmallVectorImpl<char> &Str, unsigned FormatPrecision,
 
   for (; I != NDigits; ++I)
     Str.push_back(buffer[NDigits-I-1]);
+}
+
+void DFPFloat::changeSign() {
+   if(isZero())
+    return;
+
+  sign = !sign;
 }
 
 uint32_t DFPFloat::maxFormatDigits() const {
