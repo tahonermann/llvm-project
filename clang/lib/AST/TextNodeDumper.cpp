@@ -1208,7 +1208,13 @@ void TextNodeDumper::VisitFixedPointLiteral(const FixedPointLiteral *Node) {
 
 void TextNodeDumper::VisitFloatingLiteral(const FloatingLiteral *Node) {
   ColorScope Color(OS, ShowColors, ValueColor);
-  OS << " " << Node->getValueAsApproximateDouble();
+  if (!Node->isDFP())
+    OS << " " << Node->getValueAsApproximateDouble();
+  else {
+    SmallVector<char, 16> Buffer;
+    Node->getValueAsString(Buffer);
+    OS << " " << Buffer;
+  }
 }
 
 void TextNodeDumper::VisitStringLiteral(const StringLiteral *Str) {

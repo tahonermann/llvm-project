@@ -3880,6 +3880,39 @@ static Expr *BuildFloatingLiteral(Sema &S, NumericLiteralParser &Literal,
   return FloatingLiteral::Create(S.Context, Val, isExact, Ty, Loc);
 }
 
+static Expr *BuildDecimalFloatLiteral(Sema &S, NumericLiteralParser &Literal,
+                                  QualType Ty, SourceLocation Loc) {
+  const llvm::fltSemantics &Format = S.Context.getFloatTypeSemantics(Ty);
+
+  using llvm::APFloat;
+  APFloat Val(Format);
+
+  APFloat::opStatus result = Literal.GetDecimalFloatValue(Val);
+
+  // Overflow is always an error, but underflow is only an error if
+  // we underflowed to zero (APFloat reports denormals as underflow).
+  // if ((result & APFloat::opOverflow) ||
+  //     ((result & APFloat::opUnderflow) && Val.isZero())) {
+  //   unsigned diagnostic;
+  //   SmallString<20> buffer;
+  //   if (result & APFloat::opOverflow) {
+  //     diagnostic = diag::warn_float_overflow;
+  //     APFloat::getLargest(Format).toString(buffer);
+  //   } else {
+  //     diagnostic = diag::warn_float_underflow;
+  //     APFloat::getSmallest(Format).toString(buffer);
+  //   }
+
+  //   S.Diag(Loc, diagnostic)
+  //     << Ty
+  //     << StringRef(buffer.data(), buffer.size());
+  // }
+
+  bool isExact = (result == APFloat::opOK);
+  return FloatingLiteral::Create(S.Context, Val, isExact, Ty, Loc);
+}
+
+
 bool Sema::CheckLoopHintExpr(Expr *E, SourceLocation Loc) {
   assert(E && "Invalid expression");
 
@@ -4076,6 +4109,22 @@ ExprResult Sema::ActOnNumericConstant(const Token &Tok, Scope *UDLScope) {
 
     Res = FixedPointLiteral::CreateFromRawInt(Context, Val, Ty,
                                               Tok.getLocation(), scale);
+  } else if (Literal.isDecimalFloatLiteral()) {
+    QualType Ty;
+
+    if (Literal.isDecimal32)
+      Ty = Context.DecimalFloat32Ty;
+    else if (Literal.isDecimal64)
+      Ty = Context.DecimalFloat64Ty;
+    else if (Literal.isDecimal128)
+      Ty = Context.DecimalFloat128Ty;
+    else
+      assert(false && "unexpected DFP literal");
+
+    unsigned bit_width = Context.getTypeInfo(Ty).Width;
+
+    Res = BuildDecimalFloatLiteral(*this, Literal, Ty, Tok.getLocation());
+    
   } else if (Literal.isFloatingLiteral()) {
     QualType Ty;
     if (Literal.isHalf){

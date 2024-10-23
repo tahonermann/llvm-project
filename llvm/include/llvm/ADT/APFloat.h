@@ -19,9 +19,21 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FloatingPointMode.h"
 #include "llvm/Support/ErrorHandling.h"
+#include <cassert>
 #include <memory>
 
 #define APFLOAT_DISPATCH_ON_SEMANTICS(METHOD_CALL)                             \
+  do {                                                                         \
+    if (usesLayout<IEEEFloat>(getSemantics()))                                 \
+      return U.IEEE.METHOD_CALL;                                               \
+    if (usesLayout<DoubleAPFloat>(getSemantics()))                             \
+      return U.Double.METHOD_CALL;                                             \
+    if (usesLayout<DFPFloat>(getSemantics()))                                  \
+      return U.DFP.METHOD_CALL;                                                \
+    llvm_unreachable("Unexpected semantics");                                  \
+  } while (false)
+
+  #define APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(METHOD_CALL)                             \
   do {                                                                         \
     if (usesLayout<IEEEFloat>(getSemantics()))                                 \
       return U.IEEE.METHOD_CALL;                                               \
@@ -146,6 +158,8 @@ struct APFloatBase {
   /// A signed type to represent a floating point numbers unbiased exponent.
   typedef int32_t ExponentType;
 
+  enum Radix { BaseTwo, BaseTen };
+
   /// \name Floating Point Semantics.
   /// @{
   enum Semantics {
@@ -190,7 +204,10 @@ struct APFloatBase {
     S_FloatTF32,
 
     S_x87DoubleExtended,
-    S_MaxSemantics = S_x87DoubleExtended,
+    S_DecimalFloat32,
+    S_DecimalFloat64,
+    S_DecimalFloat128,
+    S_MaxSemantics = S_DecimalFloat128,
   };
 
   static const llvm::fltSemantics &EnumToSemantics(Semantics S);
@@ -209,6 +226,9 @@ struct APFloatBase {
   static const fltSemantics &Float8E4M3B11FNUZ() LLVM_READNONE;
   static const fltSemantics &FloatTF32() LLVM_READNONE;
   static const fltSemantics &x87DoubleExtended() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat32() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat64() LLVM_READNONE;
+  static const fltSemantics &DecimalFloat128() LLVM_READNONE;
 
   /// A Pseudo fltsemantic used to construct APFloats that cannot conflict with
   /// anything real.
@@ -769,6 +789,266 @@ public:
   friend hash_code hash_value(const DoubleAPFloat &Arg);
 };
 
+class DFPFloat final : public APFloatBase {
+public:
+  /// \name Constructors
+  /// @{
+
+  DFPFloat(const fltSemantics &); // Default construct to +0.0
+  DFPFloat(const fltSemantics &, integerPart) {
+    assert(false && "Not Implemented");
+  }
+  DFPFloat(const fltSemantics &, uninitializedTag);
+  DFPFloat(const fltSemantics &, const APInt &);
+  DFPFloat(const DFPFloat &) { assert(false && "Not Implemented"); }
+  DFPFloat(DFPFloat &&) { assert(false && "Not Implemented"); }
+  ~DFPFloat() {}
+
+  /// @}
+
+  /// Returns whether this instance allocated memory.
+  bool needsCleanup() const { return partCount() > 1; }
+
+  /// \name Arithmetic
+  /// @{
+
+  // FIXME: Not implemented
+  opStatus add(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus subtract(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus multiply(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus divide(const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+
+  opStatus remainder(const DFPFloat &) { assert(false && "Not implemented"); }
+
+  opStatus mod(const DFPFloat &) { assert(false && "Not implemented"); }
+  opStatus fusedMultiplyAdd(const DFPFloat &, const DFPFloat &, roundingMode) { assert(false && "Not implemented"); }
+  opStatus roundToIntegral(roundingMode) { assert( false && "Not implemented"); };
+
+  opStatus next(bool nextDown) { assert( false && "Not Implemented"); };
+
+  /// @}
+
+  /// \name Sign operations.
+  /// @{
+
+  void changeSign();
+
+  /// @}
+
+  /// \name Conversions
+  /// @{
+
+  opStatus convert(const fltSemantics &, roundingMode, bool *) { assert(false && "Not implemented"); }
+  opStatus convertToInteger(MutableArrayRef<integerPart>, unsigned int, bool,
+                            roundingMode, bool *) const { assert(false && "Not Implemented"); }
+  opStatus convertFromAPInt(const APInt &, bool, roundingMode) { assert(false && "Not Implemented"); }
+  opStatus convertFromSignExtendedInteger(const integerPart *, unsigned int,
+                                          bool, roundingMode) { assert(false && "Not Implemented"); }
+  opStatus convertFromZeroExtendedInteger(const integerPart *, unsigned int,
+                                          bool, roundingMode) { assert(false && "Not Implemented"); }
+  Expected<opStatus> convertFromString(StringRef, roundingMode);
+  Expected<opStatus> convertFromStringDFP32(StringRef, roundingMode);
+  Expected<opStatus> convertFromStringDFP64(StringRef, roundingMode);
+  Expected<opStatus> convertFromStringDFP128(StringRef, roundingMode);
+  bool convertFromStringSpecials(StringRef str);
+  APInt bitcastToAPInt() const;
+  
+  template <const fltSemantics &S>
+  APInt convertDFPToAPInt() const;
+  
+  double convertToDouble() const { assert(false && "Not implemented"); }
+  float convertToFloat() const { assert(false && "Not implemented"); }
+  /// @}
+
+  bool operator==(const DFPFloat &) = delete;
+
+  // Note: Non-canonical values are unordered with respect to other (non-canonical or canonical) equal values per IEEE 754:2008 5.10
+  cmpResult compare(const DFPFloat &) const { assert(false && "Not implemented"); }
+  cmpResult compareAbsoluteValue(const DFPFloat &) const { assert(false && "Not implemented"); }
+  cmpResult compareQuantum(const DFPFloat &) const { assert(false && "Not implemented"); }
+
+  bool bitwiseIsEqual(const DFPFloat &) const { assert(false && "Not implemented"); }
+
+  unsigned int convertToHexString(char *dst, unsigned int hexDigits,
+                                  bool upperCase, roundingMode) const { assert(false && "Not Implemented"); }
+
+  bool isNegative() const { return sign; }
+
+  bool isNormal() const { return !isDenormal() && isFiniteNonZero(); }
+
+  bool isFinite() const { return !isNaN() && !isInfinity(); }
+
+  bool isZero() const { return category == fcZero; }
+
+  bool isDenormal() const { return false;}
+  bool isNonCanonical() const = delete;
+
+  bool isInfinity() const { return category == fcInfinity; }
+
+  bool isNaN() const { return category == fcNaN; }
+
+  bool isSignaling() const { return category == fcNaN && sign; } ;
+
+  /// @}
+
+  /// \name Simple Queries
+  /// @{
+
+  fltCategory getCategory() const { return category; }
+  const fltSemantics &getSemantics() const { return *semantics; }
+  bool isNonZero() const { return category != fcZero; }
+  bool isFiniteNonZero() const { return isFinite() && !isZero(); }
+  bool isPosZero() const { return isZero() && !isNegative(); }
+  bool isNegZero() const { return isZero() && isNegative(); }
+
+  /// Returns true if and only if the number has the smallest possible non-zero
+  /// magnitude in the current semantics.
+  bool isSmallest() const  { assert(false && "Not Implemented"); }
+
+
+  /// Returns true if and only if the number has the largest possible finite
+  /// magnitude in the current semantics.
+  bool isLargest() const  { assert(false && "Not Implemented"); }
+
+
+  /// Returns true if and only if the number is an exact integer.
+  bool isInteger() const  { assert(false && "Not Implemented"); }
+
+
+  /// @}
+
+  DFPFloat &operator=(const DFPFloat &) { assert(false && "Not Implemented"); }
+  DFPFloat &operator=(DFPFloat &&){ assert(false && "Not Implemented"); }
+
+  /// Overload to compute a hash code for an DFPFloat value.
+  ///
+  friend hash_code hash_value(const DFPFloat &Arg);
+
+  /// FIXME rewrite for DFP
+  /// Converts this value into a decimal string.
+  ///
+  /// \param FormatPrecision The maximum number of digits of
+  ///   precision to output.  If there are fewer digits available,
+  ///   zero padding will not be used unless the value is
+  ///   integral and small enough to be expressed in
+  ///   FormatPrecision digits.  0 means to use the natural
+  ///   precision of the number.
+  /// \param FormatMaxPadding The maximum number of zeros to
+  ///   consider inserting before falling back to scientific
+  ///   notation.  0 means to always use scientific notation.
+  ///
+  /// \param TruncateZero Indicate whether to remove the trailing zero in
+  ///   fraction part or not. Also setting this parameter to false forcing
+  ///   producing of output more similar to default printf behavior.
+  ///   Specifically the lower e is used as exponent delimiter and exponent
+  ///   always contains no less than two digits.
+  ///
+  /// Number       Precision    MaxPadding      Result
+  /// ------       ---------    ----------      ------
+  /// 1.01E+4              5             2       10100
+  /// 1.01E+4              4             2       1.01E+4
+  /// 1.01E+4              5             1       1.01E+4
+  /// 1.01E-2              5             2       0.0101
+  /// 1.01E-2              4             2       0.0101
+  /// 1.01E-2              4             1       1.01E-2
+  void toString(SmallVectorImpl<char> &Str, unsigned FormatPrecision = 0,
+                unsigned FormatMaxPadding = 3, bool TruncateZero = true) const;
+  void toStringDFP32(SmallVectorImpl<char> &Str, unsigned FormatPrecision = 0,
+                unsigned FormatMaxPadding = 3, bool TruncateZero = true) const;
+  void toStringDFP64(SmallVectorImpl<char> &Str, unsigned FormatPrecision = 0,
+                unsigned FormatMaxPadding = 3, bool TruncateZero = true) const;
+  void toStringDFP128(SmallVectorImpl<char> &Str, unsigned FormatPrecision = 0,
+                unsigned FormatMaxPadding = 3, bool TruncateZero = true) const;
+
+  /// If this value has an exact multiplicative inverse, store it in inv and
+  /// return true.
+  bool getExactInverse(DFPFloat *inv) const  { assert(false && "Not Implemented"); }
+
+
+  // If this is an exact power of two, return the exponent while ignoring the
+  // sign bit. If it's not an exact power of 2, return INT_MIN
+  LLVM_READONLY
+  int getExactLog2Abs() const  { assert(false && "Not Implemented"); }
+
+
+
+  /// \name Special value setters.
+  /// @{
+
+  void makeLargest(bool Neg = false) { assert(false && "Not implemented"); }
+  void makeSmallest(bool Neg = false) { assert(false && "Not implemented"); }
+  void makeNaN(bool SNaN = false, bool Neg = false, const APInt *fill = nullptr);
+  void makeInf(bool Neg = false, bool ExplicitPlus = false);
+  void makeZero(bool Neg = false);
+  void makeZeroInternalDFP32(bool Neg = false, int right_of_radix_leading_zero=0);
+  void makeZeroInternalDFP64(bool Neg = false, int right_of_radix_leading_zero=0);
+  void makeZeroInternalDFP128(bool Neg = false, int right_of_radix_leading_zero=0);
+  void makeQuiet()  { assert(false && "Not Implemented"); }
+
+
+
+  /// @}
+
+  
+
+private:
+  /// \name Simple Queries
+  /// @{
+
+  integerPart *significandParts();
+  const integerPart *significandParts() const;
+  unsigned int partCount() const;
+  uint32_t maxFormatDigits() const;
+  uint32_t decimalExponentBias() const;
+  uint32_t decimalMaxExponent() const;
+
+  /// @}
+
+  void initialize(const fltSemantics *);
+  void initFromAPInt(const fltSemantics *Sem, const APInt &api);
+  template <const fltSemantics &S> void initFromDFP32APInt(const APInt &api);
+  template <const fltSemantics &S> void initFromDFP64APInt(const APInt &api);
+  template <const fltSemantics &S> void initFromDFP128APInt(const APInt &api);
+
+
+  void assign(const DFPFloat &);
+  void copySignificand(const DFPFloat &);
+  void freeSignificand();
+
+  struct Two64Wrapped {
+     uint64_t w[2];
+  };
+
+  void mul64By64To128(DFPFloat::Two64Wrapped &p, uint64_t cx, uint64_t cy) const;
+  uint64_t addCarryOut(uint64_t &s, uint64_t x, uint64_t y) const;
+  void unpackBID32(uint32_t x, uint32_t &sgn, uint32_t &exp, uint32_t &coeff, bool &isInf, bool &isSNaN, bool &isNaN) const;
+  uint32_t packBID32(uint32_t sgn, int32_t exp, uint64_t coeff, bool negativeExp, bool rounded, roundingMode rounding_mode) const;
+
+  /// Note: this must be the first data member.
+  /// The semantics that this value obeys.
+  const fltSemantics *semantics;
+
+  /// A binary fraction with an explicit integer bit.
+  ///
+  /// The significand must be at least one bit wider than the target precision.
+  union Significand {
+    integerPart part;
+    integerPart *parts;
+  } significand;
+
+  /// The signed unbiased exponent of the value.
+  ExponentType exponent;
+
+  /// What kind of floating point number this is.
+  ///
+  /// Only 2 bits are required, but VisualStudio incorrectly sign extends it.
+  /// Using the extra bit keeps it from failing under VisualStudio.
+  fltCategory category : 3;
+
+  /// Sign bit of the number.
+  unsigned int sign : 1;
+};
+
 hash_code hash_value(const DoubleAPFloat &Arg);
 
 } // End detail namespace
@@ -778,6 +1058,7 @@ hash_code hash_value(const DoubleAPFloat &Arg);
 class APFloat : public APFloatBase {
   typedef detail::IEEEFloat IEEEFloat;
   typedef detail::DoubleAPFloat DoubleAPFloat;
+  typedef detail::DFPFloat DFPFloat;
 
   static_assert(std::is_standard_layout<IEEEFloat>::value);
 
@@ -785,11 +1066,15 @@ class APFloat : public APFloatBase {
     const fltSemantics *semantics;
     IEEEFloat IEEE;
     DoubleAPFloat Double;
+    DFPFloat DFP;
 
     explicit Storage(IEEEFloat F, const fltSemantics &S);
     explicit Storage(DoubleAPFloat F, const fltSemantics &S)
         : Double(std::move(F)) {
       assert(&S == &PPCDoubleDouble());
+    }
+    explicit Storage(DFPFloat F, const fltSemantics &S)
+        : DFP(std::move(F)) {
     }
 
     template <typename... ArgTypes>
@@ -800,6 +1085,10 @@ class APFloat : public APFloatBase {
       }
       if (usesLayout<DoubleAPFloat>(Semantics)) {
         new (&Double) DoubleAPFloat(Semantics, std::forward<ArgTypes>(Args)...);
+        return;
+      }
+      if (usesLayout<DFPFloat>(Semantics)) {
+        new (&DFP) DFPFloat(Semantics, std::forward<ArgTypes>(Args)...);
         return;
       }
       llvm_unreachable("Unexpected semantics");
@@ -814,6 +1103,10 @@ class APFloat : public APFloatBase {
         Double.~DoubleAPFloat();
         return;
       }
+      if (usesLayout<DFPFloat>(*semantics)) {
+        DFP.~DFPFloat();
+        return;
+      }
       llvm_unreachable("Unexpected semantics");
     }
 
@@ -824,6 +1117,10 @@ class APFloat : public APFloatBase {
       }
       if (usesLayout<DoubleAPFloat>(*RHS.semantics)) {
         new (this) DoubleAPFloat(RHS.Double);
+        return;
+      }
+      if (usesLayout<DFPFloat>(*RHS.semantics)) {
+        new (this) DFPFloat(RHS.DFP);
         return;
       }
       llvm_unreachable("Unexpected semantics");
@@ -838,6 +1135,10 @@ class APFloat : public APFloatBase {
         new (this) DoubleAPFloat(std::move(RHS.Double));
         return;
       }
+      if (usesLayout<DFPFloat>(*RHS.semantics)) {
+        new (this) DFPFloat(std::move(RHS.DFP));
+        return;
+      }
       llvm_unreachable("Unexpected semantics");
     }
 
@@ -847,7 +1148,10 @@ class APFloat : public APFloatBase {
         IEEE = RHS.IEEE;
       } else if (usesLayout<DoubleAPFloat>(*semantics) &&
                  usesLayout<DoubleAPFloat>(*RHS.semantics)) {
-        Double = RHS.Double;
+        Double = RHS.Double; 
+      } else if (usesLayout<DFPFloat>(*semantics) &&
+                 usesLayout<DFPFloat>(*RHS.semantics)) {
+        DFP = RHS.DFP; 
       } else if (this != &RHS) {
         this->~Storage();
         new (this) Storage(RHS);
@@ -862,6 +1166,9 @@ class APFloat : public APFloatBase {
       } else if (usesLayout<DoubleAPFloat>(*semantics) &&
                  usesLayout<DoubleAPFloat>(*RHS.semantics)) {
         Double = std::move(RHS.Double);
+      } else if (usesLayout<DFPFloat>(*semantics) &&
+                 usesLayout<DFPFloat>(*RHS.semantics)) {
+        DFP = std::move(RHS.DFP);
       } else if (this != &RHS) {
         this->~Storage();
         new (this) Storage(std::move(RHS));
@@ -872,11 +1179,23 @@ class APFloat : public APFloatBase {
 
   template <typename T> static bool usesLayout(const fltSemantics &Semantics) {
     static_assert(std::is_same<T, IEEEFloat>::value ||
-                  std::is_same<T, DoubleAPFloat>::value);
+                  std::is_same<T, DoubleAPFloat>::value ||
+                  std::is_same<T, DFPFloat>::value);
     if (std::is_same<T, DoubleAPFloat>::value) {
       return &Semantics == &PPCDoubleDouble();
+    } if (std::is_same<T, IEEEFloat>::value) {
+      return &Semantics == &IEEEhalf() ||
+             &Semantics == &BFloat() || 
+             &Semantics == &IEEEsingle() ||
+             &Semantics == &IEEEdouble() ||
+             &Semantics == &IEEEquad();
+ 
+    } else if (std::is_same<T, DFPFloat>::value) {
+      return &Semantics == &DecimalFloat32() ||
+             &Semantics == &DecimalFloat64() ||
+             &Semantics == &DecimalFloat128();
     }
-    return &Semantics != &PPCDoubleDouble();
+     llvm_unreachable("Unexpected semantics");
   }
 
   IEEEFloat &getIEEE() {
@@ -912,7 +1231,7 @@ class APFloat : public APFloatBase {
   }
 
   void makeSmallestNormalized(bool Neg) {
-    APFLOAT_DISPATCH_ON_SEMANTICS(makeSmallestNormalized(Neg));
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(makeSmallestNormalized(Neg));
   }
 
   explicit APFloat(IEEEFloat F, const fltSemantics &S) : U(std::move(F), S) {}
@@ -1309,9 +1628,10 @@ public:
   bool isLargest() const { APFLOAT_DISPATCH_ON_SEMANTICS(isLargest()); }
   bool isInteger() const { APFLOAT_DISPATCH_ON_SEMANTICS(isInteger()); }
   bool isIEEE() const { return usesLayout<IEEEFloat>(getSemantics()); }
+  bool isDFP() const { return usesLayout<DFPFloat>(getSemantics());}
 
   bool isSmallestNormalized() const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(isSmallestNormalized());
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(isSmallestNormalized());
   }
 
   /// Return the FPClassTest which will return true for the value.
@@ -1330,7 +1650,7 @@ public:
   void dump() const;
 
   bool getExactInverse(APFloat *inv) const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(getExactInverse(inv));
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(getExactInverse(inv));
   }
 
   LLVM_READONLY
@@ -1340,7 +1660,7 @@ public:
 
   LLVM_READONLY
   int getExactLog2() const {
-    APFLOAT_DISPATCH_ON_SEMANTICS(getExactLog2());
+    APFLOAT_NO_DFP_DISPATCH_ON_SEMANTICS(getExactLog2());
   }
 
   friend hash_code hash_value(const APFloat &Arg);

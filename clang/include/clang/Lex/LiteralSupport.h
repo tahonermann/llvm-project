@@ -60,7 +60,7 @@ class NumericLiteralParser {
 
   unsigned radix;
 
-  bool saw_exponent, saw_period, saw_ud_suffix, saw_fixed_point_suffix;
+  bool saw_exponent, saw_period, saw_ud_suffix, saw_fixed_point_suffix, saw_decimal_float_suffix;
 
   SmallString<32> UDSuffixBuf;
 
@@ -78,6 +78,11 @@ public:
   bool isImaginary : 1;     // 1.0i
   bool isFloat16 : 1;       // 1.0f16
   bool isFloat128 : 1;      // 1.0q
+  bool isDecimalFloat : 1;  // df/DF for _Decimal32, dd/DD for _Decimal64
+                            // Dl/DL for _Decimal128
+  bool isDecimal32 : 1;     // 6543.0DF
+  bool isDecimal64 : 1;     // 9.99DD
+  bool isDecimal128 : 1;    // 9.99DL
   bool isFract : 1;         // 1.0hr/r/lr/uhr/ur/ulr
   bool isAccum : 1;         // 1.0hk/k/lk/uhk/uk/ulk
   bool isBitInt : 1;        // 1wb, 1uwb (C23)
@@ -86,6 +91,10 @@ public:
 
   bool isFixedPointLiteral() const {
     return (saw_period || saw_exponent) && saw_fixed_point_suffix;
+  }
+
+  bool isDecimalFloatLiteral() const {
+    return (saw_period || saw_exponent) && saw_decimal_float_suffix;
   }
 
   bool isIntegerLiteral() const {
@@ -123,6 +132,11 @@ public:
   /// set to true if the returned APFloat can represent the number in the
   /// literal exactly, and false otherwise.
   llvm::APFloat::opStatus GetFloatValue(llvm::APFloat &Result);
+
+  /// GetDecimalFloatValue - Convert this numeric literal to a decimal float value, using
+  /// the specified DFPFloat fltSemantics (specifying _Decimal32, _Decimal64, etc).
+  llvm::APFloat::opStatus GetDecimalFloatValue(llvm::APFloat &Result);
+
 
   /// GetFixedPointValue - Convert this numeric literal value into a
   /// scaled integer that represents this value. Returns true if an overflow

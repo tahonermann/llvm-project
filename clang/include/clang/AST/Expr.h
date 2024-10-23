@@ -1661,9 +1661,10 @@ public:
 
 class FloatingLiteral : public Expr, private APFloatStorage {
   SourceLocation Loc;
+  bool DFP : 1;
 
   FloatingLiteral(const ASTContext &C, const llvm::APFloat &V, bool isexact,
-                  QualType Type, SourceLocation L);
+                  QualType Type, SourceLocation L, bool isDFP=false);
 
   /// Construct an empty floating-point literal.
   explicit FloatingLiteral(const ASTContext &C, EmptyShell Empty);
@@ -1673,6 +1674,7 @@ public:
                                  bool isexact, QualType Type, SourceLocation L);
   static FloatingLiteral *Create(const ASTContext &C, EmptyShell Empty);
 
+  bool isDFP() const { return DFP; }
   llvm::APFloat getValue() const {
     return APFloatStorage::getValue(getSemantics());
   }
@@ -1713,6 +1715,10 @@ public:
   /// double.  Note that this may cause loss of precision, but is useful for
   /// debugging dumps, etc.
   double getValueAsApproximateDouble() const;
+
+  void getValueAsString(SmallVectorImpl<char> &Str) const {
+    getValue().toString(Str,0,0,false);
+  }
 
   SourceLocation getLocation() const { return Loc; }
   void setLocation(SourceLocation L) { Loc = L; }

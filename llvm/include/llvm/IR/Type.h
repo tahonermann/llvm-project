@@ -68,9 +68,9 @@ public:
     TokenTyID,     ///< Tokens
 
     // Decimal floating-point types.
-    Decimal32TyID, ///< 32-bit decimal floating point type
-    Decimal64TyID, ///< 64-bit decimal floating point type
-    Decimal128TyID, ///< 128-bit decimal floating point type
+    DecimalFloat32TyID,  ///< 32-bit decimal floating point type
+    DecimalFloat64TyID,  ///< 64-bit decimal floating point type
+    DecimalFloat128TyID, ///< 128-bit decimal floating point type
 
     // Derived types... see DerivedTypes.h file.
     IntegerTyID,        ///< Arbitrary bit width integers
@@ -171,18 +171,21 @@ public:
   bool isPPC_FP128Ty() const { return getTypeID() == PPC_FP128TyID; }
 
   /// Return true if this is 'decimal32'.
-  bool isDecimal32Ty() const { return getTypeID() == Decimal32TyID; }
+  bool isDecimalFloat32Ty() const { return getTypeID() == DecimalFloat32TyID; }
 
   /// Return true if this is 'decimal64'.
-  bool isDecimal64Ty() const { return getTypeID() == Decimal64TyID; }
+  bool isDecimalFloat64Ty() const { return getTypeID() == DecimalFloat64TyID; }
 
   /// Return true if this is 'decimal128'.
-  bool isDecimal128Ty() const { return getTypeID() == Decimal128TyID; }
+  bool isDecimalFloat128Ty() const {
+    return getTypeID() == DecimalFloat128TyID;
+  }
 
   /// Return true if this is a decimal floating point.
   bool isDecimalFloatingPointTy() const {
-    return getTypeID() == Decimal32TyID || getTypeID() == Decimal64TyID ||
-           getTypeID() == Decimal128TyID;
+    return getTypeID() == DecimalFloat32TyID ||
+           getTypeID() == DecimalFloat64TyID ||
+           getTypeID() == DecimalFloat128TyID;
   }
 
   /// Return true if this is a well-behaved IEEE-like type, which has a IEEE
@@ -488,9 +491,9 @@ public:
   static IntegerType *getInt32Ty(LLVMContext &C);
   static IntegerType *getInt64Ty(LLVMContext &C);
   static IntegerType *getInt128Ty(LLVMContext &C);
-  static Type *getDecimal32Ty(LLVMContext &C);
-  static Type *getDecimal64Ty(LLVMContext &C);
-  static Type *getDecimal128Ty(LLVMContext &C);
+  static Type *getDecimalFloat32Ty(LLVMContext &C);
+  static Type *getDecimalFloat64Ty(LLVMContext &C);
+  static Type *getDecimalFloat128Ty(LLVMContext &C);
   template <typename ScalarTy> static Type *getScalarTy(LLVMContext &C) {
     int noOfBits = sizeof(ScalarTy) * CHAR_BIT;
     if (std::is_integral<ScalarTy>::value) {
