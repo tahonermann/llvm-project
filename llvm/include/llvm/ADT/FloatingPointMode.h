@@ -47,14 +47,6 @@ enum class RoundingMode : int8_t {
   Invalid = -1    ///< Denotes invalid value.
 };
 
-enum class DFPRoundingMode : int8_t {
-  Downward          = 0,
-  ToNearest         = 1,
-  ToNearestFromZero = 2,
-  TowardZero        = 3,
-  Upward            = 4,
-};
-
 /// Returns text representation of the given rounding mode.
 inline StringRef spell(RoundingMode RM) {
   switch (RM) {
