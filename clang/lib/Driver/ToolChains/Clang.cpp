@@ -1682,9 +1682,6 @@ void Clang::RenderTargetOptions(const llvm::Triple &EffectiveTriple,
                                 ArgStringList &CmdArgs) const {
   const ToolChain &TC = getToolChain();
 
-  // Set the decimal floating-point ABI.
-  TC.setDecimalFloatABI(Args, EffectiveTriple);
-
   // Add the target features
   getTargetFeatures(TC.getDriver(), EffectiveTriple, Args, CmdArgs, false);
 
@@ -2269,9 +2266,31 @@ void Clang::AddSystemZTargetArgs(const ArgList &Args,
   }
 }
 
+static StringRef getDecimalFloatABIStr(llvm::DecimalFloatABI ABI) {
+  switch (ABI) {
+  case llvm::DecimalFloatABI::Libgcc_BID:
+    return "libgcc:bid";
+  case llvm::DecimalFloatABI::Libgcc_DPD:
+    return "libgcc:dpd";
+  case llvm::DecimalFloatABI::Hard:
+      return "hard";
+  case llvm::DecimalFloatABI::None:
+    return "none";
+  default:
+    return "default";
+  }
+}
+
 void Clang::AddX86TargetArgs(const ArgList &Args,
                              ArgStringList &CmdArgs) const {
   const Driver &D = getToolChain().getDriver();
+
+  // Determine floating point ABI from the options & target defaults.
+  llvm::DecimalFloatABI DFPABI =
+      getToolChain().checkDecimalFloatABI(Args, getToolChain().getTriple());
+  CmdArgs.push_back(Args.MakeArgString("-mdecimal-float-abi=" +
+                                       getDecimalFloatABIStr(DFPABI)));
+
   addX86AlignBranchArgs(D, Args, CmdArgs, /*IsLTO=*/false);
 
   if (!Args.hasFlag(options::OPT_mred_zone, options::OPT_mno_red_zone, true) ||
@@ -2821,16 +2840,7 @@ static void RenderFloatingPointOptions(const ToolChain &TC, const Driver &D,
     switch (optID) {
     default:
       break;
-    case options::OPT_mdecimal_float_abi_EQ: {
-      StringRef Val = A->getValue();
-      if (Val == "libgcc:bid" || Val == "libgcc:dpd" || Val == "hard") {
-        CmdArgs.push_back(Args.MakeArgString("-mdecimal-float-abi=" + Val));
-      } else {
-        D.Diag(diag::err_drv_unsupported_option_argument)
-            << A->getSpelling() << Val;
-      }
-      break;
-    }
+
     case options::OPT_ffp_model_EQ: {
       // If -ffp-model= is seen, reset to fno-fast-math
       HonorINFs = true;

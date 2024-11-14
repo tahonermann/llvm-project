@@ -923,8 +923,9 @@ bool ToolChain::isThreadModelSupported(const StringRef Model) const {
   return false;
 }
 
-void ToolChain::setDecimalFloatABI(const llvm::opt::ArgList &Args,
-                                   const llvm::Triple &Triple) const {
+llvm::DecimalFloatABI
+ToolChain::checkDecimalFloatABI(const llvm::opt::ArgList &Args,
+                                const llvm::Triple &Triple) const {
   tools::DecimalFloatABI ABI =
       tools::getDecimalFloatABI(getDriver(), Triple, Args);
   tools::DecimalFloatABI DefaultDecimalABI =
@@ -937,6 +938,7 @@ void ToolChain::setDecimalFloatABI(const llvm::opt::ArgList &Args,
     D.Diag(diag::err_drv_unsupported_opt_for_target)
         << ABIArg->getAsString(Args) << Triple.getTriple();
   }
+  return ABI;
 }
 
 std::string ToolChain::ComputeLLVMTriple(const ArgList &Args,

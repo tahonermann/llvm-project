@@ -20,17 +20,9 @@ namespace clang {
 namespace driver {
 namespace tools {
 
-enum class DecimalFloatABI {
-  Default,    // Target-specific default.
-  None,       // No decimal floating-point support.
-  Libgcc_BID, // libgcc with BID encoding.
-  Libgcc_DPD, // libgcc with DPD encoding.
-  Hard        // Target-specific hard ABI.
-};
-DecimalFloatABI getDecimalFloatABI(const Driver &D,
-                                      const llvm::Triple &Triple,
-                                      const llvm::opt::ArgList &Args);
-
+using llvm::DecimalFloatABI;
+DecimalFloatABI getDecimalFloatABI(const Driver &D, const llvm::Triple &Triple,
+                                   const llvm::opt::ArgList &Args);
 DecimalFloatABI getDefaultDecimalFloatABI(const llvm::Triple &Triple);
 
 namespace x86 {

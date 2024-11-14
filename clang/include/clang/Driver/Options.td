@@ -4287,7 +4287,7 @@ def mfloat_abi_EQ : Joined<["-"], "mfloat-abi=">, Group<m_Group>, Values<"soft,s
 def mdecimal_float_abi_EQ : Joined<["-"], "mdecimal-float-abi=">, Group<m_Group>,
 Visibility<[ClangOption, CC1Option]>,
   Values<"hard,default,libgcc:bid,libgcc:dpd">,
-  HelpText<"The decimal float encoding to use">,
+  HelpText<"The decimal floating-point ABI to use">,
   MarshallingInfoString<CodeGenOpts<"DecimalFloatABI">>;
 def mfpmath_EQ : Joined<["-"], "mfpmath=">, Group<m_Group>;
 def mfpu_EQ : Joined<["-"], "mfpu=">, Group<m_Group>;
