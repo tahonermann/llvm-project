@@ -152,6 +152,9 @@ TargetInfo::TargetInfo(const llvm::Triple &T) : Triple(T) {
   LongDoubleFormat = &llvm::APFloat::IEEEdouble();
   Float128Format = &llvm::APFloat::IEEEquad();
   Ibm128Format = &llvm::APFloat::PPCDoubleDouble();
+  DecimalFloat32Format = &llvm::APFloat::DecimalFloat32();
+  DecimalFloat64Format = &llvm::APFloat::DecimalFloat64();
+  DecimalFloat128Format = &llvm::APFloat::DecimalFloat128();
   MCountName = "mcount";
   UserLabelPrefix = "_";
   RegParmMax = 0;

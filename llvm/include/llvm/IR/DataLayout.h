@@ -715,11 +715,11 @@ inline TypeSize DataLayout::getTypeSizeInBits(Type *Ty) const {
     Type *LayoutTy = cast<TargetExtType>(Ty)->getLayoutType();
     return getTypeSizeInBits(LayoutTy);
   }
-  case Type::Decimal32TyID:
+  case Type::DecimalFloat32TyID:
     return TypeSize::Fixed(32);
-  case Type::Decimal64TyID:
+  case Type::DecimalFloat64TyID:
     return TypeSize::Fixed(64);
-  case Type::Decimal128TyID:
+  case Type::DecimalFloat128TyID:
     return TypeSize::Fixed(128);
   default:
     llvm_unreachable("DataLayout::getTypeSizeInBits(): Unsupported type");

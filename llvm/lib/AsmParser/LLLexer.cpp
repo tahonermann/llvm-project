@@ -826,9 +826,9 @@ lltok::Kind LLLexer::LexIdentifier() {
   TYPEKEYWORD("x86_amx",   Type::getX86_AMXTy(Context));
   TYPEKEYWORD("token",     Type::getTokenTy(Context));
   TYPEKEYWORD("ptr",       PointerType::getUnqual(Context));
-  TYPEKEYWORD("decimal32", Type::getDecimal32Ty(Context));
-  TYPEKEYWORD("decimal64", Type::getDecimal64Ty(Context));
-  TYPEKEYWORD("decimal128", Type::getDecimal128Ty(Context));
+  TYPEKEYWORD("decimal32", Type::getDecimalFloat32Ty(Context));
+  TYPEKEYWORD("decimal64", Type::getDecimalFloat64Ty(Context));
+  TYPEKEYWORD("decimal128", Type::getDecimalFloat128Ty(Context));
 
 #undef TYPEKEYWORD
 
