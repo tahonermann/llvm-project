@@ -9,6 +9,7 @@
 #include "clang/Driver/ToolChain.h"
 #include "ToolChains/Arch/AArch64.h"
 #include "ToolChains/Arch/ARM.h"
+#include "ToolChains/Arch/X86.h"
 #include "ToolChains/Clang.h"
 #include "ToolChains/CommonArgs.h"
 #include "ToolChains/Flang.h"
@@ -920,6 +921,24 @@ bool ToolChain::isThreadModelSupported(const StringRef Model) const {
     return true;
 
   return false;
+}
+
+llvm::DecimalFloatABI
+ToolChain::checkDecimalFloatABI(const llvm::opt::ArgList &Args,
+                                const llvm::Triple &Triple) const {
+  tools::DecimalFloatABI ABI =
+      tools::getDecimalFloatABI(getDriver(), Triple, Args);
+  tools::DecimalFloatABI DefaultDecimalABI =
+      tools::getDefaultDecimalFloatABI(Triple);
+  if (DefaultDecimalABI != tools::DecimalFloatABI::None &&
+      ABI != DefaultDecimalABI) {
+    Arg *ABIArg =
+        Args.getLastArg(options::OPT_mdecimal_float_abi_EQ);
+    assert(ABIArg && "Non-default decimal float abi expected to be from arg");
+    D.Diag(diag::err_drv_unsupported_opt_for_target)
+        << ABIArg->getAsString(Args) << Triple.getTriple();
+  }
+  return ABI;
 }
 
 std::string ToolChain::ComputeLLVMTriple(const ArgList &Args,

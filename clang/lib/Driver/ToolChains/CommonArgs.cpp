@@ -2466,3 +2466,38 @@ void tools::addHIPRuntimeLibArgs(const ToolChain &TC, Compilation &C,
     }
   }
 }
+
+tools::DecimalFloatABI
+tools::getDefaultDecimalFloatABI(const llvm::Triple &Triple) {
+  switch (Triple.getArch()) {
+  case llvm::Triple::x86:
+  case llvm::Triple::x86_64:
+    if (Triple.getEnvironment() == llvm::Triple::GNU)
+      return DecimalFloatABI::Libgcc_BID;
+    return DecimalFloatABI::None;
+  case llvm::Triple::ppc:
+  case llvm::Triple::ppc64:
+    return DecimalFloatABI::Libgcc_DPD;
+  default:
+      return DecimalFloatABI::None;
+  }
+}
+
+// Get the decimal float ABI type from the command line arguments
+// -mdecimal-float-abi=.
+tools::DecimalFloatABI tools::getDecimalFloatABI(const Driver &D,
+                                                 const llvm::Triple &Triple,
+                                                 const ArgList &Args) {
+  tools::DecimalFloatABI ABI = tools::DecimalFloatABI::Default;
+  if (const Arg *A = Args.getLastArg(options::OPT_mdecimal_float_abi_EQ)) {
+    StringRef Val = A->getValue();
+    ABI = llvm::StringSwitch<tools::DecimalFloatABI>(Val)
+              .Case("libgcc:bid", DecimalFloatABI::Libgcc_BID)
+              .Case("libgcc:dpd", DecimalFloatABI::Libgcc_DPD)
+              .Case("hard", DecimalFloatABI::Hard)
+              .Default(DecimalFloatABI::Default);
+  }
+  if (ABI == DecimalFloatABI::Default)
+	ABI = getDefaultDecimalFloatABI(Triple);
+  return ABI;
+}

@@ -19,6 +19,12 @@
 namespace clang {
 namespace driver {
 namespace tools {
+
+using llvm::DecimalFloatABI;
+DecimalFloatABI getDecimalFloatABI(const Driver &D, const llvm::Triple &Triple,
+                                   const llvm::opt::ArgList &Args);
+DecimalFloatABI getDefaultDecimalFloatABI(const llvm::Triple &Triple);
+
 namespace x86 {
 
 std::string getX86TargetCPU(const Driver &D, const llvm::opt::ArgList &Args,
