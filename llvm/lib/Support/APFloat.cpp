@@ -135,10 +135,14 @@ static constexpr fltSemantics semIEEEdouble = {1023, -1022, 53, 64};
 static constexpr fltSemantics semIEEEquad = {16383, -16382, 113, 128};
 static constexpr fltSemantics semFloat8E5M2 = {15, -14, 3, 8};
 // clang-format off
-static constexpr fltSemantics semFloat8E5M2FNUZ = {15,-15,3,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
-static constexpr fltSemantics semFloat8E4M3FN = {8,-6,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::AllOnes};
-static constexpr fltSemantics semFloat8E4M3FNUZ = {7,-7,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
-static constexpr fltSemantics semFloat8E4M3B11FNUZ = {4,-10,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
+static constexpr fltSemantics semFloat8E5M2FNUZ =
+  {15,-15,3,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
+static constexpr fltSemantics semFloat8E4M3FN =
+  {8,-6,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::AllOnes};
+static constexpr fltSemantics semFloat8E4M3FNUZ =
+  {7,-7,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
+static constexpr fltSemantics semFloat8E4M3B11FNUZ =
+  {4,-10,4,8,APFloatBase::BaseTwo,fltNonfiniteBehavior::NanOnly,fltNanEncoding::NegativeZero};
 static constexpr fltSemantics semFloatTF32 = {127, -126, 11, 19};
 static constexpr fltSemantics semX87DoubleExtended = {16383, -16382, 64, 80};
 static constexpr fltSemantics semBogus = {0, 0, 0, 0};
@@ -146,11 +150,9 @@ static constexpr fltSemantics semBogus = {0, 0, 0, 0};
 // BID significand can be up to 23 bits but DPD can be up to 20
 static constexpr fltSemantics semDFP32 = {97, -94, 23, 32, APFloatBase::BaseTen};
 // BID significand can be up to 53 bits but DPD can be up to 50
-static constexpr fltSemantics semDFP64 = {385, -382, 53, 64,
-                                          APFloatBase::BaseTen};
+static constexpr fltSemantics semDFP64 = {385, -382, 53, 64, APFloatBase::BaseTen};
 // BID significand can be up to 113 bits but DPD can be up to 110
-static constexpr fltSemantics semDFP128 = {6145, -6142, 113, 128,
-                                           APFloatBase::BaseTen};
+static constexpr fltSemantics semDFP128 = {6145, -6142, 113, 128, APFloatBase::BaseTen};
 // clang-format on
 
 /* The IBM double-double semantics. Such a number consists of a pair of IEEE
