@@ -1,4 +1,6 @@
 // RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple spir64  %s -o - | FileCheck --check-prefix=CHECK-DEVICE %s
+// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple nvptx  %s -o - | FileCheck --check-prefix=CHECK-NVPTX %s
+// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple amdgcn  %s -o - | FileCheck --check-prefix=CHECK-AMDGCN %s
 // RUN: %clang_cc1 -fsycl-is-host -emit-llvm -triple x86_64  %s -o - | FileCheck --check-prefix=CHECK-HOST %s
 
 // Test the generation of SYCL kernel caller function. SYCL kernel caller function
@@ -36,6 +38,8 @@ int main() {
 
 // CHECK-DEVICE: Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-DEVICE: define dso_local spir_kernel void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
+// CHECK-NVPTX:  define dso_local void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
+// CHECK-AMDGCN: define dso_local amdgpu_kernel void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
 // CHECK-DEVICE-SAME: (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[ATTR0:[0-9]+]] {
 // CHECK-DEVICE-NEXT: entry:
 // CHECK-DEVICE-NEXT: %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
@@ -44,11 +48,14 @@ int main() {
 // CHECK-DEVICE-NEXT:  ret void
 // CHECK-DEVICE-NEXT:}
 
+
 // IR for compiler generated SYCL kernel caller function corresponding to
 // test_kernel:
 
 // CHECK-DEVICE: Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-DEVICE: define dso_local spir_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv(ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[ATTR0]] {
+// CHECK-NVPTX:  define dso_local void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
+// CHECK-AMDGCN: define dso_local amdgpu_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
 // CHECK-DEVICE-NEXT: entry:
 // CHECK-DEVICE-NEXT:  %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
 // CHECK-DEVICE-NEXT:  call spir_func void @_ZZ4mainENKUlvE_clEv

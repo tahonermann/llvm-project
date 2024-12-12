@@ -75,6 +75,13 @@ public:
     return true;
   }
 
+  unsigned getOpenCLKernelCallingConv(CodeGenModule &CGM) const override {
+    if (CGM.getLangOpts().SYCLIsDevice)
+      return llvm::CallingConv::C;
+    else
+      return llvm::CallingConv::SPIR_KERNEL;
+  }
+
   // Adds a NamedMDNode with GV, Name, and Operand as operands, and adds the
   // resulting MDNode to the nvvm.annotations MDNode.
   static void addNVVMMetadata(llvm::GlobalValue *GV, StringRef Name,
