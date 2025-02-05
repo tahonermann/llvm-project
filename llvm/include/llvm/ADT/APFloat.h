@@ -1181,21 +1181,35 @@ class APFloat : public APFloatBase {
     static_assert(std::is_same<T, IEEEFloat>::value ||
                   std::is_same<T, DoubleAPFloat>::value ||
                   std::is_same<T, DFPFloat>::value);
-    if (std::is_same<T, DoubleAPFloat>::value) {
-      return &Semantics == &PPCDoubleDouble();
-    } if (std::is_same<T, IEEEFloat>::value) {
-      return &Semantics == &IEEEhalf() ||
+    if (std::is_same<T, DoubleAPFloat>::value && (&Semantics == &PPCDoubleDouble())) {
+      return true;
+    }
+
+    bool isDFP = &Semantics == &DecimalFloat32() ||
+             &Semantics == &DecimalFloat64() ||
+             &Semantics == &DecimalFloat128();
+
+    bool isIEEEFloat = &Semantics == &IEEEhalf() ||
              &Semantics == &BFloat() || 
              &Semantics == &IEEEsingle() ||
              &Semantics == &IEEEdouble() ||
-             &Semantics == &IEEEquad();
- 
+             &Semantics == &IEEEquad() ||
+             &Semantics == &Bogus() ||
+             &Semantics == &x87DoubleExtended() ||
+             &Semantics == &Float8E5M2() ||
+             &Semantics == &Float8E5M2FNUZ() ||
+             &Semantics == &Float8E4M3FN() ||
+             &Semantics == &Float8E4M3FNUZ() ||
+             &Semantics == &Float8E4M3B11FNUZ() ||
+             &Semantics == &FloatTF32() ||
+             (&Semantics != &PPCDoubleDouble() && !isDFP);
+    
+    if (std::is_same<T, IEEEFloat>::value) {
+      return isIEEEFloat;
     } else if (std::is_same<T, DFPFloat>::value) {
-      return &Semantics == &DecimalFloat32() ||
-             &Semantics == &DecimalFloat64() ||
-             &Semantics == &DecimalFloat128();
+      return isDFP;;
     }
-     llvm_unreachable("Unexpected semantics");
+     return false;
   }
 
   IEEEFloat &getIEEE() {
