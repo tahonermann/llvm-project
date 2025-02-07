@@ -880,14 +880,14 @@ public:
 
   bool isZero() const { return category == fcZero; }
 
-  bool isDenormal() const { return false;}
+  bool isDenormal() const { return false; }
   bool isNonCanonical() const = delete;
 
   bool isInfinity() const { return category == fcInfinity; }
 
   bool isNaN() const { return category == fcNaN; }
 
-  bool isSignaling() const { return category == fcNaN && sign; } ;
+  bool isSignaling() const { return category == fcNaN && sign; }
 
   /// @}
 
