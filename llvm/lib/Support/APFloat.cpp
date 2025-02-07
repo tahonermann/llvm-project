@@ -5124,13 +5124,13 @@ DFPFloat::convertFromStringDFP32(StringRef str, roundingMode rounding_mode) {
       while (!str.empty() && str.front() == '0') {
         str = str.drop_front();
 
-        if (str.empty())
-          continue;
-
         // Count the leading zero after radix point e.g.
         // 0.000000000000001
         if (radix_pt_encoding)
           right_of_radix_leading_zero++;
+
+        if (str.empty())
+          continue;
 
         // Check we have not seen a radix point yet
         if (str.front() == '.') {
@@ -5428,7 +5428,7 @@ void DFPFloat::toStringDFP32(SmallVectorImpl<char> &Str, unsigned FormatPrecisio
 
         if (bid_midi_tbl[digit][0] == '0')
           ignoreZero = true;
-        if (bid_midi_tbl[digit][1] == '0' || !ignoreZero)
+        if (bid_midi_tbl[digit][1] == '0' && ignoreZero)
           ignoreOne = true;
 
         if (!ignoreZero)
@@ -5452,7 +5452,7 @@ void DFPFloat::toStringDFP32(SmallVectorImpl<char> &Str, unsigned FormatPrecisio
 
        if (bid_midi_tbl[digit][0] == '0')
          ignoreZero = true;
-       if (bid_midi_tbl[digit][1] == '0' || !ignoreZero)
+       if (bid_midi_tbl[digit][1] == '0' && ignoreZero)
          ignoreOne = true;
 
        if (!ignoreZero)
@@ -5484,7 +5484,7 @@ void DFPFloat::toStringDFP32(SmallVectorImpl<char> &Str, unsigned FormatPrecisio
 
   if (bid_midi_tbl[exp][0] == '0')
     ignoreZero = true;
-  if (bid_midi_tbl[exp][1] == '0' || !ignoreZero)
+  if (bid_midi_tbl[exp][1] == '0' && ignoreZero)
     ignoreOne = true;
   
   if (!ignoreZero)

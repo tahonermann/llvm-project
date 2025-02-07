@@ -21,9 +21,9 @@ void f(void) {
 }
 
 //CHECK:      | `-VarDecl {{.*}} x '_Decimal32'
-//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 0E+0 
+//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 0E-1
 //CHECK:      | `-VarDecl {{.*}} x2 '_Decimal32'
-//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 12340E-1 
+//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 12340E-1
 //CHECK:      | `-VarDecl {{.*}} x3 '_Decimal32'
 //CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 94575E-2
 //CHECK:      | `-VarDecl {{.*}} x4 '_Decimal32'
@@ -33,8 +33,8 @@ void f(void) {
 //CHECK:      | `-VarDecl {{.*}} x6 '_Decimal32'
 //CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 1000000E-1
 //CHECK:      | `-VarDecl {{.*}} x7 '_Decimal32'
-//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 9999999E+90 
+//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 9999999E+90
 //CHECK:      | `-VarDecl {{.*}} x8 '_Decimal32'
-//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 1E-95 
+//CHECK-NEXT: |   `-FloatingLiteral {{.*}} '_Decimal32' 1E-95
 //CHECK:        `-VarDecl {{.*}} x9 '_Decimal32'
-//CHECK-NEXT:     `-FloatingLiteral {{.*}} '_Decimal32' 1E-11 
+//CHECK-NEXT:     `-FloatingLiteral {{.*}} '_Decimal32' 1E-101
