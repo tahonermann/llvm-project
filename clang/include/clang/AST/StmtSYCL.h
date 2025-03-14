@@ -23,7 +23,17 @@ namespace clang {
 // AST classes for SYCL kernel calls.
 //===----------------------------------------------------------------------===//
 
-// FIXME: Add comments...
+/// SYCLKernelCallStmt represents the transformation that is applied to the body
+/// of a function declared with the sycl_kernel_entry_point attribute. The body
+/// of such a function specifies the statements to be executed on a SYCL device
+/// to invoke a SYCL kernel with a particular set of kernel arguments. The
+/// SYCLKernelCallStmt associates an original statement (the compound statement
+/// that is the function body) with an OutlinedFunctionDecl that holds the
+/// kernel parameters and the transformed body. During code generation, the
+/// OutlinedFunctionDecl is used to emit an offload kernel entry point suitable
+/// for invocation from a SYCL library implementation. If executed, the
+/// SYCLKernelCallStmt behaves as a no-op; no code generation is performed for
+/// it.
 class SYCLKernelCallStmt : public Stmt {
   friend class ASTStmtReader;
   friend class ASTStmtWriter;

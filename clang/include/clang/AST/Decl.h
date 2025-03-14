@@ -4681,8 +4681,15 @@ public:
   }
 };
 
-/// Represents the body of an outlined function and serves as its DeclContext.
-/// FIXME: Add more commentary...
+/// Represents a partial function definition.
+///
+/// An outlined function declaration contains the parameters and body of
+/// a function independent of other function definition concerns such
+/// as function name, type, and calling convention. Such declarations may
+/// be used to hold a parameterized and transformed sequence of statements
+/// used to generate a target dependent function definition without losing
+/// association with the original statements. See SYCLKernelCallStmt as an
+/// example.
 class OutlinedFunctionDecl final
     : public Decl,
       public DeclContext,

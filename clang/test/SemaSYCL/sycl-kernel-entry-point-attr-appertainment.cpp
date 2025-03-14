@@ -110,17 +110,17 @@ int main();
 template<int> struct BADKN;
 
 struct B1 {
-  // Non-static data member function declaration.
+  // Non-static data member declaration.
   // expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
   [[clang::sycl_kernel_entry_point(BADKN<1>)]]
   int bad1;
 };
 
 struct B2 {
-  // Static data member function declaration.
+  // Static data member declaration.
   // expected-error@+1 {{'sycl_kernel_entry_point' attribute only applies to functions}}
   [[clang::sycl_kernel_entry_point(BADKN<2>)]]
-  int bad2;
+  static int bad2;
 };
 
 struct B3 {
