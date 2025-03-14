@@ -680,6 +680,7 @@ private:
   computeVTPointerAuthentication(const CXXRecordDecl *ThisClass);
 
   AtomicOptions AtomicOpts;
+  llvm::DenseMap<CanQualType, llvm::GlobalVariable *> SYCLKernelNameSymbols;
 
 public:
   CodeGenModule(ASTContext &C, IntrusiveRefCntPtr<llvm::vfs::FileSystem> FS,
@@ -1510,6 +1511,10 @@ public:
   /// annotations are emitted during finalization of the LLVM code.
   void AddGlobalAnnotations(const ValueDecl *D, llvm::GlobalValue *GV);
 
+  void AddSYCLKernelNameSymbol(CanQualType, llvm::GlobalVariable *);
+
+  llvm::GlobalVariable *GetSYCLKernelNameSymbol(CanQualType);
+
   bool isInNoSanitizeList(SanitizerMask Kind, llvm::Function *Fn,
                           SourceLocation Loc) const;
 
@@ -1983,6 +1988,12 @@ private:
   /// Emit the offload kernel.
   void EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
                             ASTContext &Ctx);
+
+  /// Initialize the global variables corresponding to SYCL Builtins used to
+  /// obtain information about the offload kernel.
+  void
+  InitSYCLKernelInfoSymbolsForBuiltins(const FunctionDecl *KernelEntryPointFn,
+                                       ASTContext &Ctx);
 
   /// Determine whether the definition must be emitted; if this returns \c
   /// false, the definition can be emitted lazily if it's used.
