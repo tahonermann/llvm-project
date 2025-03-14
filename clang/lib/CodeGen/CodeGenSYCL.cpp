@@ -20,7 +20,6 @@ static void SetSYCLKernelAttributes(llvm::Function *Fn,
                                     const CGFunctionInfo &FnInfo,
                                     CodeGenFunction &CGF) {
   Fn->setDoesNotRecurse();
-  Fn->setCallingConv(llvm::CallingConv::SPIR_KERNEL);
   if (CGF.checkIfFunctionMustProgress())
     Fn->addFnAttr(llvm::Attribute::MustProgress);
 }
@@ -52,7 +51,7 @@ void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
       Ctx.getCanonicalType(KernelEntryPointAttr->getKernelName());
   const SYCLKernelInfo *KernelInfo = Ctx.findSYCLKernelInfo(KernelNameType);
   assert(KernelInfo && "Type does not correspond to a kernel name");
-  auto *Fn = llvm::Function::Create(FnTy, llvm::GlobalVariable::ExternalLinkage,
+  auto *Fn = llvm::Function::Create(FnTy, llvm::Function::ExternalLinkage,
                                     KernelInfo->GetKernelName(), &getModule());
 
   // Emit the SYCL kernel caller function
@@ -60,7 +59,7 @@ void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
   SetLLVMFunctionAttributes(GlobalDecl(), FnInfo, Fn, false);
   SetSYCLKernelAttributes(Fn, FnInfo, CGF);
   CGF.StartFunction(GlobalDecl(), Ctx.VoidTy, Fn, FnInfo, Args,
-                    SourceLocation(), SourceLocation());
+                    SourceLocation(), SourceLocation(), OutlinedFnDecl);
   CGF.EmitFunctionBody(OutlinedFnDecl->getBody());
   setDSOLocal(Fn);
   SetLLVMFunctionAttributesForDefinition(cast<Decl>(OutlinedFnDecl), Fn);

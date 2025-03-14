@@ -1,4 +1,6 @@
-// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple spir64  %s -o - | FileCheck --check-prefix=CHECK-DEVICE %s
+// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple spir64  %s -o - | FileCheck --check-prefix=CHECK-SPIR %s
+// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple nvptx  %s -o - | FileCheck --check-prefix=CHECK-NVPTX %s
+// RUN: %clang_cc1 -fsycl-is-device -emit-llvm  -triple amdgcn  %s -o - | FileCheck --check-prefix=CHECK-AMDGCN %s
 // RUN: %clang_cc1 -fsycl-is-host -emit-llvm -triple x86_64  %s -o - | FileCheck --check-prefix=CHECK-HOST %s
 
 // Test the generation of SYCL kernel caller function. SYCL kernel caller function
@@ -56,47 +58,71 @@ int main() {
 // FIXME: declaration of main(). main() shouldn't be emitted in device code,
 // FIXME: but that pruning isn't performed yet. Remove these two checks
 // FIXME: once it is.
-// CHECK-DEVICE:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
-// CHECK-DEVICE-NEXT: define dso_local noundef i32 @main() #0
+// CHECK-SPIR:        Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
+// CHECK-SPIR-NEXT:   define dso_local noundef i32 @main() #0
+// CHECK-NVPTX:       Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
+// CHECK-NVPTX-NEXT:  define dso_local noundef i32 @main() #0
+// CHECK-AMDGCN:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
+// CHECK-AMDGCN-NEXT: define dso_local noundef i32 @main() #0
 
 // IR for compiler generated SYCL kernel caller function corresponding to
 // single_purpose_kernel_name:
-//
-// CHECK-DEVICE:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
-// CHECK-DEVICE-NEXT: define dso_local spir_kernel void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
-// CHECK-DEVICE-SAME:   (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[ATTR0:[0-9]+]] {
-// CHECK-DEVICE-NEXT: entry:
-// CHECK-DEVICE-NEXT:   %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
-// CHECK-DEVICE-NEXT:   call spir_func void @_ZNK21single_purpose_kernelclEv
-// CHECK-DEVICE-SAME:     (ptr addrspace(4) noundef align 1 dereferenceable_or_null(1) %kernelFunc.ascast) #[[ATTR1:[0-9]+]]
-// CHECK-DEVICE-NEXT:   ret void
-// CHECK-DEVICE-NEXT: }
+
+// CHECK-SPIR:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
+// CHECK-SPIR-NEXT: define dso_local spir_kernel void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
+// CHECK-SPIR-SAME:   (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[ATTR0:[0-9]+]]
+// CHECK-SPIR-SAME:   !kernel_arg_addr_space ![[ADDRSP:[0-9]+]] !kernel_arg_access_qual ![[ACCQUAL:[0-9]+]]
+// CHECK-SPIR-SAME:   !kernel_arg_type ![[ARGTY1:[0-9]+]] !kernel_arg_base_type ![[ARGBASETY1:[0-9]+]]
+// CHECK-SPIR-SAME:   !kernel_arg_type_qual ![[ARGTYQUAL:[0-9]+]]
+// CHECK-SPIR-NEXT: entry:
+// CHECK-SPIR-NEXT:   %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
+// CHECK-SPIR-NEXT:   call spir_func void @_ZNK21single_purpose_kernelclEv
+// CHECK-SPIR-SAME:     (ptr addrspace(4) noundef align 1 dereferenceable_or_null(1) %kernelFunc.ascast) #[[ATTR1:[0-9]+]]
+// CHECK-SPIR-NEXT:   ret void
+// CHECK-SPIR-NEXT: }
+
+// CHECK-NVPTX:     define dso_local void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
+// CHECK-AMDGCN:    define dso_local amdgpu_kernel void @_Z20__sycl_kernel_callerI26single_purpose_kernel_nameEvv
 
 // IR for compiler generated SYCL kernel caller function corresponding to
 // test_kernel:
-//
-// CHECK-DEVICE:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
-// CHECK-DEVICE-NEXT: define dso_local spir_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
-// CHECK-DEVICE-SAME:   (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[ATTR0]] {
-// CHECK-DEVICE-NEXT: entry:
-// CHECK-DEVICE-NEXT:   %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
-// CHECK-DEVICE-NEXT:   call spir_func void @_ZZ4mainENKUlvE_clEv
-// CHECK-DEVICE-SAME:   (ptr addrspace(4) noundef align 4 dereferenceable_or_null(4) %kernelFunc.ascast) #[[ATTR1]]
-// CHECK-DEVICE-NEXT:   ret void
-// CHECK-DEVICE-NEXT: }
+
+// CHECK-SPIR:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
+// CHECK-SPIR-NEXT: define dso_local spir_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
+// CHECK-SPIR-SAME:   (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[ATTR0]]
+// CHECK-SPIR-SAME:   !kernel_arg_addr_space ![[ADDRSP]] !kernel_arg_access_qual ![[ACCQUAL]]
+// CHECK-SPIR-SAME:   !kernel_arg_type ![[ARGTY2:[0-9]+]] !kernel_arg_base_type ![[ARGBASETY2:[0-9]+]]
+// CHECK-SPIR-SAME:   !kernel_arg_type_qual ![[ARGTYQUAL]]
+// CHECK-SPIR-NEXT: entry:
+// CHECK-SPIR-NEXT:   %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
+// CHECK-SPIR-NEXT:   call spir_func void @_ZZ4mainENKUlvE_clEv
+// CHECK-SPIR-SAME:     (ptr addrspace(4) noundef align 4 dereferenceable_or_null(4) %kernelFunc.ascast) #[[ATTR1]]
+// CHECK-SPIR-NEXT:   ret void
+// CHECK-SPIR-NEXT: }
+
+// CHECK-NVPTX:     define dso_local void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
+// CHECK-AMDGCN:    define dso_local amdgpu_kernel void @_Z20__sycl_kernel_callerIZ4mainE11test_kernelEvv
 
 // IR for operator method of kernel object:
-//
-// CHECK-DEVICE:      define internal spir_func void @_ZZ4mainENKUlvE_clEv
-// CHECK-DEVICE-SAME:   (ptr addrspace(4) noundef align 4 dereferenceable_or_null(4) %this) #[[ATTR0]] align 2 {
-// CHECK-DEVICE-NEXT: entry:
-// CHECK-DEVICE-NEXT:   %this.addr = alloca ptr addrspace(4), align 8
-// CHECK-DEVICE-NEXT:   %this.addr.ascast = addrspacecast ptr %this.addr to ptr addrspace(4)
-// CHECK-DEVICE-NEXT:   store ptr addrspace(4) %this, ptr addrspace(4) %this.addr.ascast, align 8
-// CHECK-DEVICE-NEXT:   %this1 = load ptr addrspace(4), ptr addrspace(4) %this.addr.ascast, align 8
-// CHECK-DEVICE-NEXT:   %[[CAPTURE:.+]] = getelementptr inbounds %class.anon, ptr addrspace(4) %this1, i32 0, i32 0
-// CHECK-DEVICE-NEXT:   ret void
-// CHECK-DEVICE-NEXT: }
+// CHECK-SPIR:      define internal spir_func void @_ZZ4mainENKUlvE_clEv
+// CHECK-SPIR-SAME:   (ptr addrspace(4) noundef align 4 dereferenceable_or_null(4) %this) #[[ATTR0]] align 2 {
+// CHECK-SPIR-NEXT: entry:
+// CHECK-SPIR-NEXT:   %this.addr = alloca ptr addrspace(4), align 8
+// CHECK-SPIR-NEXT:   %this.addr.ascast = addrspacecast ptr %this.addr to ptr addrspace(4)
+// CHECK-SPIR-NEXT:   store ptr addrspace(4) %this, ptr addrspace(4) %this.addr.ascast, align 8
+// CHECK-SPIR-NEXT:   %this1 = load ptr addrspace(4), ptr addrspace(4) %this.addr.ascast, align 8
+// CHECK-SPIR-NEXT:   %[[CAPTURE:.+]] = getelementptr inbounds %class.anon, ptr addrspace(4) %this1, i32 0, i32 0
+// CHECK-SPIR-NEXT:   ret void
+// CHECK-SPIR-NEXT: }
 
-// CHECK-DEVICE: #[[ATTR0]] = { convergent mustprogress noinline norecurse nounwind optnone "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
-// CHECK-DEVICE: #[[ATTR1]] = { convergent nounwind }
+// CHECK-NVPTX:     define internal void @_ZZ4mainENKUlvE_clEv
+// CHECK-AMDGCN:    define internal void @_ZZ4mainENKUlvE_clEv
+
+// CHECK-SPIR: #[[ATTR0]] = { convergent mustprogress noinline norecurse nounwind optnone "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+// CHECK-SPIR: #[[ATTR1]] = { convergent nounwind }
+
+// CHECK-SPIR: ![[ADDRSP]] = !{i32 0}
+// CHECK-SPIR: ![[ACCQUAL]] = !{!"none"}
+// CHECK-SPIR: ![[ARGTY1]] = !{!"single_purpose_kernel"}
+// CHECK-SPIR: ![[ARGTYQUAL]] = !{!""}
+// CHECK-SPIR: ![[ARGTY2]] = !{!"(lambda at

@@ -2,32 +2,10 @@
 // RUN: %clang_cc1 -triple x86_64-pc-windows-msvc -fsycl-is-device -disable-llvm-passes -fsycl-is-device -emit-llvm %s -o - | FileCheck %s '-D$ADDRSPACE='
 
 
-template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel(Func F){
-  F();
-}
-
-template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel2(Func F){
-  F(1);
-}
-
-template<typename KN, typename Func>
-__attribute__((sycl_kernel)) void kernel3(Func F){
-  F(1.1);
-}
-
 int main() {
-  int i;
-  double d;
-  float f;
   auto lambda1 = [](){};
   auto lambda2 = [](int){};
   auto lambda3 = [](double){};
-
-  kernel<class K1>(lambda1);
-  kernel2<class K2>(lambda2);
-  kernel3<class K3>(lambda3);
 
   // Ensure the kernels are named the same between the device and host
   // invocations.

@@ -296,7 +296,7 @@ public:
 
   void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
                            CodeGen::CodeGenModule &M) const override;
-  unsigned getOpenCLKernelCallingConv() const override;
+  unsigned getOpenCLKernelCallingConv(CodeGen::CodeGenModule &M) const override;
 
   llvm::Constant *getNullPointer(const CodeGen::CodeGenModule &CGM,
       llvm::PointerType *T, QualType QT) const override;
@@ -457,7 +457,8 @@ void AMDGPUTargetCodeGenInfo::setTargetAttributes(
     F->addFnAttr("amdgpu-ieee", "false");
 }
 
-unsigned AMDGPUTargetCodeGenInfo::getOpenCLKernelCallingConv() const {
+unsigned AMDGPUTargetCodeGenInfo::getOpenCLKernelCallingConv(
+    CodeGen::CodeGenModule &M) const {
   return llvm::CallingConv::AMDGPU_KERNEL;
 }
 
