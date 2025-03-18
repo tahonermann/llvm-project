@@ -14618,9 +14618,8 @@ void ASTContext::getFunctionFeatureMap(llvm::StringMap<bool> &FeatureMap,
   }
 }
 
-static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
-                                          CanQualType KernelNameType,
-                                          const FunctionDecl *FD) {
+static std::string GetSYCLKernelCallerName(ASTContext &Context,
+                                           CanQualType KernelNameType) {
   // FIXME: Host and device compilations must agree on a name for the generated
   // FIXME: SYCL kernel caller function. The name is provided to the SYCL
   // FIXME: library on the host via __builtin_sycl_kernel_name() and the SYCL
@@ -14657,9 +14656,32 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   Buffer.reserve(128);
   llvm::raw_string_ostream Out(Buffer);
   MC->mangleSYCLKernelCallerName(KernelNameType, Out);
-  std::string KernelName = Out.str();
+  return Out.str();
+}
 
-  return { KernelNameType, FD, KernelName };
+static void CreateSYCLKernelParamDesc(ASTContext &Ctx, const FunctionDecl *FD,
+                                      SYCLKernelInfo &KernelInfo) {
+  if (FD->getNumParams() == 0)
+    return;
+
+  for (const ParmVarDecl *KernelParam : FD->parameters()) {
+    KernelInfo.addParamDesc(kernel_param_kind_t::kind_std_layout,
+                            KernelParam->getType());
+  }
+}
+
+static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
+                                          CanQualType KernelNameType,
+                                          const FunctionDecl *FD) {
+  // Get the mangled name.
+  std::string KernelCallerName =
+      GetSYCLKernelCallerName(Context, KernelNameType);
+
+  SYCLKernelInfo KernelInfo{KernelNameType, FD, KernelCallerName};
+
+  CreateSYCLKernelParamDesc(Context, FD, KernelInfo);
+
+  return KernelInfo;
 }
 
 void ASTContext::registerSYCLEntryPointFunction(FunctionDecl *FD) {
