@@ -44,10 +44,10 @@ GetKernelInfo(const FunctionDecl *KernelEntryPointFn, ASTContext &Ctx) {
 
 void CodeGenModule::EmitSYCLKernelCaller(const FunctionDecl *KernelEntryPointFn,
                                          ASTContext &Ctx) {
-  const auto *KernelEntryPointAttr =
-      KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>();
-  assert(KernelEntryPointAttr && "Missing sycl_kernel_entry_point attribute");
-  assert(!KernelEntryPointAttr->isInvalidAttr() &&
+  assert(KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>() &&
+         "Missing sycl_kernel_entry_point attribute");
+  assert(!KernelEntryPointFn->getAttr<SYCLKernelEntryPointAttr>()
+              ->isInvalidAttr() &&
          "sycl_kernel_entry_point attribute is invalid");
 
   SYCLKernelCallStmt *KernelCallStmt =
