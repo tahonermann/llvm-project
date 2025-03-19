@@ -4764,6 +4764,67 @@ def GetDeviceSideMangledName : LangBuiltin<"CUDA_LANG"> {
   let Prototype = "char const*(...)";
 }
 
+// SYCL
+def SYCLKernelName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_name"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelParamCount : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_count"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamKind : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_kind"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamSize : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_size"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamOffset : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_offset"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelParamAccessTarget : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_param_access_target"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "int(...)";
+}
+
+def SYCLKernelFileName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_file_name"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelFunctionName : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_function_name"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "char const*(...)";
+}
+
+def SYCLKernelLineNumber : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_line_number"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "unsigned int(...)";
+}
+
+def SYCLKernelColumnNumber : LangBuiltin<"SYCL_LANG"> {
+  let Spellings = ["__builtin_sycl_kernel_column_number"];
+  let Attributes = [NoThrow, Const, Constexpr, CustomTypeChecking];
+  let Prototype = "unsigned int(...)";
+}
+
 // HLSL
 def HLSLAddUint64: LangBuiltin<"HLSL_LANG"> {
   let Spellings = ["__builtin_hlsl_adduint64"];

@@ -53,6 +53,7 @@
 #include "clang/Basic/DiagnosticSema.h"
 #include "clang/Basic/TargetBuiltins.h"
 #include "clang/Basic/TargetInfo.h"
+#include "clang/Basic/IdentifierTable.h"
 #include "llvm/ADT/APFixedPoint.h"
 #include "llvm/ADT/Sequence.h"
 #include "llvm/ADT/SmallBitVector.h"
@@ -9850,6 +9851,26 @@ static bool isOneByteCharacterType(QualType T) {
   return T->isCharType() || T->isChar8Type();
 }
 
+static const SYCLKernelInfo *GetSYCLKernelInfo(ASTContext &Ctx,
+                                               const CallExpr *E) {
+  // Argument to the builtin is a type trait which is used to retrieve the
+  // kernel name type.
+  // FIXME: Improve the comment.
+  const Expr *NameExpr = E->getArg(0);
+  // FIXME: Implement diagnostic instead of assert.
+  assert(NameExpr->isEvaluatable(Ctx) &&
+         "KernelNameType should be evaluatable");
+  RecordDecl *RD = NameExpr->getType()->castAs<RecordType>()->getDecl();
+  IdentifierTable &IdentTable = Ctx.Idents;
+  auto Name = DeclarationName(&(IdentTable.get("type")));
+  NamedDecl *ND = (RD->lookup(Name)).front();
+  TypedefNameDecl *TD = cast<TypedefNameDecl>(ND);
+  CanQualType KernelNameType = Ctx.getCanonicalType(TD->getUnderlyingType());
+
+  // Retrieve KernelInfo using the kernel name.
+  return Ctx.findSYCLKernelInfo(KernelNameType);
+}
+
 bool PointerExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
                                                 unsigned BuiltinOp) {
   if (IsOpaqueConstantCall(E))
@@ -10204,6 +10225,42 @@ bool PointerExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
           !HandleLValueArrayAdjustment(Info, E, Dest, T, Direction))
         return false;
     }
+  }
+  case Builtin::BI__builtin_sycl_kernel_name: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    // Retrieve the mangled name corresponding to kernel name type.
+    std::string ResultStr = KernelInfo->GetKernelName();
+    APInt Size(Info.Ctx.getTypeSize(Info.Ctx.getSizeType()),
+               ResultStr.size() + 1);
+    QualType StrTy =
+        Info.Ctx.getConstantArrayType(Info.Ctx.CharTy.withConst(), Size,
+                                      nullptr, ArraySizeModifier::Normal, 0);
+    StringLiteral *SL =
+        StringLiteral::Create(Info.Ctx, ResultStr, StringLiteralKind::Ordinary,
+                              /*Pascal*/ false, StrTy, SourceLocation());
+    evaluateLValue(SL, Result);
+    Result.addArray(Info, E, cast<ConstantArrayType>(StrTy));
+    return true;
+  }
+  case Builtin::BI__builtin_sycl_kernel_file_name:
+  case Builtin::BI__builtin_sycl_kernel_function_name: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    // FIXME: Dummy value.
+    std::string ResultStr = "DummyString";
+    APInt Size(Info.Ctx.getTypeSize(Info.Ctx.getSizeType()),
+               ResultStr.size() + 1);
+    QualType StrTy =
+        Info.Ctx.getConstantArrayType(Info.Ctx.CharTy.withConst(), Size,
+                                      nullptr, ArraySizeModifier::Normal, 0);
+    StringLiteral *SL =
+        StringLiteral::Create(Info.Ctx, ResultStr, StringLiteralKind::Ordinary,
+                              /*Pascal*/ false, StrTy, SourceLocation());
+    Result.addArray(Info, E, cast<ConstantArrayType>(StrTy));
+    return evaluateLValue(SL, Result);
   }
 
   default:
@@ -12898,6 +12955,62 @@ bool IntExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
     analyze_os_log::OSLogBufferLayout Layout;
     analyze_os_log::computeOSLogBufferLayout(Info.Ctx, E, Layout);
     return Success(Layout.size().getQuantity(), E);
+  }
+
+  case Builtin::BI__builtin_sycl_kernel_param_count: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    return Success(KernelInfo->GetParamCount(), E);
+  }
+
+  case Builtin::BI__builtin_sycl_kernel_param_kind: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    // FIXME: Should we add some error checking?
+    ParamNoExpr->EvaluateAsInt(Result, Info.Ctx);
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    return Success(static_cast<int>(KernelInfo->GetParamKind(ParamNo)), E);
+  }
+
+  case Builtin::BI__builtin_sycl_kernel_param_size: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    // FIXME: Should we add some error checking?
+    ParamNoExpr->EvaluateAsInt(Result, Info.Ctx);
+    unsigned ParamNo = Result.Val.getInt().getZExtValue();
+    QualType ParamTy = KernelInfo->GetParamTy(ParamNo);
+    return Success(Info.Ctx.getTypeSizeInChars(ParamTy).getQuantity(), E);
+  }
+
+  case Builtin::BI__builtin_sycl_kernel_param_offset: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    const Expr *ParamNoExpr = E->getArg(1);
+    Expr::EvalResult Result;
+    // FIXME: Should we add some error checking?
+    ParamNoExpr->EvaluateAsInt(Result, Info.Ctx);
+    // FIXME: Offset is used only when kernel object is decomposed to identify
+    // offset of field in kernel object. What should the offset be for
+    // additional non-kernel object parameters?
+    return Success(0, E);
+  }
+
+  case Builtin::BI__builtin_sycl_kernel_param_access_target:
+  case Builtin::BI__builtin_sycl_kernel_line_number:
+  case Builtin::BI__builtin_sycl_kernel_column_number: {
+    const SYCLKernelInfo *KernelInfo = GetSYCLKernelInfo(Info.Ctx, E);
+    if (!KernelInfo)
+      return false;
+    // FIXME: Dummy value.
+    return Success(0, E);
   }
 
   case Builtin::BI__builtin_is_aligned: {

@@ -3315,17 +3315,25 @@ void CodeGenModule::EmitDeferred() {
     // first in this loop, in order to avoid generating IR for the SYCL kernel
     // entry point function.
     if (const auto *FD = D.getDecl()->getAsFunction()) {
-      if (LangOpts.SYCLIsDevice && FD->hasAttr<SYCLKernelEntryPointAttr>() &&
-          FD->isDefined()) {
+      if (FD->hasAttr<SYCLKernelEntryPointAttr>() && FD->isDefined()) {
+	// FIXME: This check for invalid attribute was added by Tom in his PR
+	// for upstreaming. It is unclear to me why this is necessary. Verify
+	// it is required and cleanup the guards here if necessary. 
         if (!FD->getAttr<SYCLKernelEntryPointAttr>()->isInvalidAttr()) {
-          // Generate and emit the offload kernel.
-          EmitSYCLKernelCaller(FD, getContext());
-          // Recurse to emit any symbols referenced by the SYCL kernel
-          // caller function.
-          EmitDeferred();
-        }
-        // Do not emit the SYCL kernel entry point function.
-        continue;
+          if (LangOpts.SYCLIsDevice) {
+            // Generate and emit the offload kernel
+            EmitSYCLKernelCaller(FD, getContext());
+            // Recurse to emit any symbols referenced by the SYCL kernel
+            // caller function.
+            EmitDeferred();
+            // Do not emit the SYCL kernel entry point function.
+            continue;
+          } else {
+            // Initialize the global variables corresponding to SYCL Builtins
+            // used to obtain information about the offload kernel.
+            InitSYCLKernelInfoSymbolsForBuiltins(FD, getContext());
+          }
+	}
       }
     }
 
