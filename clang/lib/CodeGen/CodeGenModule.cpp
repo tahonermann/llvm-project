@@ -2291,14 +2291,16 @@ static unsigned ArgInfoAddressSpace(LangAS AS) {
   }
 }
 
-void CodeGenModule::GenKernelArgMetadata(llvm::Function *Fn,
-                                         const FunctionDecl *FD,
-                                         CodeGenFunction *CGF) {
-  assert(((FD && CGF) || (!FD && !CGF)) &&
-         "Incorrect use - FD and CGF should either be both null or not!");
+void CodeGenModule::GenKernelArgMetadata(llvm::Function *Fn, const Decl *D,
+                                         CodeGenFunction *CGF,
+                                         const OutlinedFunctionDecl *OFD) {
+  assert(((D && CGF) || (!D && !CGF)) &&
+         "Incorrect use - D and CGF should either be both null or not!");
   // Create MDNodes that represent the kernel arg metadata.
   // Each MDNode is a list in the form of "key", N number of values which is
   // the same number of values as their are kernel arguments.
+
+  const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D);
 
   const PrintingPolicy &Policy = Context.getPrintingPolicy();
 
@@ -2320,14 +2322,17 @@ void CodeGenModule::GenKernelArgMetadata(llvm::Function *Fn,
   // MDNode for the kernel argument names.
   SmallVector<llvm::Metadata *, 8> argNames;
 
-  if (FD && CGF)
-    for (unsigned i = 0, e = FD->getNumParams(); i != e; ++i) {
-      const ParmVarDecl *parm = FD->getParamDecl(i);
+  if (D && CGF) {
+    unsigned NumParam = OFD ? OFD->getNumParams() : FD->getNumParams();
+    for (unsigned i = 0, e = NumParam; i != e; ++i) {
+      const VarDecl *parm = OFD ? cast<VarDecl>(OFD->getParam(i))
+                                : cast<VarDecl>(FD->getParamDecl(i));
       // Get argument name.
       argNames.push_back(llvm::MDString::get(VMContext, parm->getName()));
 
-      if (!getLangOpts().OpenCL)
+      if (!getLangOpts().OpenCL && !getLangOpts().SYCLIsDevice)
         continue;
+
       QualType ty = parm->getType();
       std::string typeQuals;
 
@@ -2417,8 +2422,9 @@ void CodeGenModule::GenKernelArgMetadata(llvm::Function *Fn,
       }
       argTypeQuals.push_back(llvm::MDString::get(VMContext, typeQuals));
     }
+  }
 
-  if (getLangOpts().OpenCL) {
+  if (getLangOpts().OpenCL || getLangOpts().SYCLIsDevice) {
     Fn->setMetadata("kernel_arg_addr_space",
                     llvm::MDNode::get(VMContext, addressQuals));
     Fn->setMetadata("kernel_arg_access_qual",

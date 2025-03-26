@@ -14829,7 +14829,7 @@ static SYCLKernelInfo BuildSYCLKernelInfo(ASTContext &Context,
   std::string Buffer;
   Buffer.reserve(128);
   llvm::raw_string_ostream Out(Buffer);
-  MC->mangleCanonicalTypeName(KernelNameType, Out);
+  MC->mangleSYCLKernelCallerName(KernelNameType, Out);
   std::string KernelName = Out.str();
 
   return {KernelNameType, FD, KernelName};
