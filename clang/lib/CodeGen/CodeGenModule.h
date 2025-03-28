@@ -1682,9 +1682,11 @@ public:
   /// \param FN is a pointer to IR function being generated.
   /// \param FD is a pointer to function declaration if any.
   /// \param CGF is a pointer to CodeGenFunction that generates this function.
-  void GenKernelArgMetadata(llvm::Function *FN,
-                            const FunctionDecl *FD = nullptr,
-                            CodeGenFunction *CGF = nullptr);
+  /// \param OFD is a pointer to the outlined function if we are generating a
+  ///        SYCL offload kernel.
+  void GenKernelArgMetadata(llvm::Function *FN, const Decl *D = nullptr,
+                            CodeGenFunction *CGF = nullptr,
+                            const OutlinedFunctionDecl *OFD = nullptr);
 
   /// Get target specific null pointer.
   /// \param T is the LLVM type of the null pointer.

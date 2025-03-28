@@ -106,7 +106,13 @@ int main() {
 //
 // CHECK-AMDGCN:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-AMDGCN-NEXT: define dso_local amdgpu_kernel void @_ZTS26single_purpose_kernel_name
-// CHECK-AMDGCN-SAME:   (ptr addrspace(4) noundef byref(%struct.single_purpose_kernel) align 1 %0) #[[AMDGCN_ATTR0:[0-9]+]] {
+// CHECK-AMDGCN-SAME:   (ptr addrspace(4) noundef byref(%struct.single_purpose_kernel) align 1 %0) #[[AMDGCN_ATTR0:[0-9]+]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP:[0-9]+]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL:[0-9]+]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_type ![[KERNEL_ARG_TYPE1:[0-9]+]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_base_type ![[KERNEL_ARG_TYPE1]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ:[0-9]+]]
+// CHECK-AMDGCN-SAME: {
 // CHECK-AMDGCN-NEXT: entry:
 // CHECK-AMDGCN-NEXT:   %coerce = alloca %struct.single_purpose_kernel, align 1, addrspace(5)
 // CHECK-AMDGCN-NEXT:   %kernelFunc = addrspacecast ptr addrspace(5) %coerce to ptr
@@ -119,7 +125,13 @@ int main() {
 //
 // CHECK-NVPTX:       Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-NVPTX-NEXT:  define dso_local ptx_kernel void @_ZTS26single_purpose_kernel_name
-// CHECK-NVPTX-SAME:    (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[NVPTX_ATTR0:[0-9]+]] {
+// CHECK-NVPTX-SAME:    (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[NVPTX_ATTR0:[0-9]+]]
+// CHECK-NVPTX-SAME:    !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP:[0-9]+]]
+// CHECK-NVPTX-SAME:    !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL:[0-9]+]]
+// CHECK-NVPTX-SAME:    !kernel_arg_type ![[KERNEL_ARG_TYPE1:[0-9]+]]
+// CHECK-NVPTX-SAME:    !kernel_arg_base_type ![[KERNEL_ARG_TYPE1]]
+// CHECK-NVPTX-SAME:    !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ:[0-9]+]]
+// CHECK-NVPTX-SAME:  {
 // CHECK-NVPTX-NEXT:  entry:
 // CHECK-NVPTX-NEXT:    call void @_ZNK21single_purpose_kernelclEv
 // CHECK-NVPTX-SAME:      (ptr noundef nonnull align 1 dereferenceable(1) %kernelFunc) #[[NVPTX_ATTR1:[0-9]+]]
@@ -129,7 +141,13 @@ int main() {
 //
 // CHECK-SPIR:        Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-SPIR-NEXT:   define {{[a-z_ ]*}}spir_kernel void @_ZTS26single_purpose_kernel_name
-// CHECK-SPIR-SAME:     (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[SPIR_ATTR0:[0-9]+]] {
+// CHECK-SPIR-SAME:     (ptr noundef byval(%struct.single_purpose_kernel) align 1 %kernelFunc) #[[SPIR_ATTR0:[0-9]+]]
+// CHECK-SPIR-SAME:     !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP:[0-9]+]]
+// CHECK-SPIR-SAME:     !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL:[0-9]+]]
+// CHECK-SPIR-SAME:     !kernel_arg_type ![[KERNEL_ARG_TYPE1:[0-9]+]]
+// CHECK-SPIR-SAME:     !kernel_arg_base_type ![[KERNEL_ARG_TYPE1]]
+// CHECK-SPIR-SAME:     !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ:[0-9]+]]
+// CHECK-SPIR-SAME:   {
 // CHECK-SPIR-NEXT:   entry:
 // CHECK-SPIR-NEXT:     %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
 // CHECK-SPIR-NEXT:     call spir_func void @_ZNK21single_purpose_kernelclEv
@@ -143,7 +161,13 @@ int main() {
 //
 // CHECK-AMDGCN:      Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-AMDGCN-NEXT: define dso_local amdgpu_kernel void @_ZTSZ4mainE18lambda_kernel_name
-// CHECK-AMDGCN-SAME:   (i32 %kernelFunc.coerce) #[[AMDGCN_ATTR0]] {
+// CHECK-AMDGCN-SAME:   (i32 %kernelFunc.coerce) #[[AMDGCN_ATTR0]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_type ![[KERNEL_ARG_TYPE2:[0-9]+]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_base_type ![[KERNEL_ARG_TYPE2]]
+// CHECK-AMDGCN-SAME:   !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ]]
+// CHECK-AMDGCN-SAME: {
 // CHECK-AMDGCN-NEXT: entry:
 // CHECK-AMDGCN-NEXT:   %kernelFunc = alloca %class.anon, align 4, addrspace(5)
 // CHECK-AMDGCN-NEXT:   %kernelFunc1 = addrspacecast ptr addrspace(5) %kernelFunc to ptr
@@ -157,7 +181,13 @@ int main() {
 //
 // CHECK-NVPTX:       Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-NVPTX-NEXT:  define dso_local ptx_kernel void @_ZTSZ4mainE18lambda_kernel_name
-// CHECK-NVPTX-SAME:    (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[NVPTX_ATTR0]] {
+// CHECK-NVPTX-SAME:    (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[NVPTX_ATTR0]]
+// CHECK-NVPTX-SAME:    !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP]]
+// CHECK-NVPTX-SAME:    !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL]]
+// CHECK-NVPTX-SAME:    !kernel_arg_type ![[KERNEL_ARG_TYPE2:[0-9]+]]
+// CHECK-NVPTX-SAME:    !kernel_arg_base_type ![[KERNEL_ARG_TYPE2]]
+// CHECK-NVPTX-SAME:    !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ]]
+// CHECK-NVPTX-SAME:  {
 // CHECK-NVPTX-NEXT:  entry:
 // CHECK-NVPTX-NEXT:    call void @_ZZ4mainENKUlvE_clEv
 // CHECK-NVPTX-SAME:      (ptr noundef nonnull align 4 dereferenceable(4) %kernelFunc) #[[NVPTX_ATTR1]]
@@ -167,7 +197,13 @@ int main() {
 //
 // CHECK-SPIR:        Function Attrs: convergent mustprogress noinline norecurse nounwind optnone
 // CHECK-SPIR-NEXT:   define {{[a-z_ ]*}}spir_kernel void @_ZTSZ4mainE18lambda_kernel_name
-// CHECK-SPIR-SAME:     (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[SPIR_ATTR0]] {
+// CHECK-SPIR-SAME:     (ptr noundef byval(%class.anon) align 4 %kernelFunc) #[[SPIR_ATTR0]]
+// CHECK-SPIR-SAME:     !kernel_arg_addr_space ![[KERNEL_ARG_ADDRSP]]
+// CHECK-SPIR-SAME:     !kernel_arg_access_qual ![[KERNEL_ARG_ACCQUAL]]
+// CHECK-SPIR-SAME:     !kernel_arg_type ![[KERNEL_ARG_TYPE2:[0-9]+]]
+// CHECK-SPIR-SAME:     !kernel_arg_base_type ![[KERNEL_ARG_TYPE2]]
+// CHECK-SPIR-SAME:     !kernel_arg_type_qual ![[KERNEL_ARG_TYPEQ]]
+// CHECK-SPIR-SAME:   {
 // CHECK-SPIR-NEXT:   entry:
 // CHECK-SPIR-NEXT:     %kernelFunc.ascast = addrspacecast ptr %kernelFunc to ptr addrspace(4)
 // CHECK-SPIR-NEXT:     call spir_func void @_ZZ4mainENKUlvE_clEv
@@ -184,3 +220,9 @@ int main() {
 //
 // CHECK-SPIR: #[[SPIR_ATTR0]] = { convergent mustprogress noinline norecurse nounwind optnone "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
 // CHECK-SPIR: #[[SPIR_ATTR1]] = { convergent nounwind }
+
+// CHECK-DEVICE: ![[KERNEL_ARG_ADDRSP]] = !{i32 0}
+// CHECK-DEVICE: ![[KERNEL_ARG_ACCQUAL]] = !{!"none"}
+// CHECK-DEVICE: ![[KERNEL_ARG_TYPE1]] = !{!"single_purpose_kernel"}
+// CHECK-DEVICE: ![[KERNEL_ARG_TYPEQ]] = !{!""}
+// CHECK-DEVICE: ![[KERNEL_ARG_TYPE2]] = !{!"(lambda
