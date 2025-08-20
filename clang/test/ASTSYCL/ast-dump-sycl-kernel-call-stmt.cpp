@@ -34,6 +34,8 @@ template<int> struct K {
   void operator()(Ts...) const {}
 };
 
+template <typename KernelName, typename... Ts>
+void sycl_enqueue_kernel_launch(const char *, Ts...) {}
 
 [[clang::sycl_kernel_entry_point(KN<1>)]]
 void skep1() {
@@ -42,12 +44,11 @@ void skep1() {
 // CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
+// CHECK-NEXT: | | | `-CallExpr {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' {{.*}}
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi1EE"
+// CHECK-NEXT: | | |       `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi1EE"
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
 // CHECK-NEXT: | `-SYCLKernelEntryPointAttr {{.*}} KN<1>
@@ -64,9 +65,21 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep2 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | |   |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_enqueue_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | |   | `-TemplateArgument type 'KNT':'type-parameter-0-0'
+// CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
+// CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
+// CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} <col:16> 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// FIXME: The next one is OutlinedFunctionDecl. Should that be not null?
+// CHECK-NEXT: | | | `-<<<NULL>>>
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 
 // CHECK-NEXT: | `-FunctionDecl {{.*}} skep2 'void (K<2>)' explicit_instantiation_definition
@@ -85,12 +98,14 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: |   | |   `-ImplicitCastExpr {{.*}} 'const K<2>' lvalue <NoOp>
 // CHECK-NEXT: |   | |     `-DeclRefExpr {{.*}} 'K<2>' lvalue ParmVar {{.*}} 'k' 'K<2>'
 // CHECK-NEXT: |   | |-CompoundStmt {{.*}}
-// CHECK-NEXT: |   | | |-DeclStmt {{.*}}
-// CHECK-NEXT: |   | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: |   | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: |   | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: |   | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: |   | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi2EE"
+// CHECK-NEXT: |   | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: |   | |   |-ImplicitCastExpr {{.*}} <FunctionToPointerDecay>
+// CHECK-NEXT: |   | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<2>)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' {{.*}}
+// CHECK-NEXT: |   | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: |   | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi2EE"
+// CHECK-NEXT: |   | |   `-CXXConstructExpr {{.*}} 'K<2>' 'void (const K<2> &) noexcept'
+// CHECK-NEXT: |   | |     `-ImplicitCastExpr {{.*}} <NoOp>
+// CHECK-NEXT: |   | |       `-DeclRefExpr {{.*}} 'K<2>' lvalue ParmVar {{.*}} 'k' 'K<2>'
 // CHECK-NEXT: |   | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: |   |   |-ImplicitParamDecl {{.*}} implicit used k 'K<2>'
 // CHECK-NEXT: |   |   `-CompoundStmt {{.*}}
@@ -116,9 +131,20 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep3 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | |   |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_enqueue_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | |   | `-TemplateArgument type 'KNT':'type-parameter-0-0'
+// CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
+// CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
+// CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | `-<<<NULL>>>
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 
 // CHECK-NEXT: | `-Function {{.*}} 'skep3' 'void (K<3>)'
@@ -138,12 +164,14 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const K<3>' lvalue <NoOp>
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'K<3>' lvalue ParmVar {{.*}} 'k' 'K<3>'
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi3EE"
+// CHECK-NEXT: | | | `-CallExpr {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, K<3>)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<3>)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, K<3>)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi3EE"
+// CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'K<3>' 'void (const K<3> &) noexcept'
+// CHECK-NEXT: | | |     `-ImplicitCastExpr {{.*}} 'const K<3>' lvalue <NoOp>
+// CHECK-NEXT: | | |       `-DeclRefExpr {{.*}} 'K<3>' lvalue ParmVar {{.*}} 'k' 'K<3>'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<3>'
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
@@ -174,12 +202,18 @@ void skep4(K<4> k, int p1, int p2) {
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'p2' 'int'
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi4EE"
+// CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, K<4>, int, int)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<4>, int, int)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, K<4>, int, int)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi4EE"
+// CHECK-NEXT: | | |   |-CXXConstructExpr {{.*}} 'K<4>' 'void (const K<4> &) noexcept'
+// CHECK-NEXT: | | |   | `-ImplicitCastExpr {{.*}} 'const K<4>' lvalue <NoOp>
+// CHECK-NEXT: | | |   |   `-DeclRefExpr {{.*}} 'K<4>' lvalue ParmVar {{.*}} 'k' 'K<4>'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'p1' 'int'
+// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'p2' 'int'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<4>'
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used p1 'int'
@@ -211,12 +245,22 @@ void skep5(int unused1, K<5> k, int unused2, int p, int unused3) {
 // CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK:      | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi5EE"
+// CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, int, K<5>, int, int, int)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, int, K<5>, int, int, int)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, int, K<5>, int, int, int)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi5EE"
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'unused1' 'int'
+// CHECK-NEXT: | | |   |-CXXConstructExpr {{.*}} 'K<5>' 'void (const K<5> &) noexcept'
+// CHECK-NEXT: | | |   | `-ImplicitCastExpr {{.*}} 'const K<5>' lvalue <NoOp>
+// CHECK-NEXT: | | |   |   `-DeclRefExpr {{.*}} 'K<5>' lvalue ParmVar {{.*}} 'k' 'K<5>'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'unused2' 'int'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'p' 'int'
+// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'unused3' 'int'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit unused1 'int'
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'K<5>'
@@ -263,12 +307,13 @@ void skep6(const S6 &k) {
 // CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void () const' lvalue CXXMethod {{.*}} 'operator()' 'void () const'
 // CHECK-NEXT: | | |   `-DeclRefExpr {{.*}} 'const S6' lvalue ParmVar {{.*}} 'k' 'const S6 &'
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi6EE"
+// CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S6)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S6)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S6)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi6EE"
+// CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S6' 'void (const S6 &) noexcept'
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'const S6' lvalue ParmVar {{.*}} 'k' 'const S6 &'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'const S6 &'
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
@@ -303,12 +348,14 @@ void skep7(S7 k) {
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const S7' lvalue <NoOp>
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'S7' lvalue ParmVar {{.*}} 'k' 'S7'
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | |-DeclStmt {{.*}}
-// CHECK-NEXT: | | | | `-VarDecl {{.*}} kernel_name 'const char *' extern
-// CHECK-NEXT: | | | `-BinaryOperator {{.*}} 'const char *' lvalue '='
-// CHECK-NEXT: | | |   |-DeclRefExpr {{.*}} 'const char *' lvalue Var {{.*}} 'kernel_name' 'const char *'
-// CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi7EE"
+// CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S7)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S7)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S7)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi7EE"
+// CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S7' 'void (const S7 &) noexcept'
+// CHECK-NEXT: | | |     `-ImplicitCastExpr {{.*}} 'const S7' lvalue <NoOp>
+// CHECK-NEXT: | | |       `-DeclRefExpr {{.*}} 'S7' lvalue ParmVar {{.*}} 'k' 'S7'
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
 // CHECK-NEXT: | |   |-ImplicitParamDecl {{.*}} implicit used k 'S7'
 // CHECK-NEXT: | |   `-CompoundStmt {{.*}}
@@ -335,8 +382,14 @@ void skep8(S8 k) {
 // CHECK-NEXT: | |-SYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK:      | | |-CompoundStmt {{.*}}
-// CHECK:      | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | |     `-StringLiteral {{.*}} 'const char[12]' lvalue "_ZTS6\316\264\317\204\317\207"
+// CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S8)' <FunctionToPointerDecay>
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S8)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S8)' {{.*}}
+// CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[12]' lvalue "_ZTS6\316\264\317\204\317\207"
+// CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S8' 'void (const S8 &) noexcept'
+// CHECK-NEXT: | | |     `-ImplicitCastExpr {{.*}} 'const S8' lvalue <NoOp>
+// CHECK-NEXT: | | |       `-DeclRefExpr {{.*}} 'S8' lvalue ParmVar {{.*}} 'k' 'S8'
 // CHECK:      | | `-OutlinedFunctionDecl {{.*}}
 // CHECK:      | `-SYCLKernelEntryPointAttr {{.*}}
 
