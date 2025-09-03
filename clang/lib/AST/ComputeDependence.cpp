@@ -16,6 +16,7 @@
 #include "clang/AST/ExprConcepts.h"
 #include "clang/AST/ExprObjC.h"
 #include "clang/AST/ExprOpenMP.h"
+#include "clang/AST/StmtSYCL.h"
 #include "clang/Basic/ExceptionSpecificationType.h"
 #include "llvm/ADT/ArrayRef.h"
 
@@ -632,6 +633,10 @@ ExprDependence clang::computeDependence(RecoveryExpr *E) {
 ExprDependence clang::computeDependence(SYCLUniqueStableNameExpr *E) {
   return toExprDependenceAsWritten(
       E->getTypeSourceInfo()->getType()->getDependence());
+}
+
+ExprDependence clang::computeDependence(UnresolvedSYCLKernelNameExpr *E) {
+  return toExprDependenceAsWritten(E->getKernelNameType()->getDependence());
 }
 
 ExprDependence clang::computeDependence(PredefinedExpr *E) {

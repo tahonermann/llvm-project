@@ -670,6 +670,16 @@ void ASTStmtWriter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
   Code = serialization::EXPR_SYCL_UNIQUE_STABLE_NAME;
 }
 
+void ASTStmtWriter::VisitUnresolvedSYCLKernelNameExpr(
+    UnresolvedSYCLKernelNameExpr *E) {
+  VisitExpr(E);
+
+  Record.AddTypeRef(E->getKernelNameType());
+  Record.AddSourceLocation(E->getLocation());
+
+  Code = serialization::EXPR_UNRESOLVED_SYCL_KERNEL_NAME;
+}
+
 void ASTStmtWriter::VisitPredefinedExpr(PredefinedExpr *E) {
   VisitExpr(E);
 
