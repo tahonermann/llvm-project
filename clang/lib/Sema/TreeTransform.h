@@ -17758,7 +17758,13 @@ template <typename Derived>
 StmtResult
 TreeTransform<Derived>::TransformSYCLKernelCallStmt(SYCLKernelCallStmt *S) {
   StmtResult LaunchStmt = getDerived().TransformStmt(S->getKernelLaunchStmt());
+  if (LaunchStmt.isInvalid())
+    return StmtError();
+
   StmtResult OrigBody = getDerived().TransformStmt(S->getOriginalStmt());
+  if (OrigBody.isInvalid())
+    return StmtError();
+
   auto *FD = cast<FunctionDecl>(SemaRef.CurContext);
   // TODO: perhaps add a RebuildKernelCallStmt?
   StmtResult SR = SemaRef.SYCL().BuildSYCLKernelCallStmt(
