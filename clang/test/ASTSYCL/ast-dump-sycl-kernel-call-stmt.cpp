@@ -393,6 +393,94 @@ void skep8(S8 k) {
 // CHECK:      | | `-OutlinedFunctionDecl {{.*}}
 // CHECK:      | `-SYCLKernelEntryPointAttr {{.*}}
 
+class Handler {
+template <typename KernelName, typename... Ts>
+void sycl_enqueue_kernel_launch(const char *, Ts...) {}
+public:
+template<typename KNT, typename KT>
+[[clang::sycl_kernel_entry_point(KNT)]]
+void skep9(KT k, int a, int b) {
+  k(a, b);
+}
+};
+void foo() {
+  Handler H;
+  H.skep9<KN<9>>([=](int a, int b){return a+b;}, 1, 2);
+}
+
+// CHECK: | |-FunctionTemplateDecl {{.*}} skep9
+// CHECK-NEXT: | | |-TemplateTypeParmDecl {{.*}} referenced typename depth 0 index 0 KNT
+// CHECK-NEXT: | | |-TemplateTypeParmDecl {{.*}} referenced typename depth 0 index 1 KT
+// CHECK-NEXT: | | |-CXXMethodDecl {{.*}} skep9 'void (KT, int, int)' implicit-inline
+// CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced k 'KT'
+// CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced a 'int'
+// CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced b 'int'
+// CHECK-NEXT: | | | |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
+// CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
+// CHECK-NEXT: | | | | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | | | `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | | |   |-UnresolvedMemberExpr {{.*}} '<bound member function type>' lvalue
+// CHECK-NEXT: | | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
+// CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
+// CHECK-NEXT: | | | | `-<<<NULL>>>
+// CHECK-NEXT: | | | `-SYCLKernelEntryPointAttr {{.*}} KNT
+// CHECK-NEXT: | | `-CXXMethodDecl {{.*}} used skep9 {{.*}} implicit_instantiation implicit-inline
+// CHECK-NEXT: | |   |-TemplateArgument type 'KN<9>'
+// CHECK-NEXT: | |   | `-RecordType {{.*}} 'KN<9>' canonical
+// CHECK-NEXT: | |   |   `-ClassTemplateSpecialization {{.*}}'KN'
+// CHECK-NEXT: | |   |-TemplateArgument type {{.*}}
+// CHECK-NEXT: | |   | `-RecordType {{.*}}
+// CHECK-NEXT: | |   |   `-CXXRecord {{.*}}
+// CHECK-NEXT: | |   |-ParmVarDecl {{.*}} used k {{.*}}
+// CHECK-NEXT: | |   |-ParmVarDecl {{.*}} used a 'int'
+// CHECK-NEXT: | |   |-ParmVarDecl {{.*}} used b 'int'
+// CHECK-NEXT: | |   |-SYCLKernelCallStmt {{.*}}
+// CHECK-NEXT: | |   | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | |   | | `-CXXOperatorCallExpr {{.*}} 'int' '()'
+// CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} 'int (*)(int, int) const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |   | |   | `-DeclRefExpr {{.*}} 'int (int, int) const' lvalue CXXMethod {{.*}} 'operator()' 'int (int, int) const'
+// CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} lvalue <NoOp>
+// CHECK-NEXT: | |   | |   | `-DeclRefExpr {{.*}} lvalue ParmVar {{.*}} 'k' {{.*}}
+// CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
+// CHECK-NEXT: | |   | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
+// CHECK-NEXT: | |   | |-CompoundStmt {{.*}}
+// CHECK-NEXT: | |   | | `-CXXMemberCallExpr {{.*}} 'void'
+// CHECK-NEXT: | |   | |   |-MemberExpr {{.*}} '<bound member function type>' ->sycl_enqueue_kernel_launch {{.*}}
+// CHECK-NEXT: | |   | |   | `-CXXThisExpr {{.*}} 'Handler *' implicit this
+// CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
+// CHECK-NEXT: | |   | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi9EE"
+// CHECK-NEXT: | |   | |   |-CXXConstructExpr {{.*}}
+// CHECK-NEXT: | |   | |   | `-ImplicitCastExpr {{.*}} lvalue <NoOp>
+// CHECK-NEXT: | |   | |   |   `-DeclRefExpr {{.*}} lvalue ParmVar {{.*}} 'k' {{.*}}
+// CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   | |   | `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
+// CHECK-NEXT: | |   | |   `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
+// CHECK-NEXT: | |   | `-OutlinedFunctionDecl {{.*}}
+// CHECK-NEXT: | |   |   |-ImplicitParamDecl {{.*}} implicit used k {{.*}}
+// CHECK-NEXT: | |   |   |-ImplicitParamDecl {{.*}} implicit used a 'int'
+// CHECK-NEXT: | |   |   |-ImplicitParamDecl {{.*}} implicit used b 'int'
+// CHECK-NEXT: | |   |   `-CompoundStmt {{.*}}
+// CHECK-NEXT: | |   |     `-CXXOperatorCallExpr {{.*}} 'int' '()'
+// CHECK-NEXT: | |   |       |-ImplicitCastExpr {{.*}} 'int (*)(int, int) const' <FunctionToPointerDecay>
+// CHECK-NEXT: | |   |       | `-DeclRefExpr {{.*}} 'int (int, int) const' lvalue CXXMethod {{.*}} 'operator()' 'int (int, int) const'
+// CHECK-NEXT: | |   |       |-ImplicitCastExpr {{.*}} lvalue <NoOp>
+// CHECK-NEXT: | |   |       | `-DeclRefExpr {{.*}} lvalue ImplicitParam {{.*}} 'k' {{.*}}
+// CHECK-NEXT: | |   |       |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   |       | `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'a' 'int'
+// CHECK-NEXT: | |   |       `-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
+// CHECK-NEXT: | |   |         `-DeclRefExpr {{.*}} 'int' lvalue ImplicitParam {{.*}} 'b' 'int'
+// CHECK-NEXT: | |   `-SYCLKernelEntryPointAttr {{.*}} struct KN<9>
+
 
 void the_end() {}
 // CHECK:      `-FunctionDecl {{.*}} the_end 'void ()'
