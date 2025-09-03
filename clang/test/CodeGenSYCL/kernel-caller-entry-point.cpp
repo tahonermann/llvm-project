@@ -25,8 +25,10 @@
 
 // Test the generation of SYCL kernel caller functions. These functions are
 // generated from functions declared with the sycl_kernel_entry_point attribute
-// and emited during device compilation. They are not emitted during device
-// compilation.
+// and emited during device compilation.
+// Test the generation of SYCL kernel launch statements during host compilation.
+// These statements are calls to sycl_enqueus_kernel_launch functions or class
+// members in case skep-attributed functions are also members of the same class.
 
 template <typename KernelName, typename KernelObj>
 void sycl_enqueue_kernel_launch(const char *, KernelObj) {}
@@ -50,6 +52,17 @@ void kernel_single_task(KernelType kernelFunc) {
 // Exercise code gen with kernel name types named with esoteric characters.
 struct \u03b4\u03c4\u03c7; // Delta Tau Chi (δτχ)
 
+class Handler {
+template <typename KernelName, typename... Ts>
+void sycl_enqueue_kernel_launch(const char *, Ts...) {}
+public:
+template<typename KNT, typename KT>
+[[clang::sycl_kernel_entry_point(KNT)]]
+void skep(KT k, int a, int b) {
+  k(a, b);
+}
+};
+
 int main() {
   single_purpose_kernel obj;
   single_purpose_kernel_task(obj);
@@ -57,6 +70,8 @@ int main() {
   auto lambda = [=](auto) { (void) capture; };
   kernel_single_task<decltype(lambda)>(lambda);
   kernel_single_task<\u03b4\u03c4\u03c7>([](int){});
+  Handler H;
+  H.skep<class notaverygoodkernelname>([=](int a, int b){return a+b;}, 1, 2);
 }
 
 // Verify that SYCL kernel caller functions are not emitted during host
@@ -107,7 +122,24 @@ int main() {
 // CHECK-HOST-LINUX-NEXT:   call void @"_Z26sycl_enqueue_kernel_launchI6\CE\B4\CF\84\CF\87Z4mainEUliE_EvPKcT0_"(ptr noundef @.str.2)
 // CHECK-HOST-LINUX-NEXT:   ret void
 // CHECK-HOST-LINUX-NEXT: }
-//
+
+// CHECK-HOST-LINUX: define internal void @_ZN7Handler4skepIZ4mainE22notaverygoodkernelnameZ4mainEUliiE_EEvT0_ii(ptr noundef nonnull align 1 dereferenceable(1) %this, i32 noundef %a, i32 noundef %b) #0 align 2 {
+// CHECK-HOST-LINUX-NEXT: entry:
+// CHECK-HOST-LINUX-NEXT:   %k = alloca %class.anon.1, align 1
+// CHECK-HOST-LINUX-NEXT:   %this.addr = alloca ptr, align 8
+// CHECK-HOST-LINUX-NEXT:   %a.addr = alloca i32, align 4
+// CHECK-HOST-LINUX-NEXT:   %b.addr = alloca i32, align 4
+// CHECK-HOST-LINUX-NEXT:   %agg.tmp = alloca %class.anon.1, align 1
+// CHECK-HOST-LINUX-NEXT:   store ptr %this, ptr %this.addr, align 8
+// CHECK-HOST-LINUX-NEXT:   store i32 %a, ptr %a.addr, align 4
+// CHECK-HOST-LINUX-NEXT:   store i32 %b, ptr %b.addr, align 4
+// CHECK-HOST-LINUX-NEXT:   %this1 = load ptr, ptr %this.addr, align 8
+// CHECK-HOST-LINUX-NEXT:   %0 = load i32, ptr %a.addr, align 4
+// CHECK-HOST-LINUX-NEXT:   %1 = load i32, ptr %b.addr, align 4
+// CHECK-HOST-LINUX-NEXT:   call void @_ZN7Handler26sycl_enqueue_kernel_launchIZ4mainE22notaverygoodkernelnameJZ4mainEUliiE_iiEEEvPKcDpT0_(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @.str.3, i32 noundef %0, i32 noundef %1)
+// CHECK-HOST-LINUX-NEXT:   ret void
+// CHECK-HOST-LINUX-NEXT: }
+
 // CHECK-HOST-WINDOWS:      define dso_local void @"?single_purpose_kernel_task@@YAXUsingle_purpose_kernel@@@Z"(i8 %kernelFunc.coerce) #{{[0-9]+}} {
 // CHECK-HOST-WINDOWS-NEXT: entry:
 // CHECK-HOST-WINDOWS-NEXT:   %kernelFunc = alloca %struct.single_purpose_kernel, align 1
@@ -143,6 +175,27 @@ int main() {
 // CHECK-HOST-WINDOWS-NEXT:   %coerce.dive1 = getelementptr inbounds nuw %class.anon.0, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-WINDOWS-NEXT:   %0 = load i8, ptr %coerce.dive1, align 1
 // CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@U\CE\B4\CF\84\CF\87@@V<lambda_2>@?0??main@@9@@@YAXPEBDV<lambda_2>@?0??main@@9@@Z"(ptr noundef @"??_C@_0M@BCGAEMBE@_ZTS6?N?$LE?O?$IE?O?$IH?$AA@", i8 %0)
+// CHECK-HOST-WINDOWS-NEXT:   ret void
+// CHECK-HOST-WINDOWS-NEXT: }
+
+// CHECK-HOST-WINDOWS: define internal void @"??$skep@Vnotaverygoodkernelname@?1??main@@9@V<lambda_3>@?0??2@9@@Handler@@QEAAXV<lambda_3>@?0??main@@9@HH@Z"(ptr noundef nonnull align 1 dereferenceable(1) %this, i8 %k.coerce, i32 noundef %a, i32 noundef %b) #0 align 2 {
+// CHECK-HOST-WINDOWS-NEXT: entry:
+// CHECK-HOST-WINDOWS-NEXT:   %k = alloca %class.anon.1, align 1
+// CHECK-HOST-WINDOWS-NEXT:   %b.addr = alloca i32, align 4
+// CHECK-HOST-WINDOWS-NEXT:   %a.addr = alloca i32, align 4
+// CHECK-HOST-WINDOWS-NEXT:   %this.addr = alloca ptr, align 8
+// CHECK-HOST-WINDOWS-NEXT:   %agg.tmp = alloca %class.anon.1, align 1
+// CHECK-HOST-WINDOWS-NEXT:   %coerce.dive = getelementptr inbounds nuw %class.anon.1, ptr %k, i32 0, i32 0
+// CHECK-HOST-WINDOWS-NEXT:   store i8 %k.coerce, ptr %coerce.dive, align 1
+// CHECK-HOST-WINDOWS-NEXT:   store i32 %b, ptr %b.addr, align 4
+// CHECK-HOST-WINDOWS-NEXT:   store i32 %a, ptr %a.addr, align 4
+// CHECK-HOST-WINDOWS-NEXT:   store ptr %this, ptr %this.addr, align 8
+// CHECK-HOST-WINDOWS-NEXT:   %this1 = load ptr, ptr %this.addr, align 8
+// CHECK-HOST-WINDOWS-NEXT:   %0 = load i32, ptr %b.addr, align 4
+// CHECK-HOST-WINDOWS-NEXT:   %1 = load i32, ptr %a.addr, align 4
+// CHECK-HOST-WINDOWS-NEXT:   %coerce.dive2 = getelementptr inbounds nuw %class.anon.1, ptr %agg.tmp, i32 0, i32 0
+// CHECK-HOST-WINDOWS-NEXT:   %2 = load i8, ptr %coerce.dive2, align 1
+// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@Vnotaverygoodkernelname@?1??main@@9@V<lambda_3>@?0??2@9@HH@Handler@@AEAAXPEBDV<lambda_3>@?0??main@@9@HH@Z"(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @"??_C@_0CE@NJIGCEIA@_ZTSZ4mainE22notaverygoodkerneln@", i8 %2, i32 noundef %1, i32 noundef %0)
 // CHECK-HOST-WINDOWS-NEXT:   ret void
 // CHECK-HOST-WINDOWS-NEXT: }
 
