@@ -460,15 +460,15 @@ CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
       SemaRef.getTrivialTemplateArgumentLoc(KNTA, QualType(), BodyLoc);
   TALI.addArgument(TAL);
   ExprResult IdExpr;
-  if (Result.begin()->isCXXClassMember()) { // FIXME Should that be isPotentialImplicitAccess call?
+  if (SemaRef.isPotentialImplicitMemberAccess(SS, Result,
+                                              /*IsAddressOfOperand=*/false))
     // BuildPossibleImplicitMemberExpr creates UnresolvedMemberExpr. Using it
     // allows to pass implicit/explicit this argument automatically.
     IdExpr = SemaRef.BuildPossibleImplicitMemberExpr(SS, BodyLoc, Result, &TALI,
                                                      SemaRef.getCurScope());
-  } else {
+  else
     IdExpr = SemaRef.BuildTemplateIdExpr(SS, BodyLoc, Result,
                                          /*RequiresADL=*/true, &TALI);
-  }
 
   // Can happen if SKEP attributed function is a static member, but the launcher
   // is a regular member. Perhaps emit a note saying that we're in host code
