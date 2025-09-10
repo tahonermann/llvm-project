@@ -76,7 +76,7 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
 // CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
 // CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
 // CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} <col:16> 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // FIXME: The next one is OutlinedFunctionDecl. Should that be not null?
 // CHECK-NEXT: | | | `-<<<NULL>>>
@@ -142,7 +142,7 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
 // CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
 // CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
 // CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | | `-<<<NULL>>>
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
@@ -425,7 +425,7 @@ void foo() {
 // CHECK-NEXT: | | | | | `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | | | |   |-UnresolvedMemberExpr {{.*}} '<bound member function type>' lvalue
 // CHECK-NEXT: | | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | | |   | `-UnresolvedSYCLKernelNameExpr {{.*}} 'const char[1]'
+// CHECK-NEXT: | | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
 // CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
 // CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'

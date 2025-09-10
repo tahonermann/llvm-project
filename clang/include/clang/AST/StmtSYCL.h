@@ -99,15 +99,15 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelNameExpr represents a string containing the name of a
+// UnresolvedSYCLKernelLaunchExpr represents a string containing the name of a
 // SYCL kernel that has not been instantiated yet. This Expr should be
 // transformed to a StringLiteral once the kernel and its name is known.
-class UnresolvedSYCLKernelNameExpr : public Expr {
+class UnresolvedSYCLKernelLaunchExpr : public Expr {
   friend class ASTStmtReader;
   QualType KernelNameType;
   SourceLocation Loc;
-  UnresolvedSYCLKernelNameExpr(SourceLocation L, QualType ExprTy, QualType KNT)
-      : Expr(UnresolvedSYCLKernelNameExprClass, ExprTy, VK_PRValue,
+  UnresolvedSYCLKernelLaunchExpr(SourceLocation L, QualType ExprTy, QualType KNT)
+      : Expr(UnresolvedSYCLKernelLaunchExprClass, ExprTy, VK_PRValue,
              OK_Ordinary),
         KernelNameType(KNT), Loc(L) {
     setDependence(computeDependence(this));
@@ -117,22 +117,22 @@ class UnresolvedSYCLKernelNameExpr : public Expr {
   void setLocation(SourceLocation L) { Loc = L; }
 
 public:
-  static UnresolvedSYCLKernelNameExpr *Create(const ASTContext &C, QualType T,
+  static UnresolvedSYCLKernelLaunchExpr *Create(const ASTContext &C, QualType T,
                                               SourceLocation Loc) {
     llvm::APInt KernelNameSize(C.getTypeSize(C.getSizeType()), 1);
     QualType KernelNameArrayTy =
         C.getConstantArrayType(C.CharTy.withConst(), KernelNameSize, nullptr,
                                ArraySizeModifier::Normal, 0);
-    return new (C) UnresolvedSYCLKernelNameExpr(Loc, KernelNameArrayTy, T);
+    return new (C) UnresolvedSYCLKernelLaunchExpr(Loc, KernelNameArrayTy, T);
   }
 
-  static UnresolvedSYCLKernelNameExpr *CreateEmpty(const ASTContext &C) {
+  static UnresolvedSYCLKernelLaunchExpr *CreateEmpty(const ASTContext &C) {
     llvm::APInt KernelNameSize(C.getTypeSize(C.getSizeType()), 1);
     QualType KernelNameArrayTy =
         C.getConstantArrayType(C.CharTy.withConst(), KernelNameSize, nullptr,
                                ArraySizeModifier::Normal, 0);
     return new (C)
-        UnresolvedSYCLKernelNameExpr({}, KernelNameArrayTy, KernelNameArrayTy);
+        UnresolvedSYCLKernelLaunchExpr({}, KernelNameArrayTy, KernelNameArrayTy);
   }
 
   QualType getKernelNameType() { return KernelNameType; }
@@ -141,7 +141,7 @@ public:
   SourceLocation getEndLoc() const { return Loc; }
   SourceLocation getLocation() const { return Loc; }
   static bool classof(const Stmt *T) {
-    return T->getStmtClass() == UnresolvedSYCLKernelNameExprClass;
+    return T->getStmtClass() == UnresolvedSYCLKernelLaunchExprClass;
   }
   // Iterators
   child_range children() {

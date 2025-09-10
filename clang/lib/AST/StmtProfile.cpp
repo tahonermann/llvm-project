@@ -1374,8 +1374,8 @@ void StmtProfiler::VisitSYCLUniqueStableNameExpr(
   VisitType(S->getTypeSourceInfo()->getType());
 }
 
-void StmtProfiler::VisitUnresolvedSYCLKernelNameExpr(
-    const UnresolvedSYCLKernelNameExpr *S) {
+void StmtProfiler::VisitUnresolvedSYCLKernelLaunchExpr(
+    const UnresolvedSYCLKernelLaunchExpr *S) {
   VisitExpr(S);
 }
 

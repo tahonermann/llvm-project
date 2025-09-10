@@ -670,8 +670,8 @@ void ASTStmtWriter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
   Code = serialization::EXPR_SYCL_UNIQUE_STABLE_NAME;
 }
 
-void ASTStmtWriter::VisitUnresolvedSYCLKernelNameExpr(
-    UnresolvedSYCLKernelNameExpr *E) {
+void ASTStmtWriter::VisitUnresolvedSYCLKernelLaunchExpr(
+    UnresolvedSYCLKernelLaunchExpr *E) {
   VisitExpr(E);
 
   Record.AddTypeRef(E->getKernelNameType());

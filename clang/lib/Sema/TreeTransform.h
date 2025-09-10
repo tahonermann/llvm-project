@@ -12934,8 +12934,8 @@ ExprResult TreeTransform<Derived>::TransformSYCLUniqueStableNameExpr(
 }
 
 template <typename Derived>
-ExprResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelNameExpr(
-    UnresolvedSYCLKernelNameExpr *E) {
+ExprResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelLaunchExpr(
+    UnresolvedSYCLKernelLaunchExpr *E) {
 
   QualType NewT = getDerived().TransformType(E->getKernelNameType());
 

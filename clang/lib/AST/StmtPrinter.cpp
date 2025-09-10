@@ -1428,8 +1428,8 @@ void StmtPrinter::VisitSYCLUniqueStableNameExpr(
   OS << ")";
 }
 
-void StmtPrinter::VisitUnresolvedSYCLKernelNameExpr(
-    UnresolvedSYCLKernelNameExpr *Node) {
+void StmtPrinter::VisitUnresolvedSYCLKernelLaunchExpr(
+    UnresolvedSYCLKernelLaunchExpr *Node) {
   OS << "sycl_kernel_name(";
   Node->getKernelNameType().print(OS, Policy);
   OS << ")";

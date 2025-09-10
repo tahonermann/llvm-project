@@ -446,7 +446,7 @@ CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
         StringLiteral::Create(Ctx, KernelName, StringLiteralKind::Ordinary,
                               /*Pascal*/ false, KernelNameArrayTy, BodyLoc);
   } else {
-    KernelNameExpr = UnresolvedSYCLKernelNameExpr::Create(
+    KernelNameExpr = UnresolvedSYCLKernelLaunchExpr::Create(
         Ctx, Ctx.getCanonicalType(KNT), BodyLoc);
   }
 
