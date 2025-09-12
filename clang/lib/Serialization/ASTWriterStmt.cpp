@@ -676,6 +676,7 @@ void ASTStmtWriter::VisitUnresolvedSYCLKernelLaunchExpr(
 
   Record.AddTypeRef(E->getKernelNameType());
   Record.AddSourceLocation(E->getLocation());
+  Record.AddStmt(E->getIdExpr());
 
   Code = serialization::EXPR_UNRESOLVED_SYCL_KERNEL_NAME;
 }

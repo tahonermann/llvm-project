@@ -599,6 +599,7 @@ void ASTStmtReader::VisitUnresolvedSYCLKernelLaunchExpr(
 
   E->setKernelNameType(Record.readType());
   E->setLocation(readSourceLocation());
+  E->setIdExpr(Record.readExpr());
 }
 
 void ASTStmtReader::VisitPredefinedExpr(PredefinedExpr *E) {

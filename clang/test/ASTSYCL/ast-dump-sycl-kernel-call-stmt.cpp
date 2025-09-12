@@ -70,14 +70,7 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | |   |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_enqueue_kernel_launch' {{.*}}
-// CHECK-NEXT: | | | |   | `-TemplateArgument type 'KNT':'type-parameter-0-0'
-// CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
-// CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
-// CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
-// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} <col:16> 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | | `-UnresolvedSYCLKernelLaunchExpr {{.*}} '<dependent type>'
 // FIXME: The next one is OutlinedFunctionDecl. Should that be not null?
 // CHECK-NEXT: | | | `-<<<NULL>>>
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
@@ -136,14 +129,7 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | |   |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_enqueue_kernel_launch' {{.*}}
-// CHECK-NEXT: | | | |   | `-TemplateArgument type 'KNT':'type-parameter-0-0'
-// CHECK-NEXT: | | | |   |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
-// CHECK-NEXT: | | | |   |     `-TemplateTypeParm {{.*}} 'KNT'
-// CHECK-NEXT: | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
-// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | | `-UnresolvedSYCLKernelLaunchExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | | `-<<<NULL>>>
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 
@@ -422,13 +408,7 @@ void foo() {
 // CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
 // CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
 // CHECK-NEXT: | | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | | |   |-UnresolvedMemberExpr {{.*}} '<bound member function type>' lvalue
-// CHECK-NEXT: | | | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
-// CHECK-NEXT: | | | | |   | `-UnresolvedSYCLKernelLaunchExpr {{.*}} 'const char[1]'
-// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
-// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
-// CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
+// CHECK-NEXT: | | | | | `-UnresolvedSYCLKernelLaunchExpr {{.*}} '<bound member function type>'
 // CHECK-NEXT: | | | | `-<<<NULL>>>
 // CHECK-NEXT: | | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 // CHECK-NEXT: | | `-CXXMethodDecl {{.*}} used skep9 {{.*}} implicit_instantiation implicit-inline

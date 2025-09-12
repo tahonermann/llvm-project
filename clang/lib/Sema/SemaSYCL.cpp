@@ -390,6 +390,57 @@ void SemaSYCL::CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD) {
   }
 }
 
+static void PrepareKernelArgumentsForKernelLaunch(SmallVectorImpl<Expr *> &Args,
+                                                  const SYCLKernelInfo *SKI,
+                                                  Sema &SemaRef,
+                                                  SourceLocation Loc) {
+  assert(SKI && "Need a kernel!");
+  ASTContext &Ctx = SemaRef.getASTContext();
+
+  // Prepare a string literal that contains the kernel name.
+  const std::string KernelName = SKI->GetKernelName();
+  QualType KernelNameCharTy = Ctx.CharTy.withConst();
+  llvm::APInt KernelNameSize(Ctx.getTypeSize(Ctx.getSizeType()),
+                             KernelName.size() + 1);
+  QualType KernelNameArrayTy = Ctx.getConstantArrayType(
+      KernelNameCharTy, KernelNameSize, nullptr, ArraySizeModifier::Normal, 0);
+  Expr *KernelNameExpr =
+      StringLiteral::Create(Ctx, KernelName, StringLiteralKind::Ordinary,
+                            /*Pascal*/ false, KernelNameArrayTy, Loc);
+  QualType FuncParamTy = Ctx.getPointerType(Ctx.CharTy.withConst());
+  ImplicitCastExpr *KernelNameArrayDecayExpr = new (Ctx) ImplicitCastExpr(
+      ImplicitCastExpr::OnStack, FuncParamTy, CK_ArrayToPointerDecay,
+      KernelNameExpr, VK_PRValue, FPOptionsOverride());
+  Args.push_back(KernelNameArrayDecayExpr);
+
+  // Right now we simply forward the arguments of the skep-attributed function.
+  // With decomposition present there can be another logic.
+  // Make sure to use CurContext to avoid diagnostics that we're using a
+  // variable coming from another context. The function should be the same as in
+  // the kernel info though.
+  auto *FD = cast<FunctionDecl>(SemaRef.CurContext);
+  assert(declaresSameEntity(FD, SKI->getKernelEntryPointDecl()));
+  for (ParmVarDecl *PVD : FD->parameters()) {
+    QualType ParamType = PVD->getOriginalType().getNonReferenceType();
+    Expr *DRE = SemaRef.BuildDeclRefExpr(PVD, ParamType, VK_LValue, Loc);
+    assert(DRE);
+    Args.push_back(DRE);
+  }
+}
+
+ExprResult SemaSYCL::createSYCLKernelLaunchCall(const SYCLKernelInfo *SKI,
+                                                Expr *IdExpr,
+                                                SourceLocation Loc) {
+  assert(SKI && "Need a Kernel!");
+  const std::string KernelName = SKI->GetKernelName();
+
+  llvm::SmallVector<Expr *, 12> Args;
+  PrepareKernelArgumentsForKernelLaunch(Args, SKI, SemaRef, Loc);
+  ExprResult LaunchResult = SemaRef.BuildCallExpr(
+      SemaRef.getCurScope(), IdExpr, Loc, Args, Loc);
+  return LaunchResult;
+}
+
 CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
                                                   QualType KNT) {
 
@@ -431,29 +482,7 @@ CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
     return CompoundStmt::Create(Ctx, Stmts, FPOptionsOverride(), BodyLoc,
                                 BodyLoc);
   }
-  const SYCLKernelInfo *SKI = Ctx.findSYCLKernelInfo(KNT);
-  Expr *KernelNameExpr = nullptr;
-  if (SKI) {
-    const std::string KernelName = SKI->GetKernelName();
-    // Prepare a string literal that contains the kernel name.
-    QualType KernelNameCharTy = Ctx.CharTy.withConst();
-    llvm::APInt KernelNameSize(Ctx.getTypeSize(Ctx.getSizeType()),
-                               KernelName.size() + 1);
-    QualType KernelNameArrayTy =
-        Ctx.getConstantArrayType(KernelNameCharTy, KernelNameSize, nullptr,
-                                 ArraySizeModifier::Normal, 0);
-    KernelNameExpr =
-        StringLiteral::Create(Ctx, KernelName, StringLiteralKind::Ordinary,
-                              /*Pascal*/ false, KernelNameArrayTy, BodyLoc);
-  } else {
-    KernelNameExpr = UnresolvedSYCLKernelLaunchExpr::Create(
-        Ctx, Ctx.getCanonicalType(KNT), BodyLoc);
-  }
 
-  QualType FuncParamTy = Ctx.getPointerType(Ctx.CharTy.withConst());
-  ImplicitCastExpr *KernelNameArrayDecayExpr = new (Ctx) ImplicitCastExpr(
-      ImplicitCastExpr::OnStack, FuncParamTy, CK_ArrayToPointerDecay,
-      KernelNameExpr, VK_PRValue, FPOptionsOverride());
   TemplateArgumentListInfo TALI{BodyLoc, BodyLoc};
   TemplateArgument KNTA = TemplateArgument(KNT);
   TemplateArgumentLoc TAL =
@@ -477,17 +506,15 @@ CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
     return CompoundStmt::Create(Ctx, Stmts, FPOptionsOverride(), BodyLoc,
                                 BodyLoc);
 
-  llvm::SmallVector<Expr *, 12> Args;
-  Args.push_back(KernelNameArrayDecayExpr);
-  for (ParmVarDecl *PVD : FD->parameters()) {
-    QualType ParamType = PVD->getOriginalType().getNonReferenceType();
-    Expr *DRE = SemaRef.BuildDeclRefExpr(PVD, ParamType, VK_LValue, BodyLoc);
-    Args.push_back(DRE);
-  }
-  ExprResult CE = SemaRef.BuildCallExpr(SemaRef.getCurScope(), IdExpr.get(),
-                                        BodyLoc, Args, BodyLoc);
-  Stmts.push_back(CE.get());
-
+  ExprResult LaunchExpr;
+  const SYCLKernelInfo *SKI = Ctx.findSYCLKernelInfo(KNT);
+  if (SKI)
+    LaunchExpr = createSYCLKernelLaunchCall(SKI, IdExpr.get(), BodyLoc);
+  else
+    LaunchExpr = UnresolvedSYCLKernelLaunchExpr::Create(
+        Ctx, IdExpr.get()->getType(), Ctx.getCanonicalType(KNT), BodyLoc,
+        IdExpr.get());
+  Stmts.push_back(LaunchExpr.get());
   return CompoundStmt::Create(Ctx, Stmts, FPOptionsOverride(), BodyLoc,
                               BodyLoc);
 }

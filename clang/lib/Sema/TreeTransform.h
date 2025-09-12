@@ -12948,18 +12948,18 @@ ExprResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelLaunchExpr(
   if (!SKI)
     return E;
 
-  const std::string KernelName = SKI->GetKernelName();
+  ExprResult IdExpr = getDerived().TransformExpr(E->getIdExpr());
 
-  QualType KernelNameCharTy = Ctx.CharTy.withConst();
-  llvm::APInt KernelNameSize(Ctx.getTypeSize(Ctx.getSizeType()),
-                             KernelName.size() + 1);
-  QualType KernelNameArrayTy = Ctx.getConstantArrayType(
-      KernelNameCharTy, KernelNameSize, nullptr, ArraySizeModifier::Normal, 0);
-  StringLiteral *KernelNameExpr = StringLiteral::Create(
-      Ctx, KernelName, StringLiteralKind::Ordinary,
-      /*Pascal*/ false, KernelNameArrayTy, E->getLocation());
+  if (IdExpr.isInvalid())
+    return ExprError();
 
-  return KernelNameExpr;
+  ExprResult Res = SemaRef.SYCL().createSYCLKernelLaunchCall(SKI, IdExpr.get(),
+                                                             SourceLocation());
+
+  if (Res.isInvalid())
+    return ExprError();
+
+  return Res;
 }
 
 template<typename Derived>

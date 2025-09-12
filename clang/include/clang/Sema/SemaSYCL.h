@@ -69,6 +69,8 @@ public:
   StmtResult BuildSYCLKernelCallStmt(FunctionDecl *FD, CompoundStmt *Body,
                                      CompoundStmt *LaunchStmt);
   CompoundStmt *BuildSYCLKernelLaunchStmt(FunctionDecl *FD, QualType KNT);
+  ExprResult createSYCLKernelLaunchCall(const SYCLKernelInfo *SKI, Expr *IdExpr,
+                                        SourceLocation Loc);
 };
 
 } // namespace clang

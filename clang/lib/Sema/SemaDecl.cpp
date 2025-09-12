@@ -16173,9 +16173,11 @@ Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Decl *D,
     // we do it here when we start parsing function body even if it is a
     // templated function.
     const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
-    CompoundStmt *LaunchStmt =
-        SYCL().BuildSYCLKernelLaunchStmt(FD, SKEPAttr->getKernelName());
-    getCurFunction()->SYCLKernelLaunchStmt = LaunchStmt;
+    if (!SKEPAttr->isInvalidAttr()) {
+      CompoundStmt *LaunchStmt =
+          SYCL().BuildSYCLKernelLaunchStmt(FD, SKEPAttr->getKernelName());
+      getCurFunction()->SYCLKernelLaunchStmt = LaunchStmt;
+    }
   }
 
   return D;
