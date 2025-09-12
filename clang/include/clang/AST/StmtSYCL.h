@@ -99,6 +99,59 @@ public:
   }
 };
 
+// UnresolvedSYCLKernelLaunchExpr a call to the kernel launch function for a
+// kernel that has not been instantiated yet. This Expr should be transformed to
+// a CallExpr once the kernel and its name is known.
+class UnresolvedSYCLKernelLaunchExpr : public Expr {
+  friend class ASTStmtReader;
+  QualType KernelNameType;
+  SourceLocation Loc;
+  // This is either UnresolvedLookupExpr or UnresolvedMemberExpr.
+  Expr *IdExpr = nullptr;
+  UnresolvedSYCLKernelLaunchExpr(SourceLocation L, QualType ExprTy,
+                                 QualType KNT, Expr *_IdExpr)
+      : Expr(UnresolvedSYCLKernelLaunchExprClass, ExprTy, VK_PRValue,
+             OK_Ordinary),
+        KernelNameType(KNT), Loc(L), IdExpr(_IdExpr) {
+    setDependence(computeDependence(this));
+  }
+
+  void setKernelNameType(QualType T) { KernelNameType = T; }
+  void setLocation(SourceLocation L) { Loc = L; }
+  void setIdExpr(Expr *Id) { IdExpr = Id; }
+
+public:
+  static UnresolvedSYCLKernelLaunchExpr *Create(const ASTContext &C,
+                                                QualType ExprTy, QualType KNT,
+                                                SourceLocation Loc,
+                                                Expr *IdExpr) {
+    return new (C) UnresolvedSYCLKernelLaunchExpr(Loc, ExprTy, KNT, IdExpr);
+  }
+
+  static UnresolvedSYCLKernelLaunchExpr *CreateEmpty(const ASTContext &C) {
+    return new (C)
+        UnresolvedSYCLKernelLaunchExpr({}, C.VoidTy, C.VoidTy, nullptr);
+  }
+
+  QualType getKernelNameType() const { return KernelNameType; }
+  Expr *getIdExpr() const { return IdExpr; }
+  SourceLocation getLocation() const { return Loc; }
+
+  SourceLocation getBeginLoc() const { return Loc; }
+  SourceLocation getEndLoc() const { return Loc; }
+  static bool classof(const Stmt *T) {
+    return T->getStmtClass() == UnresolvedSYCLKernelLaunchExprClass;
+  }
+  // Iterators
+  child_range children() {
+    return child_range(child_iterator(), child_iterator());
+  }
+
+  const_child_range children() const {
+    return const_child_range(const_child_iterator(), const_child_iterator());
+  }
+};
+
 } // end namespace clang
 
 #endif // LLVM_CLANG_AST_STMTSYCL_H
