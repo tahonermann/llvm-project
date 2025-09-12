@@ -3172,7 +3172,7 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       S = SYCLUniqueStableNameExpr::CreateEmpty(Context);
       break;
 
-    case EXPR_UNRESOLVED_SYCL_KERNEL_NAME:
+    case EXPR_UNRESOLVED_SYCL_KERNEL_LAUNCH:
       S = UnresolvedSYCLKernelLaunchExpr::CreateEmpty(Context);
       break;
 

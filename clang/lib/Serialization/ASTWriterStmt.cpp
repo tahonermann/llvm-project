@@ -678,7 +678,7 @@ void ASTStmtWriter::VisitUnresolvedSYCLKernelLaunchExpr(
   Record.AddSourceLocation(E->getLocation());
   Record.AddStmt(E->getIdExpr());
 
-  Code = serialization::EXPR_UNRESOLVED_SYCL_KERNEL_NAME;
+  Code = serialization::EXPR_UNRESOLVED_SYCL_KERNEL_LAUNCH;
 }
 
 void ASTStmtWriter::VisitPredefinedExpr(PredefinedExpr *E) {
