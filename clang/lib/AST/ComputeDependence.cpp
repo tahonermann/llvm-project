@@ -635,7 +635,7 @@ ExprDependence clang::computeDependence(SYCLUniqueStableNameExpr *E) {
       E->getTypeSourceInfo()->getType()->getDependence());
 }
 
-ExprDependence clang::computeDependence(UnresolvedSYCLKernelLaunchExpr *E) {
+ExprDependence clang::computeDependence(UnresolvedSYCLKernelEntryPointStmt *E) {
   return toExprDependenceAsWritten(E->getKernelNameType()->getDependence());
 }
 

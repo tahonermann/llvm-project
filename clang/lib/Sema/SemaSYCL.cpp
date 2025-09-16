@@ -511,7 +511,7 @@ CompoundStmt *SemaSYCL::BuildSYCLKernelLaunchStmt(FunctionDecl *FD,
   if (SKI)
     LaunchExpr = createSYCLKernelLaunchCall(SKI, IdExpr.get(), BodyLoc);
   else
-    LaunchExpr = UnresolvedSYCLKernelLaunchExpr::Create(
+    LaunchExpr = UnresolvedSYCLKernelEntryPointStmt::Create(
         Ctx, IdExpr.get()->getType(), Ctx.getCanonicalType(KNT), BodyLoc,
         IdExpr.get());
   Stmts.push_back(LaunchExpr.get());

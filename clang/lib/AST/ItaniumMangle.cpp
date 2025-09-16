@@ -5019,7 +5019,7 @@ recurse:
   case Expr::AtomicExprClass:
   case Expr::SourceLocExprClass:
   case Expr::EmbedExprClass:
-  case Expr::UnresolvedSYCLKernelLaunchExprClass:
+  case Expr::UnresolvedSYCLKernelEntryPointStmtClass:
   case Expr::BuiltinBitCastExprClass: {
     NotPrimaryExpr();
     if (!NullOut) {

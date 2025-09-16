@@ -99,18 +99,18 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelLaunchExpr a call to the kernel launch function for a
+// UnresolvedSYCLKernelEntryPointStmt a call to the kernel launch function for a
 // kernel that has not been instantiated yet. This Expr should be transformed to
 // a CallExpr once the kernel and its name is known.
-class UnresolvedSYCLKernelLaunchExpr : public Expr {
+class UnresolvedSYCLKernelEntryPointStmt : public Expr {
   friend class ASTStmtReader;
   QualType KernelNameType;
   SourceLocation Loc;
   // This is either UnresolvedLookupExpr or UnresolvedMemberExpr.
   Expr *IdExpr = nullptr;
-  UnresolvedSYCLKernelLaunchExpr(SourceLocation L, QualType ExprTy,
+  UnresolvedSYCLKernelEntryPointStmt(SourceLocation L, QualType ExprTy,
                                  QualType KNT, Expr *_IdExpr)
-      : Expr(UnresolvedSYCLKernelLaunchExprClass, ExprTy, VK_PRValue,
+      : Expr(UnresolvedSYCLKernelEntryPointStmtClass, ExprTy, VK_PRValue,
              OK_Ordinary),
         KernelNameType(KNT), Loc(L), IdExpr(_IdExpr) {
     setDependence(computeDependence(this));
@@ -121,16 +121,16 @@ class UnresolvedSYCLKernelLaunchExpr : public Expr {
   void setIdExpr(Expr *Id) { IdExpr = Id; }
 
 public:
-  static UnresolvedSYCLKernelLaunchExpr *Create(const ASTContext &C,
+  static UnresolvedSYCLKernelEntryPointStmt *Create(const ASTContext &C,
                                                 QualType ExprTy, QualType KNT,
                                                 SourceLocation Loc,
                                                 Expr *IdExpr) {
-    return new (C) UnresolvedSYCLKernelLaunchExpr(Loc, ExprTy, KNT, IdExpr);
+    return new (C) UnresolvedSYCLKernelEntryPointStmt(Loc, ExprTy, KNT, IdExpr);
   }
 
-  static UnresolvedSYCLKernelLaunchExpr *CreateEmpty(const ASTContext &C) {
+  static UnresolvedSYCLKernelEntryPointStmt *CreateEmpty(const ASTContext &C) {
     return new (C)
-        UnresolvedSYCLKernelLaunchExpr({}, C.VoidTy, C.VoidTy, nullptr);
+        UnresolvedSYCLKernelEntryPointStmt({}, C.VoidTy, C.VoidTy, nullptr);
   }
 
   QualType getKernelNameType() const { return KernelNameType; }
@@ -140,7 +140,7 @@ public:
   SourceLocation getBeginLoc() const { return Loc; }
   SourceLocation getEndLoc() const { return Loc; }
   static bool classof(const Stmt *T) {
-    return T->getStmtClass() == UnresolvedSYCLKernelLaunchExprClass;
+    return T->getStmtClass() == UnresolvedSYCLKernelEntryPointStmtClass;
   }
   // Iterators
   child_range children() {

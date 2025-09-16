@@ -1428,8 +1428,8 @@ void StmtPrinter::VisitSYCLUniqueStableNameExpr(
   OS << ")";
 }
 
-void StmtPrinter::VisitUnresolvedSYCLKernelLaunchExpr(
-    UnresolvedSYCLKernelLaunchExpr *Node) {
+void StmtPrinter::VisitUnresolvedSYCLKernelEntryPointStmt(
+    UnresolvedSYCLKernelEntryPointStmt *Node) {
   PrintExpr(Node->getIdExpr());
   OS << "(";
   OS << "sycl_kernel_name(";
