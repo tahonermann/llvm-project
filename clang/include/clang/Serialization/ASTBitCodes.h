@@ -1615,6 +1615,9 @@ enum StmtCode {
   /// A SYCLKernelCallStmt record.
   STMT_SYCLKERNELCALL,
 
+  /// A SYCLKernelCallStmt record.
+  STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT,
+
   /// A GCC-style AsmStmt record.
   STMT_GCCASM,
 
@@ -2039,9 +2042,6 @@ enum StmtCode {
 
   // SYCLUniqueStableNameExpr
   EXPR_SYCL_UNIQUE_STABLE_NAME,
-
-  // UnresolvedSYCLKernelName
-  EXPR_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT,
 
   // OpenACC Constructs/Exprs
   STMT_OPENACC_COMPUTE_CONSTRUCT,

@@ -67,10 +67,10 @@ public:
   void CheckSYCLExternalFunctionDecl(FunctionDecl *FD);
   void CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD);
   StmtResult BuildSYCLKernelCallStmt(FunctionDecl *FD, CompoundStmt *Body,
-                                     CompoundStmt *LaunchStmt);
-  CompoundStmt *BuildSYCLKernelLaunchStmt(FunctionDecl *FD, QualType KNT);
-  ExprResult createSYCLKernelLaunchCall(const SYCLKernelInfo *SKI, Expr *IdExpr,
-                                        SourceLocation Loc);
+                                     Expr *LaunchIdExpr);
+  ExprResult BuildSYCLKernelLaunchIdExpr(FunctionDecl *FD, QualType KNT);
+  StmtResult BuildUnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS,
+                                                     Expr *IdExpr);
 };
 
 } // namespace clang

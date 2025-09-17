@@ -65,14 +65,10 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep2 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-SYCLKernelCallStmt {{.*}}
-// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
-// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-UnresolvedSYCLKernelEntryPointStmt {{.*}} '<dependent type>'
-// FIXME: The next one is OutlinedFunctionDecl. Should that be not null?
-// CHECK-NEXT: | | | `-<<<NULL>>>
+// CHECK-NEXT: | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | | `-CompoundStmt {{.*}}
+// CHECK-NEXT: | | |   `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 
 // CHECK-NEXT: | `-FunctionDecl {{.*}} skep2 'void (K<2>)' explicit_instantiation_definition
@@ -124,13 +120,10 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep3 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-SYCLKernelCallStmt {{.*}}
-// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | |   `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
-// CHECK-NEXT: | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | `-UnresolvedSYCLKernelEntryPointStmt {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | `-<<<NULL>>>
+// CHECK-NEXT: | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | | `-CompoundStmt {{.*}}
+// CHECK-NEXT: | | |   `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
 // CHECK-NEXT: | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 
 // CHECK-NEXT: | `-Function {{.*}} 'skep3' 'void (K<3>)'
@@ -401,15 +394,12 @@ void foo() {
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced k 'KT'
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced a 'int'
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced b 'int'
-// CHECK-NEXT: | | | |-SYCLKernelCallStmt {{.*}}
-// CHECK-NEXT: | | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | | `-CallExpr {{.*}} '<dependent type>'
-// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
-// CHECK-NEXT: | | | | |   |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
-// CHECK-NEXT: | | | | |   `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
-// CHECK-NEXT: | | | | |-CompoundStmt {{.*}}
-// CHECK-NEXT: | | | | | `-UnresolvedSYCLKernelEntryPointStmt {{.*}} '<bound member function type>'
-// CHECK-NEXT: | | | | `-<<<NULL>>>
+// CHECK-NEXT: | | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | | | `-CompoundStmt {{.*}}
+// CHECK-NEXT: | | | |   `-CallExpr {{.*}} '<dependent type>'
+// CHECK-NEXT: | | | |     |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
+// CHECK-NEXT: | | | |     |-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'a' 'int'
+// CHECK-NEXT: | | | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
 // CHECK-NEXT: | | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 // CHECK-NEXT: | | `-CXXMethodDecl {{.*}} used skep9 {{.*}} implicit_instantiation implicit-inline
 // CHECK-NEXT: | |   |-TemplateArgument type 'KN<9>'

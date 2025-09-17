@@ -12934,32 +12934,22 @@ ExprResult TreeTransform<Derived>::TransformSYCLUniqueStableNameExpr(
 }
 
 template <typename Derived>
-ExprResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *E) {
-
-  QualType NewT = getDerived().TransformType(E->getKernelNameType());
-
-  if (NewT.isNull())
-    return ExprError();
-
-  const ASTContext &Ctx = SemaRef.getASTContext();
-  const SYCLKernelInfo *SKI = Ctx.findSYCLKernelInfo(NewT);
-
-  if (!SKI)
-    return E;
-
-  ExprResult IdExpr = getDerived().TransformExpr(E->getIdExpr());
+StmtResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelEntryPointStmt(
+    UnresolvedSYCLKernelEntryPointStmt *S) {
+  ExprResult IdExpr = getDerived().TransformExpr(S->getIdExpr());
 
   if (IdExpr.isInvalid())
-    return ExprError();
+     return StmtError();
 
-  ExprResult Res = SemaRef.SYCL().createSYCLKernelLaunchCall(SKI, IdExpr.get(),
-                                                             SourceLocation());
+  StmtResult Body = getDerived().TransformStmt(S->getOriginalStmt());
+  if (Body.isInvalid())
+     return StmtError();
 
-  if (Res.isInvalid())
-    return ExprError();
+  StmtResult SR = SemaRef.SYCL().BuildSYCLKernelCallStmt(
+      cast<FunctionDecl>(SemaRef.CurContext), cast<CompoundStmt>(Body.get()),
+      IdExpr.get());
 
-  return Res;
+  return SR;
 }
 
 template<typename Derived>
@@ -17757,20 +17747,11 @@ TreeTransform<Derived>::TransformCapturedStmt(CapturedStmt *S) {
 template <typename Derived>
 StmtResult
 TreeTransform<Derived>::TransformSYCLKernelCallStmt(SYCLKernelCallStmt *S) {
-  StmtResult LaunchStmt = getDerived().TransformStmt(S->getKernelLaunchStmt());
-  if (LaunchStmt.isInvalid())
-    return StmtError();
-
-  StmtResult OrigBody = getDerived().TransformStmt(S->getOriginalStmt());
-  if (OrigBody.isInvalid())
-    return StmtError();
-
-  auto *FD = cast<FunctionDecl>(SemaRef.CurContext);
-  // TODO: perhaps add a RebuildKernelCallStmt?
-  StmtResult SR = SemaRef.SYCL().BuildSYCLKernelCallStmt(
-      FD, cast<CompoundStmt>(OrigBody.get()),
-      cast<CompoundStmt>(LaunchStmt.get()));
-  return SR;
+  // SYCLKernelCallStmt nodes are inserted upon completion of a (non-template)
+  // function definition or instantiation of a function template specialization
+  // and will therefore never appear in a dependent context.
+  llvm_unreachable("SYCL kernel call statement cannot appear in dependent "
+                   "context");
 }
 
 template <typename Derived>

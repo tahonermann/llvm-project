@@ -671,14 +671,13 @@ void ASTStmtWriter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
 }
 
 void ASTStmtWriter::VisitUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *E) {
-  VisitExpr(E);
+    UnresolvedSYCLKernelEntryPointStmt *S) {
+  VisitStmt(S);
 
-  Record.AddTypeRef(E->getKernelNameType());
-  Record.AddSourceLocation(E->getLocation());
-  Record.AddStmt(E->getIdExpr());
+  Record.AddStmt(S->getOriginalStmt());
+  Record.AddStmt(S->getIdExpr());
 
-  Code = serialization::EXPR_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT;
+  Code = serialization::STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT;
 }
 
 void ASTStmtWriter::VisitPredefinedExpr(PredefinedExpr *E) {

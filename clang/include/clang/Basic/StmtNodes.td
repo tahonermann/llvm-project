@@ -25,6 +25,7 @@ def CaseStmt : StmtNode<SwitchCase>;
 def DefaultStmt : StmtNode<SwitchCase>;
 def CapturedStmt : StmtNode<Stmt>;
 def SYCLKernelCallStmt : StmtNode<Stmt>;
+def UnresolvedSYCLKernelEntryPointStmt : StmtNode<Stmt>;
 
 // Statements that might produce a value (for example, as the last non-null
 // statement in a GNU statement-expression).
@@ -59,7 +60,6 @@ def CoreturnStmt : StmtNode<Stmt>;
 def Expr : StmtNode<ValueStmt, 1>;
 def PredefinedExpr : StmtNode<Expr>;
 def SYCLUniqueStableNameExpr : StmtNode<Expr>;
-def UnresolvedSYCLKernelEntryPointStmt : StmtNode<Expr>;
 def DeclRefExpr : StmtNode<Expr>;
 def IntegerLiteral : StmtNode<Expr>;
 def FixedPointLiteral : StmtNode<Expr>;

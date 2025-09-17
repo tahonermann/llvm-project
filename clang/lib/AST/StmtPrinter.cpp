@@ -1430,12 +1430,7 @@ void StmtPrinter::VisitSYCLUniqueStableNameExpr(
 
 void StmtPrinter::VisitUnresolvedSYCLKernelEntryPointStmt(
     UnresolvedSYCLKernelEntryPointStmt *Node) {
-  PrintExpr(Node->getIdExpr());
-  OS << "(";
-  OS << "sycl_kernel_name(";
-  Node->getKernelNameType().print(OS, Policy);
-  OS << ")";
-  OS << "),...)";
+  PrintStmt(Node->getOriginalStmt());
 }
 
 void StmtPrinter::VisitPredefinedExpr(PredefinedExpr *Node) {

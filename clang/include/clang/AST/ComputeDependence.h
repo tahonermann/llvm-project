@@ -84,7 +84,6 @@ class CXXParenListInitExpr;
 class TypeTraitExpr;
 class ConceptSpecializationExpr;
 class SYCLUniqueStableNameExpr;
-class UnresolvedSYCLKernelEntryPointStmt;
 class PredefinedExpr;
 class CallExpr;
 class OffsetOfExpr;
@@ -180,7 +179,6 @@ ExprDependence computeDependence(ConceptSpecializationExpr *E,
                                  bool ValueDependent);
 
 ExprDependence computeDependence(SYCLUniqueStableNameExpr *E);
-ExprDependence computeDependence(UnresolvedSYCLKernelEntryPointStmt *E);
 ExprDependence computeDependence(PredefinedExpr *E);
 ExprDependence computeDependence(CallExpr *E, ArrayRef<Expr *> PreArgs);
 ExprDependence computeDependence(OffsetOfExpr *E);

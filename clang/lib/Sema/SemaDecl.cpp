@@ -16168,15 +16168,15 @@ Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Decl *D,
 
   if (FD && !FD->isInvalidDecl() &&
       FD->hasAttr<SYCLKernelEntryPointAttr>() && FnBodyScope) {
-    // Building KernelLaunchStmt requires performing an unqualified lookup which
-    // can only be done correctly while the stack of parsing scopes is alive, so
-    // we do it here when we start parsing function body even if it is a
-    // templated function.
+    // Building KernelLaunchIdExpr requires performing an unqualified lookup
+    // which can only be done correctly while the stack of parsing scopes is
+    // alive, so we do it here when we start parsing function body even if it is
+    // a templated function.
     const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>();
     if (!SKEPAttr->isInvalidAttr()) {
-      CompoundStmt *LaunchStmt =
-          SYCL().BuildSYCLKernelLaunchStmt(FD, SKEPAttr->getKernelName());
-      getCurFunction()->SYCLKernelLaunchStmt = LaunchStmt;
+      ExprResult LaunchIdExpr =
+          SYCL().BuildSYCLKernelLaunchIdExpr(FD, SKEPAttr->getKernelName());
+      getCurFunction()->SYCLKernelLaunchIdExpr = LaunchIdExpr.get();
     }
   }
 
@@ -16386,9 +16386,13 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body, bool IsInstantiation,
     // need to build SYCLKernelCallStmt for it since it was already created by
     // template instantiator.
     if (BodyCompound && !SKEPAttr->isInvalidAttr()) {
-      StmtResult SR = SYCL().BuildSYCLKernelCallStmt(
-          FD->isTemplated() ? nullptr : FD, BodyCompound,
-          getCurFunction()->SYCLKernelLaunchStmt);
+      StmtResult SR;
+      if (FD->isTemplated())
+        SR = SYCL().BuildUnresolvedSYCLKernelEntryPointStmt(
+            BodyCompound, getCurFunction()->SYCLKernelLaunchIdExpr);
+      else
+        SR = SYCL().BuildSYCLKernelCallStmt(
+            FD, BodyCompound, getCurFunction()->SYCLKernelLaunchIdExpr);
       if (SR.isInvalid())
         return nullptr;
       Body = SR.get();

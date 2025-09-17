@@ -1376,7 +1376,7 @@ void StmtProfiler::VisitSYCLUniqueStableNameExpr(
 
 void StmtProfiler::VisitUnresolvedSYCLKernelEntryPointStmt(
     const UnresolvedSYCLKernelEntryPointStmt *S) {
-  VisitExpr(S);
+  VisitStmt(S);
 }
 
 void StmtProfiler::VisitPredefinedExpr(const PredefinedExpr *S) {
