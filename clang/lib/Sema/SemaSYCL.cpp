@@ -427,8 +427,6 @@ ExprResult SemaSYCL::BuildSYCLKernelLaunchIdExpr(FunctionDecl *FD,
                               : diag::warn_sycl_device_no_host_launch_function);
     SemaRef.Diag(BodyLoc, diag::note_sycl_host_launch_function);
 
-    // return CompoundStmt::Create(Ctx, Stmts, FPOptionsOverride(), BodyLoc,
-    //                             BodyLoc);
     return ExprError();
   }
 

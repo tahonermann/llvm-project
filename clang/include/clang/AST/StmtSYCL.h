@@ -99,9 +99,9 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelEntryPointStmt a call to the kernel launch function for a
-// kernel that has not been instantiated yet. This Expr should be transformed to
-// a CallExpr once the kernel and its name is known.
+// UnresolvedSYCLKernelEntryPointStmt represents a SYCL kernel entry point function for a
+// kernel that has not been instantiated yet. This Stmt should be transformed to
+// a SYCLKernelCallStmt once the kernel and its name is known.
 class UnresolvedSYCLKernelEntryPointStmt : public Stmt {
   friend class ASTStmtReader;
   Stmt *OriginalStmt = nullptr;

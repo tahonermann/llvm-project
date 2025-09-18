@@ -1379,7 +1379,6 @@ CanThrowResult Sema::canThrow(const Stmt *S) {
   case Expr::UnaryExprOrTypeTraitExprClass:
   case Expr::UnresolvedLookupExprClass:
   case Expr::UnresolvedMemberExprClass:
-  case Expr::UnresolvedSYCLKernelEntryPointStmtClass:
     // FIXME: Many of the above can throw.
     return CT_Cannot;
 
