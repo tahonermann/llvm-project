@@ -24,7 +24,7 @@ void nontemplatel() {}
 template <typename KernName>
 void sycl_enqueue_kernel_launch(const char *, int arg);
 // expected-note@-1 {{candidate function template not viable: requires 2 arguments, but 1 was provided}}
-// expected-note@-2 {{candidate function template not viable: no known conversion from 'Kern' to 'int' for 2nd argument}}
+// expected-note@-2 2{{candidate function template not viable: no known conversion from 'Kern' to 'int' for 2nd argument}}
 
 [[clang::sycl_kernel_entry_point(KN<3>)]]
 void notenoughargs() {}
@@ -34,7 +34,7 @@ void notenoughargs() {}
 
 template <typename KernName>
 void sycl_enqueue_kernel_launch(const char *, bool arg = 1);
-// expected-note@-1 {{candidate function template not viable: no known conversion from 'Kern' to 'bool' for 2nd argument}}
+// expected-note@-1 2{{candidate function template not viable: no known conversion from 'Kern' to 'bool' for 2nd argument}}
 
 [[clang::sycl_kernel_entry_point(KN<4>)]]
 void enoughargs() {}
@@ -133,6 +133,44 @@ static void entry(KernelObj Kernel) {
 }
 };
 
+template<typename>
+struct base_handler {
+  template<typename KNT, typename... Ts>
+  void sycl_enqueue_kernel_launch(const char*, Ts...) {}
+};
+struct derived_handler : base_handler<derived_handler> {
+  template<typename KNT, typename KT>
+  [[clang::sycl_kernel_entry_point(KNT)]]
+  void entry(KT k) { k(); }
+};
+
+template<int N>
+struct derived_handler_t : base_handler<derived_handler_t<N>> {
+  template<typename KNT, typename KT>
+// FIXME this fails because accessing members of dependent bases requires
+// explicit qualification.
+  [[clang::sycl_kernel_entry_point(KNT)]]
+  void entry(KT k) { k(); }
+  // expected-error@-1 {{no matching function for call to 'sycl_enqueue_kernel_launch'}}
+};
+
+template<typename KNT>
+struct kernel_launcher {
+  template<typename... Ts>
+  void operator()(const char*, Ts...) const {}
+};
+
+namespace var {
+template<typename KNT>
+kernel_launcher<KNT> sycl_enqueue_kernel_launch;
+
+struct handler {
+  template<typename KNT, typename KT>
+  [[clang::sycl_kernel_entry_point(KNT)]]
+  void entry(KT k) { k(); }
+};
+}
+
 
 void bar() {
   int *a;
@@ -145,6 +183,15 @@ void bar() {
   H1.entry<KN<9>>(b);
   H2.entry<KN<10>>(b);
   H3.entry<KN<11>>(b);
+
+  derived_handler H5;
+  H5.entry<KN<12>>(b);
+
+  derived_handler_t<13> H6;
+  H6.entry<KN<13>>(b); //expected-note {{in instantiation of function template specialization}}
+
+  var::handler h;
+  h.entry<KN<14>>(b);
 }
 
 
