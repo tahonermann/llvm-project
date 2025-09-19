@@ -675,7 +675,7 @@ void ASTStmtWriter::VisitUnresolvedSYCLKernelEntryPointStmt(
   VisitStmt(S);
 
   Record.AddStmt(S->getOriginalStmt());
-  Record.AddStmt(S->getIdExpr());
+  Record.AddStmt(S->getKernelLaunchIdExpr());
 
   Code = serialization::STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT;
 }

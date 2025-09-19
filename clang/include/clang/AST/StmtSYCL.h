@@ -99,20 +99,21 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelEntryPointStmt represents a SYCL kernel entry point function for a
-// kernel that has not been instantiated yet. This Stmt should be transformed to
-// a SYCLKernelCallStmt once the kernel and its name is known.
+// UnresolvedSYCLKernelEntryPointStmt represents a SYCL kernel entry point
+// function for a kernel that has not been instantiated yet. This Stmt should be
+// transformed to a SYCLKernelCallStmt once the kernel and its name is known.
 class UnresolvedSYCLKernelEntryPointStmt : public Stmt {
   friend class ASTStmtReader;
   Stmt *OriginalStmt = nullptr;
-  // This is either UnresolvedLookupExpr or UnresolvedMemberExpr.
-  Expr *IdExpr = nullptr;
-  UnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS, Expr *_IdExpr)
-      : Stmt(UnresolvedSYCLKernelEntryPointStmtClass),
-        OriginalStmt(CS), IdExpr(_IdExpr) {
-  }
+  // KernelLaunchIdExpr stores an UnresolvedLookupExpr or UnresolvedMemberExpr
+  // corresponding to the SYCL kernel launch function for which a call
+  // will be synthesized during template instantiation.
+  Expr *KernelLaunchIdExpr = nullptr;
+  UnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS, Expr *IdExpr)
+      : Stmt(UnresolvedSYCLKernelEntryPointStmtClass), OriginalStmt(CS),
+        KernelLaunchIdExpr(IdExpr) {}
 
-  void setIdExpr(Expr *Id) { IdExpr = Id; }
+  void setKernelLaunchIdExpr(Expr *IdExpr) { KernelLaunchIdExpr = IdExpr; }
   void setOriginalStmt(CompoundStmt *CS) { OriginalStmt = CS; }
 
 public:
@@ -125,7 +126,7 @@ public:
     return new (C) UnresolvedSYCLKernelEntryPointStmt(nullptr, nullptr);
   }
 
-  Expr *getIdExpr() const { return IdExpr; }
+  Expr *getKernelLaunchIdExpr() const { return KernelLaunchIdExpr; }
   CompoundStmt *getOriginalStmt() { return cast<CompoundStmt>(OriginalStmt); }
   const CompoundStmt *getOriginalStmt() const {
     return cast<CompoundStmt>(OriginalStmt);

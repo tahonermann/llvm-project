@@ -3002,7 +3002,7 @@ DEF_TRAVERSE_STMT(SYCLUniqueStableNameExpr, {
 DEF_TRAVERSE_STMT(UnresolvedSYCLKernelEntryPointStmt, {
   if (getDerived().shouldVisitImplicitCode()) {
     TRY_TO(TraverseStmt(S->getOriginalStmt()));
-    TRY_TO(TraverseStmt(S->getIdExpr()));
+    TRY_TO(TraverseStmt(S->getKernelLaunchIdExpr()));
     ShouldVisitChildren = false;
   }
 })
