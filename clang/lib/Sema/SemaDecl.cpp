@@ -16381,18 +16381,21 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body, bool IsInstantiation,
       SKEPAttr->setInvalidAttr();
     }
 
-    auto *BodyCompound = dyn_cast_or_null<CompoundStmt>(Body);
-    // If Body is not a compound, that was a templated function and we don't
-    // need to build SYCLKernelCallStmt for it since it was already created by
-    // template instantiator.
-    if (BodyCompound && !SKEPAttr->isInvalidAttr()) {
+    // We don't need to build SYCLKernelCallStmt for template instantiations
+    // since it was already created by template instantiator.
+    if (Body && !SKEPAttr->isInvalidAttr()) {
       StmtResult SR;
-      if (FD->isTemplated())
+      if (FD->isTemplated()) {
         SR = SYCL().BuildUnresolvedSYCLKernelEntryPointStmt(
-            BodyCompound, getCurFunction()->SYCLKernelLaunchIdExpr);
-      else
+            cast<CompoundStmt>(Body), getCurFunction()->SYCLKernelLaunchIdExpr);
+      } else if (FD->isTemplateInstantiation()) {
+        assert(isa<SYCLKernelCallStmt>(Body));
+        SR = Body;
+      } else {
         SR = SYCL().BuildSYCLKernelCallStmt(
-            FD, BodyCompound, getCurFunction()->SYCLKernelLaunchIdExpr);
+            FD, cast<CompoundStmt>(Body),
+            getCurFunction()->SYCLKernelLaunchIdExpr);
+      }
       if (SR.isInvalid())
         return nullptr;
       Body = SR.get();
