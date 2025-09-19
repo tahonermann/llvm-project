@@ -99,6 +99,58 @@ public:
   }
 };
 
+// UnresolvedSYCLKernelCallStmt represents a SYCL kernel entry point
+// function for a kernel that has not been instantiated yet. This Stmt should be
+// transformed to a SYCLKernelCallStmt once the kernel and its name is known.
+class UnresolvedSYCLKernelCallStmt : public Stmt {
+  friend class ASTStmtReader;
+  Stmt *OriginalStmt = nullptr;
+  // KernelLaunchIdExpr stores an UnresolvedLookupExpr or UnresolvedMemberExpr
+  // corresponding to the SYCL kernel launch function for which a call
+  // will be synthesized during template instantiation.
+  Expr *KernelLaunchIdExpr = nullptr;
+  UnresolvedSYCLKernelCallStmt(CompoundStmt *CS, Expr *IdExpr)
+      : Stmt(UnresolvedSYCLKernelCallStmtClass), OriginalStmt(CS),
+        KernelLaunchIdExpr(IdExpr) {}
+
+  void setKernelLaunchIdExpr(Expr *IdExpr) { KernelLaunchIdExpr = IdExpr; }
+  void setOriginalStmt(CompoundStmt *CS) { OriginalStmt = CS; }
+
+public:
+  static UnresolvedSYCLKernelCallStmt *
+  Create(const ASTContext &C, CompoundStmt *CS, Expr *IdExpr) {
+    return new (C) UnresolvedSYCLKernelCallStmt(CS, IdExpr);
+  }
+
+  static UnresolvedSYCLKernelCallStmt *CreateEmpty(const ASTContext &C) {
+    return new (C) UnresolvedSYCLKernelCallStmt(nullptr, nullptr);
+  }
+
+  Expr *getKernelLaunchIdExpr() const { return KernelLaunchIdExpr; }
+  CompoundStmt *getOriginalStmt() { return cast<CompoundStmt>(OriginalStmt); }
+  const CompoundStmt *getOriginalStmt() const {
+    return cast<CompoundStmt>(OriginalStmt);
+  }
+
+  SourceLocation getBeginLoc() const LLVM_READONLY {
+    return getOriginalStmt()->getBeginLoc();
+  }
+
+  SourceLocation getEndLoc() const LLVM_READONLY {
+    return getOriginalStmt()->getEndLoc();
+  }
+  static bool classof(const Stmt *T) {
+    return T->getStmtClass() == UnresolvedSYCLKernelCallStmtClass;
+  }
+  child_range children() {
+    return child_range(&OriginalStmt, &OriginalStmt + 1);
+  }
+
+  const_child_range children() const {
+    return const_child_range(&OriginalStmt, &OriginalStmt + 1);
+  }
+};
+
 } // end namespace clang
 
 #endif // LLVM_CLANG_AST_STMTSYCL_H
