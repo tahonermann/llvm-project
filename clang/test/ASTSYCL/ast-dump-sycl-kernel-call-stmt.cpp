@@ -65,7 +65,7 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep2 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | |-UnresolvedSYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | | |   `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
@@ -120,7 +120,7 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | |-TemplateTypeParmDecl {{.*}} KT
 // CHECK-NEXT: | |-FunctionDecl {{.*}} skep3 'void (KT)'
 // CHECK-NEXT: | | |-ParmVarDecl {{.*}} k 'KT'
-// CHECK-NEXT: | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | |-UnresolvedSYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | | |   `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | |     `-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'
@@ -394,7 +394,7 @@ void foo() {
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced k 'KT'
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced a 'int'
 // CHECK-NEXT: | | | |-ParmVarDecl {{.*}} referenced b 'int'
-// CHECK-NEXT: | | | |-UnresolvedSYCLKernelEntryPointStmt {{.*}}
+// CHECK-NEXT: | | | |-UnresolvedSYCLKernelCallStmt {{.*}}
 // CHECK-NEXT: | | | | `-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | |   `-CallExpr {{.*}} '<dependent type>'
 // CHECK-NEXT: | | | |     |-DeclRefExpr {{.*}} 'KT' lvalue ParmVar {{.*}} 'k' 'KT'

@@ -593,8 +593,8 @@ void ASTStmtReader::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
   E->setTypeSourceInfo(Record.readTypeSourceInfo());
 }
 
-void ASTStmtReader::VisitUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *S) {
+void ASTStmtReader::VisitUnresolvedSYCLKernelCallStmt(
+    UnresolvedSYCLKernelCallStmt *S) {
   VisitStmt(S);
 
   S->setOriginalStmt(cast<CompoundStmt>(Record.readSubStmt()));
@@ -3171,8 +3171,8 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       S = SYCLUniqueStableNameExpr::CreateEmpty(Context);
       break;
 
-    case STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT:
-      S = UnresolvedSYCLKernelEntryPointStmt::CreateEmpty(Context);
+    case STMT_UNRESOLVED_SYCL_KERNEL_CALL:
+      S = UnresolvedSYCLKernelCallStmt::CreateEmpty(Context);
       break;
 
     case EXPR_OPENACC_ASTERISK_SIZE:

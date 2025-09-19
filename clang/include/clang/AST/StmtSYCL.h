@@ -99,31 +99,31 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelEntryPointStmt represents a SYCL kernel entry point
+// UnresolvedSYCLKernelCallStmt represents a SYCL kernel entry point
 // function for a kernel that has not been instantiated yet. This Stmt should be
 // transformed to a SYCLKernelCallStmt once the kernel and its name is known.
-class UnresolvedSYCLKernelEntryPointStmt : public Stmt {
+class UnresolvedSYCLKernelCallStmt : public Stmt {
   friend class ASTStmtReader;
   Stmt *OriginalStmt = nullptr;
   // KernelLaunchIdExpr stores an UnresolvedLookupExpr or UnresolvedMemberExpr
   // corresponding to the SYCL kernel launch function for which a call
   // will be synthesized during template instantiation.
   Expr *KernelLaunchIdExpr = nullptr;
-  UnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS, Expr *IdExpr)
-      : Stmt(UnresolvedSYCLKernelEntryPointStmtClass), OriginalStmt(CS),
+  UnresolvedSYCLKernelCallStmt(CompoundStmt *CS, Expr *IdExpr)
+      : Stmt(UnresolvedSYCLKernelCallStmtClass), OriginalStmt(CS),
         KernelLaunchIdExpr(IdExpr) {}
 
   void setKernelLaunchIdExpr(Expr *IdExpr) { KernelLaunchIdExpr = IdExpr; }
   void setOriginalStmt(CompoundStmt *CS) { OriginalStmt = CS; }
 
 public:
-  static UnresolvedSYCLKernelEntryPointStmt *
+  static UnresolvedSYCLKernelCallStmt *
   Create(const ASTContext &C, CompoundStmt *CS, Expr *IdExpr) {
-    return new (C) UnresolvedSYCLKernelEntryPointStmt(CS, IdExpr);
+    return new (C) UnresolvedSYCLKernelCallStmt(CS, IdExpr);
   }
 
-  static UnresolvedSYCLKernelEntryPointStmt *CreateEmpty(const ASTContext &C) {
-    return new (C) UnresolvedSYCLKernelEntryPointStmt(nullptr, nullptr);
+  static UnresolvedSYCLKernelCallStmt *CreateEmpty(const ASTContext &C) {
+    return new (C) UnresolvedSYCLKernelCallStmt(nullptr, nullptr);
   }
 
   Expr *getKernelLaunchIdExpr() const { return KernelLaunchIdExpr; }
@@ -140,7 +140,7 @@ public:
     return getOriginalStmt()->getEndLoc();
   }
   static bool classof(const Stmt *T) {
-    return T->getStmtClass() == UnresolvedSYCLKernelEntryPointStmtClass;
+    return T->getStmtClass() == UnresolvedSYCLKernelCallStmtClass;
   }
   child_range children() {
     return child_range(&OriginalStmt, &OriginalStmt + 1);

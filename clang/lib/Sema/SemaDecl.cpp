@@ -16386,7 +16386,7 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body, bool IsInstantiation,
     if (Body && !SKEPAttr->isInvalidAttr()) {
       StmtResult SR;
       if (FD->isTemplated()) {
-        SR = SYCL().BuildUnresolvedSYCLKernelEntryPointStmt(
+        SR = SYCL().BuildUnresolvedSYCLKernelCallStmt(
             cast<CompoundStmt>(Body), getCurFunction()->SYCLKernelLaunchIdExpr);
       } else if (FD->isTemplateInstantiation()) {
         assert(isa<SYCLKernelCallStmt>(Body));

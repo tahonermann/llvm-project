@@ -455,9 +455,9 @@ ExprResult SemaSYCL::BuildSYCLKernelLaunchIdExpr(FunctionDecl *FD,
   return IdExpr;
 }
 
-StmtResult SemaSYCL::BuildUnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS,
+StmtResult SemaSYCL::BuildUnresolvedSYCLKernelCallStmt(CompoundStmt *CS,
                                                              Expr *IdExpr) {
-  return UnresolvedSYCLKernelEntryPointStmt::Create(SemaRef.getASTContext(), CS,
+  return UnresolvedSYCLKernelCallStmt::Create(SemaRef.getASTContext(), CS,
                                                     IdExpr);
 }
 

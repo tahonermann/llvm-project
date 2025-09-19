@@ -1428,8 +1428,8 @@ void StmtPrinter::VisitSYCLUniqueStableNameExpr(
   OS << ")";
 }
 
-void StmtPrinter::VisitUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *Node) {
+void StmtPrinter::VisitUnresolvedSYCLKernelCallStmt(
+    UnresolvedSYCLKernelCallStmt *Node) {
   PrintStmt(Node->getOriginalStmt());
 }
 

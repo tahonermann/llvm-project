@@ -69,7 +69,7 @@ public:
   StmtResult BuildSYCLKernelCallStmt(FunctionDecl *FD, CompoundStmt *Body,
                                      Expr *LaunchIdExpr);
   ExprResult BuildSYCLKernelLaunchIdExpr(FunctionDecl *FD, QualType KNT);
-  StmtResult BuildUnresolvedSYCLKernelEntryPointStmt(CompoundStmt *CS,
+  StmtResult BuildUnresolvedSYCLKernelCallStmt(CompoundStmt *CS,
                                                      Expr *IdExpr);
 };
 

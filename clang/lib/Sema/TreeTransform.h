@@ -12934,8 +12934,8 @@ ExprResult TreeTransform<Derived>::TransformSYCLUniqueStableNameExpr(
 }
 
 template <typename Derived>
-StmtResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *S) {
+StmtResult TreeTransform<Derived>::TransformUnresolvedSYCLKernelCallStmt(
+    UnresolvedSYCLKernelCallStmt *S) {
   ExprResult IdExpr = getDerived().TransformExpr(S->getKernelLaunchIdExpr());
 
   if (IdExpr.isInvalid())

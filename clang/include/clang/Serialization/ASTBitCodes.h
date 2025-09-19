@@ -1616,7 +1616,7 @@ enum StmtCode {
   STMT_SYCLKERNELCALL,
 
   /// A SYCLKernelCallStmt record.
-  STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT,
+  STMT_UNRESOLVED_SYCL_KERNEL_CALL,
 
   /// A GCC-style AsmStmt record.
   STMT_GCCASM,

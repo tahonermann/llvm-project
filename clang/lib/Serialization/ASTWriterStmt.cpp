@@ -670,14 +670,14 @@ void ASTStmtWriter::VisitSYCLUniqueStableNameExpr(SYCLUniqueStableNameExpr *E) {
   Code = serialization::EXPR_SYCL_UNIQUE_STABLE_NAME;
 }
 
-void ASTStmtWriter::VisitUnresolvedSYCLKernelEntryPointStmt(
-    UnresolvedSYCLKernelEntryPointStmt *S) {
+void ASTStmtWriter::VisitUnresolvedSYCLKernelCallStmt(
+    UnresolvedSYCLKernelCallStmt *S) {
   VisitStmt(S);
 
   Record.AddStmt(S->getOriginalStmt());
   Record.AddStmt(S->getKernelLaunchIdExpr());
 
-  Code = serialization::STMT_UNRESOLVED_SYCL_KERNEL_ENTRY_POINT;
+  Code = serialization::STMT_UNRESOLVED_SYCL_KERNEL_CALL;
 }
 
 void ASTStmtWriter::VisitPredefinedExpr(PredefinedExpr *E) {
