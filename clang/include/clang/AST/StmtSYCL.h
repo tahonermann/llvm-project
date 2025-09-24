@@ -99,9 +99,10 @@ public:
   }
 };
 
-// UnresolvedSYCLKernelCallStmt represents a SYCL kernel entry point
-// function for a kernel that has not been instantiated yet. This Stmt should be
-// transformed to a SYCLKernelCallStmt once the kernel and its name is known.
+// UnresolvedSYCLKernelCallStmt represents an invocation of a SYCL kernel in
+// a dependent context for which lookup of the sycl_enqueue_kernel_launch
+// identifier cannot be performed. These statements are transformed to
+// SYCLKernelCallStmt during template instantiation.
 class UnresolvedSYCLKernelCallStmt : public Stmt {
   friend class ASTStmtReader;
   Stmt *OriginalStmt = nullptr;
