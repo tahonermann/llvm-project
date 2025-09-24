@@ -399,10 +399,10 @@ ExprResult SemaSYCL::BuildSYCLKernelLaunchIdExpr(FunctionDecl *FD,
       FD->getEndLoc().isValid() ? FD->getEndLoc() : FD->getLocation();
 
   IdentifierInfo &LaunchFooName =
-      Ctx.Idents.get("sycl_enqueue_kernel_launch", tok::TokenKind::identifier);
+      Ctx.Idents.get("sycl_kernel_launch", tok::TokenKind::identifier);
 
   // Perform overload resolution for a call to an accessible (member) function
-  // template named 'sycl_enqueue_kernel_launch' "from within the definition of
+  // template named 'sycl_kernel_launch' "from within the definition of
   // FD where":
   // - The kernel name type is passed as the first template argument.
   // - Any remaining template parameters are deduced from the function

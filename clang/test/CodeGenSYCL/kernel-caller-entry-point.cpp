@@ -31,7 +31,7 @@
 // members in case skep-attributed functions are also members of the same class.
 
 template <typename KernelName, typename KernelObj>
-void sycl_enqueue_kernel_launch(const char *, KernelObj) {}
+void sycl_kernel_launch(const char *, KernelObj) {}
 
 struct single_purpose_kernel_name;
 struct single_purpose_kernel {
@@ -54,7 +54,7 @@ struct \u03b4\u03c4\u03c7; // Delta Tau Chi (δτχ)
 
 class Handler {
 template <typename KernelName, typename... Ts>
-void sycl_enqueue_kernel_launch(const char *, Ts...) {}
+void sycl_kernel_launch(const char *, Ts...) {}
 public:
 template<typename KNT, typename KT>
 [[clang::sycl_kernel_entry_point(KNT)]]
@@ -98,7 +98,7 @@ int main() {
 // CHECK-HOST-LINUX-NEXT: entry:
 // CHECK-HOST-LINUX-NEXT:   %kernelFunc = alloca %struct.single_purpose_kernel, align 1
 // CHECK-HOST-LINUX-NEXT:   %agg.tmp = alloca %struct.single_purpose_kernel, align 1
-// CHECK-HOST-LINUX-NEXT:   call void @_Z26sycl_enqueue_kernel_launchI26single_purpose_kernel_name21single_purpose_kernelEvPKcT0_(ptr noundef @.str)
+// CHECK-HOST-LINUX-NEXT:   call void @_Z18sycl_kernel_launchI26single_purpose_kernel_name21single_purpose_kernelEvPKcT0_(ptr noundef @.str)
 // CHECK-HOST-LINUX-NEXT:   ret void
 // CHECK-HOST-LINUX-NEXT: }
 //
@@ -111,7 +111,7 @@ int main() {
 // CHECK-HOST-LINUX-NEXT:   call void @llvm.memcpy.p0.p0.i64(ptr align 4 %agg.tmp, ptr align 4 %kernelFunc, i64 4, i1 false)
 // CHECK-HOST-LINUX-NEXT:   %coerce.dive1 = getelementptr inbounds nuw %class.anon, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-LINUX-NEXT:   %0 = load i32, ptr %coerce.dive1, align 4
-// CHECK-HOST-LINUX-NEXT:   call void @_Z26sycl_enqueue_kernel_launchIZ4mainEUlT_E_S1_EvPKcT0_(ptr noundef @.str.1, i32 %0)
+// CHECK-HOST-LINUX-NEXT:   call void @_Z18sycl_kernel_launchIZ4mainEUlT_E_S1_EvPKcT0_(ptr noundef @.str.1, i32 %0)
 // CHECK-HOST-LINUX-NEXT:   ret void
 // CHECK-HOST-LINUX-NEXT: }
 //
@@ -119,7 +119,7 @@ int main() {
 // CHECK-HOST-LINUX-NEXT: entry:
 // CHECK-HOST-LINUX-NEXT:   %kernelFunc = alloca %class.anon.0, align 1
 // CHECK-HOST-LINUX-NEXT:   %agg.tmp = alloca %class.anon.0, align 1
-// CHECK-HOST-LINUX-NEXT:   call void @"_Z26sycl_enqueue_kernel_launchI6\CE\B4\CF\84\CF\87Z4mainEUliE_EvPKcT0_"(ptr noundef @.str.2)
+// CHECK-HOST-LINUX-NEXT:   call void @"_Z18sycl_kernel_launchI6\CE\B4\CF\84\CF\87Z4mainEUliE_EvPKcT0_"(ptr noundef @.str.2)
 // CHECK-HOST-LINUX-NEXT:   ret void
 // CHECK-HOST-LINUX-NEXT: }
 
@@ -136,7 +136,7 @@ int main() {
 // CHECK-HOST-LINUX-NEXT:   %this1 = load ptr, ptr %this.addr, align 8
 // CHECK-HOST-LINUX-NEXT:   %0 = load i32, ptr %a.addr, align 4
 // CHECK-HOST-LINUX-NEXT:   %1 = load i32, ptr %b.addr, align 4
-// CHECK-HOST-LINUX-NEXT:   call void @_ZN7Handler26sycl_enqueue_kernel_launchIZ4mainE22notaverygoodkernelnameJZ4mainEUliiE_iiEEEvPKcDpT0_(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @.str.3, i32 noundef %0, i32 noundef %1)
+// CHECK-HOST-LINUX-NEXT:   call void @_ZN7Handler18sycl_kernel_launchIZ4mainE22notaverygoodkernelnameJZ4mainEUliiE_iiEEEvPKcDpT0_(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @.str.3, i32 noundef %0, i32 noundef %1)
 // CHECK-HOST-LINUX-NEXT:   ret void
 // CHECK-HOST-LINUX-NEXT: }
 
@@ -148,7 +148,7 @@ int main() {
 // CHECK-HOST-WINDOWS-NEXT:   store i8 %kernelFunc.coerce, ptr %coerce.dive, align 1
 // CHECK-HOST-WINDOWS-NEXT:   %coerce.dive1 = getelementptr inbounds nuw %struct.single_purpose_kernel, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-WINDOWS-NEXT:   %0 = load i8, ptr %coerce.dive1, align 1
-// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@Usingle_purpose_kernel_name@@Usingle_purpose_kernel@@@@YAXPEBDUsingle_purpose_kernel@@@Z"(ptr noundef @"??_C@_0CB@KFIJOMLB@_ZTS26single_purpose_kernel_name@", i8 %0)
+// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_kernel_launch@Usingle_purpose_kernel_name@@Usingle_purpose_kernel@@@@YAXPEBDUsingle_purpose_kernel@@@Z"(ptr noundef @"??_C@_0CB@KFIJOMLB@_ZTS26single_purpose_kernel_name@", i8 %0)
 // CHECK-HOST-WINDOWS-NEXT:   ret void
 // CHECK-HOST-WINDOWS-NEXT: }
 //
@@ -161,7 +161,7 @@ int main() {
 // CHECK-HOST-WINDOWS-NEXT:   call void @llvm.memcpy.p0.p0.i64(ptr align 4 %agg.tmp, ptr align 4 %kernelFunc, i64 4, i1 false)
 // CHECK-HOST-WINDOWS-NEXT:   %coerce.dive1 = getelementptr inbounds nuw %class.anon, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-WINDOWS-NEXT:   %0 = load i32, ptr %coerce.dive1, align 4
-// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@V<lambda_1>@?0??main@@9@V1?0??2@9@@@YAXPEBDV<lambda_1>@?0??main@@9@@Z"(ptr noundef @"??_C@_0BC@NHCDOLAA@_ZTSZ4mainEUlT_E_?$AA@", i32 %0)
+// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_kernel_launch@V<lambda_1>@?0??main@@9@V1?0??2@9@@@YAXPEBDV<lambda_1>@?0??main@@9@@Z"(ptr noundef @"??_C@_0BC@NHCDOLAA@_ZTSZ4mainEUlT_E_?$AA@", i32 %0)
 //
 // CHECK-HOST-WINDOWS-NEXT:   ret void
 // CHECK-HOST-WINDOWS-NEXT: }
@@ -174,7 +174,7 @@ int main() {
 // CHECK-HOST-WINDOWS-NEXT:   store i8 %kernelFunc.coerce, ptr %coerce.dive, align 1
 // CHECK-HOST-WINDOWS-NEXT:   %coerce.dive1 = getelementptr inbounds nuw %class.anon.0, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-WINDOWS-NEXT:   %0 = load i8, ptr %coerce.dive1, align 1
-// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@U\CE\B4\CF\84\CF\87@@V<lambda_2>@?0??main@@9@@@YAXPEBDV<lambda_2>@?0??main@@9@@Z"(ptr noundef @"??_C@_0M@BCGAEMBE@_ZTS6?N?$LE?O?$IE?O?$IH?$AA@", i8 %0)
+// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_kernel_launch@U\CE\B4\CF\84\CF\87@@V<lambda_2>@?0??main@@9@@@YAXPEBDV<lambda_2>@?0??main@@9@@Z"(ptr noundef @"??_C@_0M@BCGAEMBE@_ZTS6?N?$LE?O?$IE?O?$IH?$AA@", i8 %0)
 // CHECK-HOST-WINDOWS-NEXT:   ret void
 // CHECK-HOST-WINDOWS-NEXT: }
 
@@ -195,7 +195,7 @@ int main() {
 // CHECK-HOST-WINDOWS-NEXT:   %1 = load i32, ptr %a.addr, align 4
 // CHECK-HOST-WINDOWS-NEXT:   %coerce.dive2 = getelementptr inbounds nuw %class.anon.1, ptr %agg.tmp, i32 0, i32 0
 // CHECK-HOST-WINDOWS-NEXT:   %2 = load i8, ptr %coerce.dive2, align 1
-// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_enqueue_kernel_launch@Vnotaverygoodkernelname@?1??main@@9@V<lambda_3>@?0??2@9@HH@Handler@@AEAAXPEBDV<lambda_3>@?0??main@@9@HH@Z"(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @"??_C@_0CE@NJIGCEIA@_ZTSZ4mainE22notaverygoodkerneln@", i8 %2, i32 noundef %1, i32 noundef %0)
+// CHECK-HOST-WINDOWS-NEXT:   call void @"??$sycl_kernel_launch@Vnotaverygoodkernelname@?1??main@@9@V<lambda_3>@?0??2@9@HH@Handler@@AEAAXPEBDV<lambda_3>@?0??main@@9@HH@Z"(ptr noundef nonnull align 1 dereferenceable(1) %this1, ptr noundef @"??_C@_0CE@NJIGCEIA@_ZTSZ4mainE22notaverygoodkerneln@", i8 %2, i32 noundef %1, i32 noundef %0)
 // CHECK-HOST-WINDOWS-NEXT:   ret void
 // CHECK-HOST-WINDOWS-NEXT: }
 

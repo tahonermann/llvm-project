@@ -7,33 +7,33 @@ template<int, int = 0> struct KN;
 
 [[clang::sycl_kernel_entry_point(KN<1>)]]
 void nolauncher() {} 
-// host-error@-1 {{unable to find suitable 'sycl_enqueue_kernel_launch' function for host code synthesis}}
-// device-warning@-2 {{unable to find suitable 'sycl_enqueue_kernel_launch' function for host code synthesis}}
-// expected-note@-3 {{define 'sycl_enqueue_kernel_launch' function template to fix}}
+// host-error@-1 {{unable to find suitable 'sycl_kernel_launch' function for host code synthesis}}
+// device-warning@-2 {{unable to find suitable 'sycl_kernel_launch' function for host code synthesis}}
+// expected-note@-3 {{define 'sycl_kernel_launch' function template to fix}}
 
-void sycl_enqueue_kernel_launch(const char *, int arg);
+void sycl_kernel_launch(const char *, int arg);
 // expected-note@-1 {{declared as a non-template here}}
 
 [[clang::sycl_kernel_entry_point(KN<2>)]]
 void nontemplatel() {}
-// host-error@-1 {{unable to find suitable 'sycl_enqueue_kernel_launch' function for host code synthesis}}
-// device-warning@-2 {{unable to find suitable 'sycl_enqueue_kernel_launch' function for host code synthesis}}
-// expected-note@-3 {{define 'sycl_enqueue_kernel_launch' function template to fix}}
-// expected-error@-4 {{'sycl_enqueue_kernel_launch' following the 'template' keyword does not refer to a template}}
+// host-error@-1 {{unable to find suitable 'sycl_kernel_launch' function for host code synthesis}}
+// device-warning@-2 {{unable to find suitable 'sycl_kernel_launch' function for host code synthesis}}
+// expected-note@-3 {{define 'sycl_kernel_launch' function template to fix}}
+// expected-error@-4 {{'sycl_kernel_launch' following the 'template' keyword does not refer to a template}}
 
 template <typename KernName>
-void sycl_enqueue_kernel_launch(const char *, int arg);
+void sycl_kernel_launch(const char *, int arg);
 // expected-note@-1 {{candidate function template not viable: requires 2 arguments, but 1 was provided}}
 // expected-note@-2 2{{candidate function template not viable: no known conversion from 'Kern' to 'int' for 2nd argument}}
 
 [[clang::sycl_kernel_entry_point(KN<3>)]]
 void notenoughargs() {}
-// expected-error@-1 {{no matching function for call to 'sycl_enqueue_kernel_launch'}}
+// expected-error@-1 {{no matching function for call to 'sycl_kernel_launch'}}
 // FIXME: Should this also say "no suitable function for host code synthesis"?
 
 
 template <typename KernName>
-void sycl_enqueue_kernel_launch(const char *, bool arg = 1);
+void sycl_kernel_launch(const char *, bool arg = 1);
 // expected-note@-1 2{{candidate function template not viable: no known conversion from 'Kern' to 'bool' for 2nd argument}}
 
 [[clang::sycl_kernel_entry_point(KN<4>)]]
@@ -41,7 +41,7 @@ void enoughargs() {}
 
 namespace boop {
 template <typename KernName, typename KernelObj>
-void sycl_enqueue_kernel_launch(const char *, KernelObj);
+void sycl_kernel_launch(const char *, KernelObj);
 
 template <typename KernName, typename KernelObj>
 [[clang::sycl_kernel_entry_point(KernName)]]
@@ -55,7 +55,7 @@ template <typename KernName, typename KernelObj>
 void idontboop(KernelObj Kernel) {
   Kernel();
 }
-// expected-error@-3 {{no matching function for call to 'sycl_enqueue_kernel_launch'}}
+// expected-error@-3 {{no matching function for call to 'sycl_kernel_launch'}}
 
 struct Kern {
   int a;
@@ -75,10 +75,10 @@ void foo() {
 class MaybeHandler {
 
 template <typename KernName>
-void sycl_enqueue_kernel_launch(const char *);
+void sycl_kernel_launch(const char *);
 
 template <typename KernName, typename... Tys>
-void sycl_enqueue_kernel_launch(const char *, Tys ...Args);
+void sycl_kernel_launch(const char *, Tys ...Args);
 
 public:
 
@@ -92,7 +92,7 @@ void entry(KernelObj Kernel) {
 class MaybeHandler2 {
 
 template <typename KernName, typename... Tys>
-static void sycl_enqueue_kernel_launch(const char *, Tys ...Args);
+static void sycl_kernel_launch(const char *, Tys ...Args);
 
 public:
 
@@ -106,7 +106,7 @@ void entry(KernelObj Kernel) {
 class MaybeHandler3 {
 
 template <typename KernName, typename... Tys>
-static void sycl_enqueue_kernel_launch(const char *, Tys ...Args);
+static void sycl_kernel_launch(const char *, Tys ...Args);
 
 public:
 
@@ -120,7 +120,7 @@ static void entry(KernelObj Kernel) {
 class MaybeHandler4 {
 
 template <typename KernName, typename... Tys>
-void sycl_enqueue_kernel_launch(const char *, Tys ...Args);
+void sycl_kernel_launch(const char *, Tys ...Args);
 
 public:
 
@@ -136,7 +136,7 @@ static void entry(KernelObj Kernel) {
 template<typename>
 struct base_handler {
   template<typename KNT, typename... Ts>
-  void sycl_enqueue_kernel_launch(const char*, Ts...) {}
+  void sycl_kernel_launch(const char*, Ts...) {}
 };
 struct derived_handler : base_handler<derived_handler> {
   template<typename KNT, typename KT>
@@ -151,7 +151,7 @@ struct derived_handler_t : base_handler<derived_handler_t<N>> {
 // explicit qualification.
   [[clang::sycl_kernel_entry_point(KNT)]]
   void entry(KT k) { k(); }
-  // expected-error@-1 {{no matching function for call to 'sycl_enqueue_kernel_launch'}}
+  // expected-error@-1 {{no matching function for call to 'sycl_kernel_launch'}}
 };
 
 template<typename KNT>
@@ -162,7 +162,7 @@ struct kernel_launcher {
 
 namespace var {
 template<typename KNT>
-kernel_launcher<KNT> sycl_enqueue_kernel_launch;
+kernel_launcher<KNT> sycl_kernel_launch;
 
 struct handler {
   template<typename KNT, typename KT>

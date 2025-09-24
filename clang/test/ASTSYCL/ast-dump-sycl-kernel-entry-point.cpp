@@ -29,7 +29,7 @@
 template<int, int=0> struct KN;
 
 template <typename KernelName, typename... Tys>
-void sycl_enqueue_kernel_launch(const char *, Tys &&...Args) {}
+void sycl_kernel_launch(const char *, Tys &&...Args) {}
 
 [[clang::sycl_kernel_entry_point(KN<1>)]]
 void skep1() {

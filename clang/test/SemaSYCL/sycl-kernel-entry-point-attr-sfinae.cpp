@@ -13,7 +13,7 @@
 // A launcher function definition required for host code synthesis to silence
 // complains.
 template <typename KernelName, typename... Tys>
-void sycl_enqueue_kernel_launch(const char *, Tys &&...Args) {}
+void sycl_kernel_launch(const char *, Tys &&...Args) {}
 
 // FIXME: C++23 [temp.expl.spec]p12 states:
 // FIXME:   ... Similarly, attributes appearing in the declaration of a template

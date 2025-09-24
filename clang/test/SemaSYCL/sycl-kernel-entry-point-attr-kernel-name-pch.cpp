@@ -18,7 +18,7 @@ template<int> struct KN;
 // A launcher function definition required for host code synthesis to silence
 // complains.
 template <typename KernelName, typename... Tys>
-void sycl_enqueue_kernel_launch(const char *, Tys &&...Args) {}
+void sycl_kernel_launch(const char *, Tys &&...Args) {}
 
 [[clang::sycl_kernel_entry_point(KN<1>)]]
 void pch_test1() {} // << expected previous declaration note here.

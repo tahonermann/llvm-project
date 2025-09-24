@@ -35,7 +35,7 @@ template<int> struct K {
 };
 
 template <typename KernelName, typename... Ts>
-void sycl_enqueue_kernel_launch(const char *, Ts...) {}
+void sycl_kernel_launch(const char *, Ts...) {}
 
 [[clang::sycl_kernel_entry_point(KN<1>)]]
 void skep1() {
@@ -46,7 +46,7 @@ void skep1() {
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *)' lvalue Function {{.*}} 'sycl_kernel_launch' {{.*}}
 // CHECK-NEXT: | | |   `-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |       `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi1EE"
 // CHECK-NEXT: | | `-OutlinedFunctionDecl {{.*}}
@@ -89,7 +89,7 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: |   | |-CompoundStmt {{.*}}
 // CHECK-NEXT: |   | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: |   | |   |-ImplicitCastExpr {{.*}} <FunctionToPointerDecay>
-// CHECK-NEXT: |   | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<2>)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' {{.*}}
+// CHECK-NEXT: |   | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<2>)' lvalue Function {{.*}} 'sycl_kernel_launch' {{.*}}
 // CHECK-NEXT: |   | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: |   | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi2EE"
 // CHECK-NEXT: |   | |   `-CXXConstructExpr {{.*}} 'K<2>' 'void (const K<2> &) noexcept'
@@ -145,7 +145,7 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, K<3>)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<3>)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, K<3>)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<3>)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, K<3>)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi3EE"
 // CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'K<3>' 'void (const K<3> &) noexcept'
@@ -183,7 +183,7 @@ void skep4(K<4> k, int p1, int p2) {
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, K<4>, int, int)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<4>, int, int)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, K<4>, int, int)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, K<4>, int, int)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, K<4>, int, int)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi4EE"
 // CHECK-NEXT: | | |   |-CXXConstructExpr {{.*}} 'K<4>' 'void (const K<4> &) noexcept'
@@ -226,7 +226,7 @@ void skep5(int unused1, K<5> k, int unused2, int p, int unused3) {
 // CHECK:      | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, int, K<5>, int, int, int)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, int, K<5>, int, int, int)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, int, K<5>, int, int, int)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, int, K<5>, int, int, int)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, int, K<5>, int, int, int)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi5EE"
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'int' <LValueToRValue>
@@ -288,7 +288,7 @@ void skep6(const S6 &k) {
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S6)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S6)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S6)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S6)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, S6)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi6EE"
 // CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S6' 'void (const S6 &) noexcept'
@@ -329,7 +329,7 @@ void skep7(S7 k) {
 // CHECK-NEXT: | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S7)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S7)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S7)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S7)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, S7)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi7EE"
 // CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S7' 'void (const S7 &) noexcept'
@@ -363,7 +363,7 @@ void skep8(S8 k) {
 // CHECK:      | | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | | | `-CallExpr {{.*}} 'void'
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'void (*)(const char *, S8)' <FunctionToPointerDecay>
-// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S8)' lvalue Function {{.*}} 'sycl_enqueue_kernel_launch' 'void (const char *, S8)' {{.*}}
+// CHECK-NEXT: | | |   | `-DeclRefExpr {{.*}} 'void (const char *, S8)' lvalue Function {{.*}} 'sycl_kernel_launch' 'void (const char *, S8)' {{.*}}
 // CHECK-NEXT: | | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | | |   | `-StringLiteral {{.*}} 'const char[12]' lvalue "_ZTS6\316\264\317\204\317\207"
 // CHECK-NEXT: | | |   `-CXXConstructExpr {{.*}} 'S8' 'void (const S8 &) noexcept'
@@ -374,7 +374,7 @@ void skep8(S8 k) {
 
 class Handler {
 template <typename KernelName, typename... Ts>
-void sycl_enqueue_kernel_launch(const char *, Ts...) {}
+void sycl_kernel_launch(const char *, Ts...) {}
 public:
 template<typename KNT, typename KT>
 [[clang::sycl_kernel_entry_point(KNT)]]
@@ -424,7 +424,7 @@ void foo() {
 // CHECK-NEXT: | |   | |     `-DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'b' 'int'
 // CHECK-NEXT: | |   | |-CompoundStmt {{.*}}
 // CHECK-NEXT: | |   | | `-CXXMemberCallExpr {{.*}} 'void'
-// CHECK-NEXT: | |   | |   |-MemberExpr {{.*}} '<bound member function type>' ->sycl_enqueue_kernel_launch {{.*}}
+// CHECK-NEXT: | |   | |   |-MemberExpr {{.*}} '<bound member function type>' ->sycl_kernel_launch {{.*}}
 // CHECK-NEXT: | |   | |   | `-CXXThisExpr {{.*}} 'Handler *' implicit this
 // CHECK-NEXT: | |   | |   |-ImplicitCastExpr {{.*}} 'const char *' <ArrayToPointerDecay>
 // CHECK-NEXT: | |   | |   | `-StringLiteral {{.*}} 'const char[14]' lvalue "_ZTS2KNILi9EE"
