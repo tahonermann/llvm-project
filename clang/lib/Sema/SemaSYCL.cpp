@@ -480,11 +480,7 @@ void PrepareKernelArgumentsForKernelLaunch(SmallVectorImpl<Expr *> &Args,
   Expr *KernelNameExpr =
       StringLiteral::Create(Ctx, KernelName, StringLiteralKind::Ordinary,
                             /*Pascal*/ false, KernelNameArrayTy, Loc);
-  QualType FuncParamTy = Ctx.getPointerType(Ctx.CharTy.withConst());
-  ImplicitCastExpr *KernelNameArrayDecayExpr = new (Ctx) ImplicitCastExpr(
-      ImplicitCastExpr::OnStack, FuncParamTy, CK_ArrayToPointerDecay,
-      KernelNameExpr, VK_PRValue, FPOptionsOverride());
-  Args.push_back(KernelNameArrayDecayExpr);
+  Args.push_back(KernelNameExpr);
 
   // Right now we simply forward the arguments of the skep-attributed function.
   // With decomposition present there can be another logic.
