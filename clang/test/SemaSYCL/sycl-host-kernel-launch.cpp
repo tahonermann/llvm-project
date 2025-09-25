@@ -1,4 +1,5 @@
 // RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++17 -fsyntax-only -fsycl-is-host -fcxx-exceptions -verify=host,expected %s
+// RUN: %clang_cc1 -triple x86_64-windows-msvc -std=c++17 -fsyntax-only -fsycl-is-host -fcxx-exceptions -verify=host,expected %s
 // RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++17 -fsyntax-only -fsycl-is-device -fcxx-exceptions -verify=device,expected %s
 // RUN: %clang_cc1 -triple x86_64-linux-gnu -std=c++20 -fsyntax-only -fsycl-is-host -fcxx-exceptions -verify=host,expected %s
 
