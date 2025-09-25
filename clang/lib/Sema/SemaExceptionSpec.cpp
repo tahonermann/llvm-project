@@ -1261,6 +1261,9 @@ CanThrowResult Sema::canThrow(const Stmt *S) {
     return canSubStmtsThrow(*this, SKCS->getKernelLaunchStmt());
   }
 
+  case Stmt::UnresolvedSYCLKernelCallStmtClass:
+    return CT_Dependent;
+
     // ObjC message sends are like function calls, but never have exception
     // specs.
   case Expr::ObjCMessageExprClass:
