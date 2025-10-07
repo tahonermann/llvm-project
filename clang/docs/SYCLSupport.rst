@@ -142,8 +142,8 @@ and
 * Types that are explicitly device copyable because, for a type ``T``,
   ``sycl::is_device_copyable_v<T>`` is true.
   Such types may be bit-copied to the device.
-* Types that are device copyable by fiat (``sycl::accessor``, ``sycl::local_accessor``,
-  ``sycl::stream``, ``sycl::reducer``, etc...).
+* Types that are valid kernel arguments by fiat (``sycl::accessor``,
+  ``sycl::local_accessor``, ``sycl::stream``, ``sycl::reducer``, etc...).
   Such types may require special handling.
 
 Support for the third category of types is provided through a *decomposition protocol*
@@ -152,16 +152,16 @@ The decomposition protocol facilitates transformation of an object of such a typ
 into a sequence of objects, each of which has a type that satisfies one of the
 first two type categories.
 
-A type that opts into the decomposition protocol may be a type that also satisfies
-the C++ definition of a trivially copyable type and may therefore appear as a
+Types that opt in to the decomposition protocol, or directly or indirectly have a
 subobject
 (`[intro.object]p2 <https://eel.is/c++draft/intro.object#2>`__)
-type of another type that also satisfies the trivially copyable type requirements.
-
-Types that opt in to the decomposition protocol, or directly or indirectly have a
-subobject type that opts in to the decomposition protocol, *require decomposition*.
+type that opts in to the decomposition protocol, *require decomposition*.
 A kernel argument of such a type is transformed to a sequence of arguments that
 are substituted for the original argument.
+
+Note that a type that opts into the decomposition protocol may be a device copyable
+type (e.g., a type that satisfies the C++ definition of a trivially copyable type).
+Such types still require decomposition.
 
 Given a call to a function declared with the ``[[clang::sycl_kernel_entry_point]]``
 attribute, each argument ``A`` of parameter type ``P`` is processed as follows.
@@ -200,24 +200,31 @@ caller function).
    in the tuple-like type for a call to ``sycl_deconstruct()`` on ``A``.
    Each element with a type that requires decomposition is recursively processed
    and replaced by its sequence of decomposed objects.
+   The remaining types shall be device copyable types.
 
 #. Otherwise, if ``P`` is a non-union aggregate type
    (`[dcl.init.aggr]p1 <https://eel.is/c++draft/dcl.init.aggr#1>`__)
    or a lambda closure type
    (`[expr.prim.lambda.closure]p1 <https://eel.is/c++draft/expr.prim.lambda.closure#1>`__),
    its subobject types determine whether ``P`` requires decomposition.
-   If any subobject type requires decomposition, then ``P`` requires decomposition.
+   If any subobject type requires decomposition as defined above, then ``P`` requires
+   decomposition.
    Each subobject of ``A`` that has a type that requires decomposition is recursively
-   processed and their replacement objects are sequenced after ``A``.
-   If all subobject types require decomposition, then ``A`` is removed from the kernel
+   processed and its replacement objects are sequenced after ``A`` in the kernel
    argument list.
-   Otherwise, the remaining subobjects of ``A`` that do not require decomposition may
-   be passed as individual kernel arguments in place of ``A`` (the choice to pass ``A``
-   with the storage for its decomposed subobjects bit-copied and reinitialized in the
-   offload entry point function or to pass each remaining subobject as a distinct
-   argument in place of ``A`` is unspecified; the intent is to allow the most efficient
-   choice to be made based on the cost of passing ``A`` vs the cost of passing
-   additional arguments).
+   All subobjects that do not require decomposition shall be device copyable.
+   If all subobject types require decomposition and ``P`` does not declare any bit-fields,
+   ``A`` is removed from the kernel argument list (note that bit-fields are not
+   subobjects).
+   Otherwise (``P`` doesn't require decomposition, has at least one subobject type that
+   does not require decomposition, or declares bit-fields), ``A`` may be passed as a
+   bit-copyable argument or its non-decomposed subobjects and bit-fields may be passed
+   as a sequence of distinct arguments in its place.
+   (the choice to pass ``A`` with the storage for its decomposed subobjects bit-copied
+   and reinitialized in the offload entry point function or to pass its non-decomposed
+   members as distinct argument in place of ``A`` is unspecified;
+   the intent is to allow the most efficient choice to be made based on the cost of
+   passing ``A`` vs the cost of passing additional arguments).
 
 #. Otherwise, if ``P`` is a trivially copyable non-class type, then ``A`` is passed as
    a bit-copyable argument.
@@ -270,9 +277,13 @@ reconstructed as a local variable from the parameters that correspond to the
 decomposed sequence of arguments.
 Within the variable initialization, parameters are referenced as xvalues and
 may be move-constructed from.
-Destructors are invoked as usual for the parameters of the synthesized offload
-kernel entry point and the local variables used to reconstruct the original
-kernel arguments.
+Destructors are invoked for local variables used to reconstruct original
+kernel arguments and may be invoked for the parameters of the synthesized offload
+kernel entry point function (whether such destructors are called depends on the
+calling convention used for the offload entry point function).
+Per
+`section 3.13.1, "Device copyable" <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec::device.copyable>`__,
+it is unspecified whether destructors are invoked for these cases.
 
 Consider the following example.
 
@@ -389,8 +400,8 @@ Again, hopefully the intent is clear.
        }
      };
      k();
-     // Destructors runs for 'k', 'k.st', 'k.a.sta[0]', and 'k.a.sta[1]'.
-     // Destructors run for 'st2', 'asta1_2', and 'asta2_2'.
+     // Destructors run for 'k', 'k.st', 'k.a.sta[0]', and 'k.a.sta[1]'.
+     // Destructors may run for 'st2', 'asta1_2', and 'asta2_2'.
    } 
 
 The ``sycl_kernel_launch()`` function is then responsible for enqueuing the kernel
