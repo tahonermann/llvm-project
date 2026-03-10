@@ -220,6 +220,35 @@ namespace ok13 {
   template void skep<KN<13>>(KT<13>, nested::S13);
 }
 
+// sycl_kernel_launch may be a host-only function; don't diagnose the
+// synthesized calls to it during device compilation since it isn't
+// actually called by the generated offload kernel entry point..
+namespace ok14 {
+  // FIXME: Is there some other way to designate a host-only function?
+  // FIXME: Parsing of type names in attribute arguments doesn't handle
+  // FIXME: template arguments!
+  using distinct_kn = KN<14,1>;
+#ifdef __SYCL_DEVICE_ONLY__
+  // expected-note@+3 {{attribute is here}}
+#endif
+  template<typename KN, typename... Ts>
+  [[clang::sycl_kernel_entry_point(distinct_kn)]]
+  void sycl_kernel_launch(const char *, Ts...);
+#ifdef __SYCL_DEVICE_ONLY__
+  // expected-error@+6 {{function 'sycl_kernel_launch<KN<14>, KT<14>>' cannot be used in device code because it is declared with the 'clang::sycl_kernel_entry_point' attribute}}
+  // expected-note@+4 {{this indicates a problem with the SYCL runtime header files; please consider reporting this to your SYCL runtime provider}}
+  // expected-note-re@+3 {{in implicit call to 'sycl_kernel_launch' with template argument 'KN<14>' and function arguments (lvalue of type 'const char[{{[0-9]*}}]', xvalue of type 'KT<14>') required here}}
+#endif
+  template<typename KN, typename KT>
+  [[clang::sycl_kernel_entry_point(KN)]]
+  void skep(KT k) {
+    k();
+  }
+#ifdef __SYCL_DEVICE_ONLY__
+  // expected-note@+2 {{in instantiation of function template specialization 'ok14::skep<KN<14>, KT<14>>' requested here}}
+#endif
+  template void skep<KN<14,0>>(KT<14>);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invalid declarations.
@@ -557,4 +586,40 @@ namespace bad18 {
   void sycl_kernel_launch(Ts...) {}
   // expected-note@+1 {{in instantiation of function template specialization 'bad18::skep<BADKN<18>, BADKT<18>>' requested here}}
   template void skep<BADKN<18>>(BADKT<18>);
+}
+
+// No matching function for call to sycl_kernel_launch object; missing const qualification.
+namespace bad19 {
+  template<typename KN>
+  struct launcher {
+    // expected-note@+2 {{candidate function template not viable: 'this' argument has type 'const launcher<BADKN<19, 0>>', but method is not marked const}}
+    template<typename... Ts>
+    void operator()(const char *, Ts...);
+  };
+  template<typename KN>
+  const launcher<KN> sycl_kernel_launch;
+  // expected-error@+5 {{no matching function for call to object of type 'const launcher<BADKN<19, 0>>'}}
+  // expected-note@+3 {{this indicates a problem with the SYCL runtime header files; please consider reporting this to your SYCL runtime provider}}
+  // expected-note-re@+2 {{in implicit call to 'sycl_kernel_launch' with template argument 'BADKN<19>' and function arguments (lvalue of type 'const char[{{[0-9]*}}]', xvalue of type 'BADKT<19>') required here}}
+  template<typename KN, typename KT>
+  [[clang::sycl_kernel_entry_point(KN)]]
+  void skep(KT k) {
+    k();
+  }
+  // expected-note@+1 {{in instantiation of function template specialization 'bad19::skep<BADKN<19>, BADKT<19>>' requested here}}
+  template void skep<BADKN<19>>(BADKT<19>);
+}
+
+// sycl_kernel_entry_point function as its own sycl_kernel_launch function.
+namespace bad20 {
+  // expected-error@+7 {{the 'clang::sycl_kernel_entry_point' kernel name argument conflicts with a previous declaration}}
+  // expected-note@+5 {{this indicates a problem with the SYCL runtime header files; please consider reporting this to your SYCL runtime provider}}
+  // expected-note@+5 {{in instantiation of function template specialization 'bad20::sycl_kernel_launch<BADKN<20>, const char *, BADKT<20>>' requested here}}
+  // expected-note-re@+3 {{in implicit call to 'sycl_kernel_launch' with template argument 'BADKN<20>' and function arguments (lvalue of type 'const char[{{[0-9]*}}]', xvalue of type 'const char *', xvalue of type 'BADKT<20>') required here}}
+  // expected-note@+3 {{previous declaration is here}}
+  template<typename KN, typename... Ts>
+  [[clang::sycl_kernel_entry_point(KN)]]
+  void sycl_kernel_launch(const char *, Ts...) {}
+  // expected-note@+1 {{in instantiation of function template specialization 'bad20::sycl_kernel_launch<BADKN<20>, BADKT<20>>' requested here}}
+  template void sycl_kernel_launch<BADKN<20>>(const char*, BADKT<20>);
 }
