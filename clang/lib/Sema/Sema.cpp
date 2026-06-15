@@ -1963,10 +1963,19 @@ public:
   void visitUsedDecl(SourceLocation Loc, Decl *D) {
     if (isa<VarDecl>(D))
       return;
-    if (auto *FD = dyn_cast<FunctionDecl>(D))
+    if (auto *FD = dyn_cast<FunctionDecl>(D)) {
+      if (S.getLangOpts().SYCLIsDevice)
+        if (S.SYCL().CheckDeviceUseOfDecl(FD, Loc)) {
+          // FIXME: This emits call stack notes for every use of FD which can
+          // FIXME: potentially be a long sequence of notes. It would be better
+          // FIXME: to issue an error or remark for each ODR-use of a device
+          // FIXME: promoted function.
+          emitCallStackNotes(S, FD);
+        }
       checkFunc(Loc, FD);
-    else
+    } else {
       Inherited::visitUsedDecl(Loc, D);
+    }
   }
 
   // Visitor member and parent dtors called by this dtor.
@@ -2051,6 +2060,11 @@ public:
       return;
     InUsePath.insert(FD);
     UsePath.push_back(FD);
+    if (CXXConstructorDecl *Ctor = dyn_cast<CXXConstructorDecl>(FD)) {
+      for (const CXXCtorInitializer *Init : Ctor->inits()) {
+        this->Visit(Init->getInit());
+      }
+    }
     if (auto *S = FD->getBody()) {
       this->Visit(S);
     }
@@ -2127,7 +2141,8 @@ void Sema::emitDeferredDiags() {
     }
   };
 
-  if ((DeviceDeferredDiags.empty() && !LangOpts.OpenMP) ||
+  if ((DeviceDeferredDiags.empty() && !LangOpts.OpenMP &&
+       !LangOpts.SYCLIsDevice) ||
       DeclsToCheckForDeferredDiags.empty()) {
     ClassifyImplicitHDExplicitInst();
     return;

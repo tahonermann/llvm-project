@@ -221,21 +221,20 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
                  SYCLKernelEntryPointAttr(SemaRef.Context, AL, TSI));
 }
 
-void SemaSYCL::CheckDeviceUseOfDecl(NamedDecl *ND, SourceLocation Loc) {
+bool SemaSYCL::CheckDeviceUseOfDecl(FunctionDecl *FD, SourceLocation Loc) {
   assert(getLangOpts().SYCLIsDevice &&
          "Should only be called during SYCL device compilation");
 
   // Function declarations with the sycl_kernel_entry_point attribute cannot
   // be ODR-used in a potentially evaluated context.
-  if (FunctionDecl *FD = dyn_cast<FunctionDecl>(ND)) {
-    if (const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>()) {
-      if (SemaRef.currentEvaluationContext().isPotentiallyEvaluated()) {
-        DiagIfDeviceCode(Loc, diag::err_sycl_entry_point_device_use)
-            << FD << SKEPAttr;
-        DiagIfDeviceCode(SKEPAttr->getLocation(), diag::note_attribute) << FD;
-      }
-    }
+  bool result = false;
+  if (const auto *SKEPAttr = FD->getAttr<SYCLKernelEntryPointAttr>()) {
+    Diag(Loc, diag::err_sycl_entry_point_device_use) << FD << SKEPAttr;
+    Diag(SKEPAttr->getLocation(), diag::note_attribute) << FD;
+    result = true;
   }
+
+  return result;
 }
 
 // Given a potentially qualified type, SourceLocationForUserDeclaredType()

@@ -81,11 +81,6 @@ public:
 
   void VisitCXXConstructExpr(CXXConstructExpr *E) {
     asImpl().visitUsedDecl(E->getBeginLoc(), E->getConstructor());
-    CXXConstructorDecl *D = E->getConstructor();
-    for (const CXXCtorInitializer *Init : D->inits()) {
-      if (Init->isInClassMemberInitializer())
-        asImpl().Visit(Init->getInit());
-    }
     Inherited::VisitCXXConstructExpr(E);
   }
 

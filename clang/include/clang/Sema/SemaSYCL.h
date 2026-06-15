@@ -65,8 +65,9 @@ public:
   void handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL);
 
   /// Issues a deferred diagnostic if use of the declaration designated
-  /// by 'ND' is invalid in a device context.
-  void CheckDeviceUseOfDecl(NamedDecl *ND, SourceLocation Loc);
+  /// by 'FD' is invalid in a device context. Returns true if a diagnostic
+  /// is issued.
+  bool CheckDeviceUseOfDecl(FunctionDecl *FD, SourceLocation Loc);
 
   void CheckSYCLExternalFunctionDecl(FunctionDecl *FD);
   void CheckSYCLEntryPointFunctionDecl(FunctionDecl *FD);
