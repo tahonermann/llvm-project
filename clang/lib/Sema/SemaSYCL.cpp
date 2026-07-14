@@ -524,7 +524,7 @@ bool BuildSYCLKernelLaunchCallArgs(Sema &SemaRef, FunctionDecl *FD,
   // Forward all parameters of 'FD' to the SYCL kernel launch function as if
   // by std::move().
   for (ParmVarDecl *PVD : FD->parameters()) {
-    QualType ParamType = PVD->getOriginalType().getNonReferenceType();
+    QualType ParamType = PVD->getType().getNonReferenceType();
     ExprResult E = SemaRef.BuildDeclRefExpr(PVD, ParamType, VK_LValue, Loc);
     if (E.isInvalid())
       return true;
