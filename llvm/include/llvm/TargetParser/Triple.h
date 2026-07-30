@@ -102,8 +102,6 @@ public:
     amdil64,        // AMDIL with 64-bit pointers
     hsail,          // AMD HSAIL
     hsail64,        // AMD HSAIL with 64-bit pointers
-    spir,           // SPIR: standard portable IR for OpenCL 32-bit version
-    spir64,         // SPIR: standard portable IR for OpenCL 64-bit version
     spirv,          // SPIR-V with logical memory layout.
     spirv32,        // SPIR-V with 32-bit pointers
     spirv64,        // SPIR-V with 64-bit pointers
@@ -964,19 +962,11 @@ public:
            Env == Triple::Amplification || Env == Triple::RootSignature;
   }
 
-  /// Tests whether the target is SPIR (32- or 64-bit).
-  bool isSPIR() const {
-    return getArch() == Triple::spir || getArch() == Triple::spir64;
-  }
-
   /// Tests whether the target is SPIR-V (32/64-bit/Logical).
   bool isSPIRV() const {
     return getArch() == Triple::spirv32 || getArch() == Triple::spirv64 ||
            getArch() == Triple::spirv;
   }
-
-  // Tests whether the target is SPIR-V or SPIR.
-  bool isSPIROrSPIRV() const { return isSPIR() || isSPIRV(); }
 
   /// Tests whether the target is SPIR-V Logical
   bool isSPIRVLogical() const { return getArch() == Triple::spirv; }
@@ -1374,7 +1364,7 @@ public:
   LLVM_ABI bool isCompatibleWith(const Triple &Other) const;
 
   /// Test whether the target triple is for a GPU.
-  bool isGPU() const { return isSPIROrSPIRV() || isNVPTX() || isAMDGPU(); }
+  bool isGPU() const { return isSPIRV() || isNVPTX() || isAMDGPU(); }
 
   /// Merge target triples.
   LLVM_ABI std::string merge(const Triple &Other) const;

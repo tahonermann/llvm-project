@@ -5468,7 +5468,7 @@ static bool isOffloadDeviceCC1JobCandidate(Command &Job) {
     return true;
 
   const llvm::Triple &Triple = Job.getCreator().getToolChain().getTriple();
-  return Triple.isAMDGPU() || Triple.isNVPTX() || Triple.isSPIROrSPIRV();
+  return Triple.isAMDGPU() || Triple.isNVPTX() || Triple.isSPIRV();
 }
 
 static std::string getOffloadDeviceCC1ParallelJobGroup(const Command &Job) {
@@ -7107,8 +7107,6 @@ const ToolChain &Driver::getOffloadToolChain(
       TC = std::make_unique<toolchains::AMDGPUToolChain>(*this, Target, Args,
                                                          HostTC.get(), Kind);
       break;
-    case llvm::Triple::spir:
-    case llvm::Triple::spir64:
     case llvm::Triple::spirv:
     case llvm::Triple::spirv32:
     case llvm::Triple::spirv64:

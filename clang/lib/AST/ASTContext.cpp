@@ -10477,7 +10477,7 @@ bool ASTContext::canBuiltinBeRedeclared(const FunctionDecl *FD) const {
       BuiltinInfo.hasCustomTypechecking(FD->getBuiltinID()))
     return true;
   // Allow redecl custom type checking builtin for SPIR-V.
-  if (getTargetInfo().getTriple().isSPIROrSPIRV() &&
+  if (getTargetInfo().getTriple().isSPIRV() &&
       BuiltinInfo.isTSBuiltin(FD->getBuiltinID()) &&
       BuiltinInfo.hasCustomTypechecking(FD->getBuiltinID()))
     return true;

@@ -25,17 +25,9 @@ using namespace clang::CodeGen;
 //===----------------------------------------------------------------------===//
 
 namespace {
-class CommonSPIRABIInfo : public DefaultABIInfo {
+class SPIRVABIInfo : public DefaultABIInfo {
 public:
-  CommonSPIRABIInfo(CodeGenTypes &CGT) : DefaultABIInfo(CGT) { setCCs(); }
-
-private:
-  void setCCs();
-};
-
-class SPIRVABIInfo : public CommonSPIRABIInfo {
-public:
-  SPIRVABIInfo(CodeGenTypes &CGT) : CommonSPIRABIInfo(CGT) {}
+  SPIRVABIInfo(CodeGenTypes &CGT) : DefaultABIInfo(CGT) { setCCs(); }
   void computeInfo(CGFunctionInfo &FI) const override;
   RValue EmitVAArg(CodeGenFunction &CGF, Address VAListAddr, QualType Ty,
                    AggValueSlot Slot) const override;
@@ -45,6 +37,7 @@ public:
                              const LangOptions &LangOpt) const override;
 
 private:
+  void setCCs();
   ABIArgInfo classifyKernelArgumentType(QualType Ty) const;
 };
 
@@ -87,8 +80,6 @@ public:
 namespace {
 class CommonSPIRTargetCodeGenInfo : public TargetCodeGenInfo {
 public:
-  CommonSPIRTargetCodeGenInfo(CodeGen::CodeGenTypes &CGT)
-      : TargetCodeGenInfo(std::make_unique<CommonSPIRABIInfo>(CGT)) {}
   CommonSPIRTargetCodeGenInfo(std::unique_ptr<ABIInfo> ABIInfo)
       : TargetCodeGenInfo(std::move(ABIInfo)) {}
 
@@ -145,7 +136,7 @@ public:
 };
 } // End anonymous namespace.
 
-void CommonSPIRABIInfo::setCCs() {
+void SPIRVABIInfo::setCCs() {
   assert(getRuntimeCC() == llvm::CallingConv::C);
   RuntimeCC = llvm::CallingConv::SPIR_FUNC;
 }
@@ -432,8 +423,6 @@ void computeSPIRKernelABIInfo(CodeGenModule &CGM, CGFunctionInfo &FI) {
       AMDGCNSPIRVABIInfo(CGM.getTypes()).computeInfo(FI);
     else
       SPIRVABIInfo(CGM.getTypes()).computeInfo(FI);
-  } else {
-    CommonSPIRABIInfo(CGM.getTypes()).computeInfo(FI);
   }
 }
 }
@@ -949,11 +938,6 @@ llvm::Type *CommonSPIRTargetCodeGenInfo::getSPIRVImageTypeFromHLSLResource(
   llvm::TargetExtType *ImageType =
       llvm::TargetExtType::get(Ctx, Name, {SampledType}, IntParams);
   return ImageType;
-}
-
-std::unique_ptr<TargetCodeGenInfo>
-CodeGen::createCommonSPIRTargetCodeGenInfo(CodeGenModule &CGM) {
-  return std::make_unique<CommonSPIRTargetCodeGenInfo>(CGM.getTypes());
 }
 
 std::unique_ptr<TargetCodeGenInfo>

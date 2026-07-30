@@ -301,9 +301,6 @@ createTargetCodeGenInfo(CodeGenModule &CGM) {
     return createXCoreTargetCodeGenInfo(CGM);
   case llvm::Triple::arc:
     return createARCTargetCodeGenInfo(CGM);
-  case llvm::Triple::spir:
-  case llvm::Triple::spir64:
-    return createCommonSPIRTargetCodeGenInfo(CGM);
   case llvm::Triple::spirv32:
   case llvm::Triple::spirv64:
   case llvm::Triple::spirv:
@@ -1695,23 +1692,6 @@ void CodeGenModule::Release() {
   // Emit OpenCL specific module metadata: OpenCL/SPIR version.
   if (LangOpts.OpenCL || (LangOpts.CUDAIsDevice && getTriple().isSPIRV())) {
     EmitOpenCLMetadata();
-    // Emit SPIR version.
-    if (getTriple().isSPIR()) {
-      // SPIR v2.0 s2.12 - The SPIR version used by the module is stored in the
-      // opencl.spir.version named metadata.
-      // C++ for OpenCL has a distinct mapping for version compatibility with
-      // OpenCL.
-      auto Version = LangOpts.getOpenCLCompatibleVersion();
-      llvm::Metadata *SPIRVerElts[] = {
-          llvm::ConstantAsMetadata::get(llvm::ConstantInt::get(
-              Int32Ty, Version / 100)),
-          llvm::ConstantAsMetadata::get(llvm::ConstantInt::get(
-              Int32Ty, (Version / 100 > 1) ? 0 : 2))};
-      llvm::NamedMDNode *SPIRVerMD =
-          TheModule.getOrInsertNamedMetadata("opencl.spir.version");
-      llvm::LLVMContext &Ctx = TheModule.getContext();
-      SPIRVerMD->addOperand(llvm::MDNode::get(Ctx, SPIRVerElts));
-    }
   }
 
   // HLSL related end of code gen work items.

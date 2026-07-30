@@ -5674,8 +5674,7 @@ static void handleDeviceKernelAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
     }
     handleSimpleAttribute<DeviceKernelAttr>(S, D, AL);
   }
-  // TODO: isGPU() should probably return true for SPIR.
-  bool TargetDeviceEnvironment = Triple.isGPU() || Triple.isSPIR() ||
+  bool TargetDeviceEnvironment = Triple.isGPU() ||
                                  LangOpts.isTargetDevice() || LangOpts.OpenCL;
   if (!TargetDeviceEnvironment) {
     S.Diag(AL.getLoc(), diag::warn_cconv_unsupported)

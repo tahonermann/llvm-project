@@ -74,8 +74,8 @@ class LLVM_LIBRARY_VISIBILITY BaseSPIRTargetInfo : public TargetInfo {
 protected:
   BaseSPIRTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : TargetInfo(Triple) {
-    assert((Triple.isSPIR() || Triple.isSPIRV()) &&
-           "Invalid architecture for SPIR or SPIR-V.");
+    assert(Triple.isSPIRV() &&
+           "Invalid architecture for SPIR-V.");
     TLSSupported = false;
     VLASupported = false;
     LongWidth = LongAlign = 64;
@@ -92,7 +92,7 @@ protected:
     NoAsmVariants = true;
 
     llvm::Triple HostTriple(Opts.HostTriple);
-    if (!HostTriple.isSPIR() && !HostTriple.isSPIRV() &&
+    if (!HostTriple.isSPIRV() &&
         HostTriple.getArch() != llvm::Triple::UnknownArch) {
       HostTarget = AllocateTarget(llvm::Triple(Opts.HostTriple), Opts);
 
@@ -210,67 +210,6 @@ public:
   bool hasBitIntType() const override { return true; }
 
   bool hasInt128Type() const override { return false; }
-};
-
-class LLVM_LIBRARY_VISIBILITY SPIRTargetInfo : public BaseSPIRTargetInfo {
-public:
-  SPIRTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
-      : BaseSPIRTargetInfo(Triple, Opts) {
-    assert(Triple.isSPIR() && "Invalid architecture for SPIR.");
-    assert(getTriple().getOS() == llvm::Triple::UnknownOS &&
-           "SPIR target must use unknown OS");
-    assert(getTriple().getEnvironment() == llvm::Triple::UnknownEnvironment &&
-           "SPIR target must use unknown environment type");
-  }
-
-  void getTargetDefines(const LangOptions &Opts,
-                        MacroBuilder &Builder) const override;
-
-  bool hasFeature(StringRef Feature) const override {
-    return Feature == "spir";
-  }
-
-  bool checkArithmeticFenceSupported() const override { return true; }
-};
-
-class LLVM_LIBRARY_VISIBILITY SPIR32TargetInfo : public SPIRTargetInfo {
-public:
-  SPIR32TargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
-      : SPIRTargetInfo(Triple, Opts) {
-    assert(Triple.getArch() == llvm::Triple::spir &&
-           "Invalid architecture for 32-bit SPIR.");
-    PointerWidth = PointerAlign = 32;
-    SizeType = TargetInfo::UnsignedInt;
-    PtrDiffType = IntPtrType = TargetInfo::SignedInt;
-    // SPIR32 has support for atomic ops if atomic extension is enabled.
-    // Take the maximum because it's possible the Host supports wider types.
-    MaxAtomicInlineWidth = std::max<unsigned char>(MaxAtomicInlineWidth, 64);
-    resetDataLayout("e-p:32:32-i64:64-v16:16-v24:32-v32:32-v48:64-"
-                    "v96:128-v192:256-v256:256-v512:512-v1024:1024-G1");
-  }
-
-  void getTargetDefines(const LangOptions &Opts,
-                        MacroBuilder &Builder) const override;
-};
-
-class LLVM_LIBRARY_VISIBILITY SPIR64TargetInfo : public SPIRTargetInfo {
-public:
-  SPIR64TargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
-      : SPIRTargetInfo(Triple, Opts) {
-    assert(Triple.getArch() == llvm::Triple::spir64 &&
-           "Invalid architecture for 64-bit SPIR.");
-    PointerWidth = PointerAlign = 64;
-    SizeType = TargetInfo::UnsignedLong;
-    PtrDiffType = IntPtrType = TargetInfo::SignedLong;
-    // SPIR64 has support for atomic ops if atomic extension is enabled.
-    // Take the maximum because it's possible the Host supports wider types.
-    MaxAtomicInlineWidth = std::max<unsigned char>(MaxAtomicInlineWidth, 64);
-    resetDataLayout("e-i64:64-v16:16-v24:32-v32:32-v48:64-"
-                    "v96:128-v192:256-v256:256-v512:512-v1024:1024-G1");
-  }
-
-  void getTargetDefines(const LangOptions &Opts,
-                        MacroBuilder &Builder) const override;
 };
 
 class LLVM_LIBRARY_VISIBILITY BaseSPIRVTargetInfo : public BaseSPIRTargetInfo {

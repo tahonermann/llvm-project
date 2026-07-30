@@ -277,16 +277,6 @@ TEST(TripleTest, ParsedIDs) {
   EXPECT_EQ(Triple::UnknownVendor, T.getVendor());
   EXPECT_EQ(Triple::UnknownOS, T.getOS());
 
-  T = Triple("spir-unknown-unknown");
-  EXPECT_EQ(Triple::spir, T.getArch());
-  EXPECT_EQ(Triple::UnknownVendor, T.getVendor());
-  EXPECT_EQ(Triple::UnknownOS, T.getOS());
-
-  T = Triple("spir64-unknown-unknown");
-  EXPECT_EQ(Triple::spir64, T.getArch());
-  EXPECT_EQ(Triple::UnknownVendor, T.getVendor());
-  EXPECT_EQ(Triple::UnknownOS, T.getOS());
-
   T = Triple("spirv32-unknown-unknown");
   EXPECT_EQ(Triple::spirv32, T.getArch());
   EXPECT_EQ(Triple::NoSubArch, T.getSubArch());
@@ -2265,18 +2255,6 @@ TEST(TripleTest, BitWidthChecks) {
   EXPECT_TRUE(T.isArch64Bit());
   EXPECT_EQ(T.getArchPointerBitWidth(), 64U);
 
-  T.setArch(Triple::spir);
-  EXPECT_FALSE(T.isArch16Bit());
-  EXPECT_TRUE(T.isArch32Bit());
-  EXPECT_FALSE(T.isArch64Bit());
-  EXPECT_EQ(T.getArchPointerBitWidth(), 32U);
-
-  T.setArch(Triple::spir64);
-  EXPECT_FALSE(T.isArch16Bit());
-  EXPECT_FALSE(T.isArch32Bit());
-  EXPECT_TRUE(T.isArch64Bit());
-  EXPECT_EQ(T.getArchPointerBitWidth(), 64U);
-
   T.setArch(Triple::spirv);
   EXPECT_FALSE(T.isArch16Bit());
   EXPECT_FALSE(T.isArch32Bit());
@@ -2478,14 +2456,6 @@ TEST(TripleTest, BitWidthArchVariants) {
   T.setArch(Triple::hsail64);
   EXPECT_EQ(Triple::hsail, T.get32BitArchVariant().getArch());
   EXPECT_EQ(Triple::hsail64, T.get64BitArchVariant().getArch());
-
-  T.setArch(Triple::spir);
-  EXPECT_EQ(Triple::spir, T.get32BitArchVariant().getArch());
-  EXPECT_EQ(Triple::spir64, T.get64BitArchVariant().getArch());
-
-  T.setArch(Triple::spir64);
-  EXPECT_EQ(Triple::spir, T.get32BitArchVariant().getArch());
-  EXPECT_EQ(Triple::spir64, T.get64BitArchVariant().getArch());
 
   T.setArch(Triple::spirv);
   EXPECT_EQ(Triple::spirv32, T.get32BitArchVariant().getArch());

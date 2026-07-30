@@ -648,8 +648,6 @@ std::string Triple::computeDataLayout(StringRef ABIName) const {
   case Triple::nvptx:
   case Triple::nvptx64:
     return computeNVPTXDataLayout(*this, ABIName);
-  case Triple::spir:
-  case Triple::spir64:
   case Triple::spirv:
   case Triple::spirv32:
   case Triple::spirv64:

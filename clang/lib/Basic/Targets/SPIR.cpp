@@ -67,23 +67,6 @@ BaseSPIRVTargetInfo::getTargetBuiltins() const {
           {&CL::BuiltinStrings, CL::BuiltinInfos}};
 }
 
-void SPIRTargetInfo::getTargetDefines(const LangOptions &Opts,
-                                      MacroBuilder &Builder) const {
-  DefineStd(Builder, "SPIR", Opts);
-}
-
-void SPIR32TargetInfo::getTargetDefines(const LangOptions &Opts,
-                                        MacroBuilder &Builder) const {
-  SPIRTargetInfo::getTargetDefines(Opts, Builder);
-  DefineStd(Builder, "SPIR32", Opts);
-}
-
-void SPIR64TargetInfo::getTargetDefines(const LangOptions &Opts,
-                                        MacroBuilder &Builder) const {
-  SPIRTargetInfo::getTargetDefines(Opts, Builder);
-  DefineStd(Builder, "SPIR64", Opts);
-}
-
 void BaseSPIRVTargetInfo::getTargetDefines(const LangOptions &Opts,
                                            MacroBuilder &Builder) const {
   DefineStd(Builder, "SPIRV", Opts);

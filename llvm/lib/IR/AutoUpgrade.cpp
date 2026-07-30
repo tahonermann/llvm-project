@@ -7109,9 +7109,9 @@ MDNode *llvm::upgradeInstructionLoopAttachment(MDNode &N) {
 
 std::string llvm::UpgradeDataLayoutString(StringRef DL, StringRef TT) {
   Triple T(TT);
-  // The only data layout upgrades needed for pre-GCN, SPIR or SPIRV are setting
+  // The only data layout upgrades needed for pre-GCN or SPIRV are setting
   // the address space of globals to 1. This does not apply to SPIRV Logical.
-  if ((T.isSPIR() || (T.isSPIRV() && !T.isSPIRVLogical())) &&
+  if ((T.isSPIRV() && !T.isSPIRVLogical()) &&
       !DL.contains("-G") && !DL.starts_with("G")) {
     return DL.empty() ? std::string("G1") : (DL + "-G1").str();
   }
