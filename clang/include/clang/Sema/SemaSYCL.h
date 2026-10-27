@@ -108,12 +108,13 @@ public:
   /// KernelInfoType is the type to be passed as the explicit template argument
   /// to SYCL runtime libraries.
   ///
-  /// KernelLaunchIdExpr is an UnresolvedLookupExpr or UnresolvedMemberExpr
-  /// for the SYCL kernel launch function, with KernelInfoType used as the
-  /// explicit template argument.
+  /// KernelLaunchIdExpr and ReifyKernelParamsIdExpr are either an
+  /// UnresolvedLookupExpr or UnresolvedMemberExpr for the SYCL kernel launch
+  /// function, with KernelInfoType used as the explicit template argument.
   struct SYCLKernelCallStmtASTFragments {
     QualType KernelInfoType;
-    Expr *KernelLaunchIdExpr;
+    Expr *KernelLaunchIdExpr = nullptr;
+    Expr *ReifyKernelParamsIdExpr = nullptr;
   };
 
   /// BuildSYCLKernelCallStmtASTFragments builds portions of the AST needed

@@ -619,6 +619,7 @@ void ASTStmtReader::VisitUnresolvedSYCLKernelCallStmt(
   S->setOriginalStmt(cast<CompoundStmt>(Record.readSubStmt()));
   S->setKernelInfoType(Record.readType());
   S->setKernelLaunchIdExpr(Record.readExpr());
+  S->setReifyKernelParamsIdExpr(Record.readExpr());
 }
 
 void ASTStmtReader::VisitPredefinedExpr(PredefinedExpr *E) {

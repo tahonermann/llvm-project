@@ -3047,6 +3047,7 @@ DEF_TRAVERSE_STMT(UnresolvedSYCLKernelCallStmt, {
     TRY_TO(TraverseStmt(S->getOriginalStmt()));
     TRY_TO(TraverseType(S->getKernelInfoType()));
     TRY_TO(TraverseStmt(S->getKernelLaunchIdExpr()));
+    TRY_TO(TraverseStmt(S->getReifyKernelParamsIdExpr()));
     ShouldVisitChildren = false;
   }
 })

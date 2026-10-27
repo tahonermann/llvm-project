@@ -871,6 +871,7 @@ public:
     if (Traversal != TK_IgnoreUnlessSpelledInSource) {
       Visit(Node->getKernelInfoType());
       Visit(Node->getKernelLaunchIdExpr());
+      Visit(Node->getReifyKernelParamsIdExpr());
     }
   }
 

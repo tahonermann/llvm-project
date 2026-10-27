@@ -116,10 +116,16 @@ private:
   // will be synthesized during template instantiation.
   Expr *KernelLaunchIdExpr = nullptr;
 
+  // ReifyKernelParamsIdExpr stores an UnresolvedLookupExpr or
+  // UnresolvedMemberExpr for the function to be called within a kernel entry
+  // point to reify kernel parameters that require special handling.
+  Expr *ReifyKernelParamsIdExpr = nullptr;
+
   UnresolvedSYCLKernelCallStmt(CompoundStmt *CS, QualType InfoType,
-                               Expr *IdExpr)
+                               Expr *LaunchIdExpr, Expr *ReifyParamsIdExpr)
       : Stmt(UnresolvedSYCLKernelCallStmtClass), OriginalStmt(CS),
-        KernelInfoType(InfoType), KernelLaunchIdExpr(IdExpr) {}
+        KernelInfoType(InfoType), KernelLaunchIdExpr(LaunchIdExpr),
+        ReifyKernelParamsIdExpr(ReifyParamsIdExpr) {}
 
   void setOriginalStmt(CompoundStmt *CS) { OriginalStmt = CS; }
 
@@ -127,15 +133,21 @@ private:
 
   void setKernelLaunchIdExpr(Expr *IdExpr) { KernelLaunchIdExpr = IdExpr; }
 
+  void setReifyKernelParamsIdExpr(Expr *IdExpr) {
+    ReifyKernelParamsIdExpr = IdExpr;
+  }
+
 public:
-  static UnresolvedSYCLKernelCallStmt *Create(const ASTContext &C,
-                                              CompoundStmt *CS,
-                                              QualType InfoType, Expr *IdExpr) {
-    return new (C) UnresolvedSYCLKernelCallStmt(CS, InfoType, IdExpr);
+  static UnresolvedSYCLKernelCallStmt *
+  Create(const ASTContext &C, CompoundStmt *CS, QualType InfoType,
+         Expr *LaunchIdExpr, Expr *ReifyParamsIdExpr) {
+    return new (C) UnresolvedSYCLKernelCallStmt(CS, InfoType, LaunchIdExpr,
+                                                ReifyParamsIdExpr);
   }
 
   static UnresolvedSYCLKernelCallStmt *CreateEmpty(const ASTContext &C) {
-    return new (C) UnresolvedSYCLKernelCallStmt(nullptr, QualType(), nullptr);
+    return new (C)
+        UnresolvedSYCLKernelCallStmt(nullptr, QualType(), nullptr, nullptr);
   }
 
   CompoundStmt *getOriginalStmt() { return cast<CompoundStmt>(OriginalStmt); }
@@ -147,6 +159,11 @@ public:
 
   Expr *getKernelLaunchIdExpr() { return KernelLaunchIdExpr; }
   const Expr *getKernelLaunchIdExpr() const { return KernelLaunchIdExpr; }
+
+  Expr *getReifyKernelParamsIdExpr() { return ReifyKernelParamsIdExpr; }
+  const Expr *getReifyKernelParamsIdExpr() const {
+    return ReifyKernelParamsIdExpr;
+  }
 
   SourceLocation getBeginLoc() const LLVM_READONLY {
     return getOriginalStmt()->getBeginLoc();

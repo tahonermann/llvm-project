@@ -73,7 +73,15 @@ void skep2<KN<2>>(K<2>);
 // CHECK-NEXT: | | | | `-TemplateArgument type 'KNT':'type-parameter-0-0'
 // CHECK-NEXT: | | | |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
 // CHECK-NEXT: | | | |     `-TemplateTypeParm {{.*}} 'KNT'
-// CHECK-NEXT: | | | `-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | | `-TemplateArgument type '__sycl_kernel_info<KNT>':'__sycl_kernel_info<type-parameter-0-0>'
+// CHECK-NEXT: | | | |   `-TemplateSpecializationType {{.*}} '__sycl_kernel_info<KNT>' dependent
+// CHECK-NEXT: | | | |     |-name: '__sycl_kernel_info'
+// CHECK-NEXT: | | | |     | `-ClassTemplateDecl {{.*}} referenced __sycl_kernel_info external-linkage
+// CHECK-NEXT: | | | |     `-TemplateArgument type 'KNT':'type-parameter-0-0'
+// CHECK-NEXT: | | | |       `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
+// CHECK-NEXT: | | | |         `-TemplateTypeParm {{.*}} 'KNT'
+// CHECK-NEXT: | | | `-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_reify_kernel_parameters' empty
 // CHECK-NEXT: | | |   `-TemplateArgument type '__sycl_kernel_info<KNT>':'__sycl_kernel_info<type-parameter-0-0>'
 // CHECK-NEXT: | | |     `-TemplateSpecializationType {{.*}} '__sycl_kernel_info<KNT>' dependent
 // CHECK-NEXT: | | |       |-name: '__sycl_kernel_info'
@@ -140,7 +148,15 @@ void skep3<KN<3>>(K<3> k) {
 // CHECK-NEXT: | | | | `-TemplateArgument type 'KNT':'type-parameter-0-0'
 // CHECK-NEXT: | | | |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
 // CHECK-NEXT: | | | |     `-TemplateTypeParm {{.*}} 'KNT'
-// CHECK-NEXT: | | | `-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | |-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_kernel_launch' {{.*}}
+// CHECK-NEXT: | | | | `-TemplateArgument type '__sycl_kernel_info<KNT>':'__sycl_kernel_info<type-parameter-0-0>'
+// CHECK-NEXT: | | | |   `-TemplateSpecializationType {{.*}} '__sycl_kernel_info<KNT>' dependent
+// CHECK-NEXT: | | | |     |-name: '__sycl_kernel_info'
+// CHECK-NEXT: | | | |     | `-ClassTemplateDecl {{.*}} referenced __sycl_kernel_info external-linkage
+// CHECK-NEXT: | | | |     `-TemplateArgument type 'KNT':'type-parameter-0-0'
+// CHECK-NEXT: | | | |       `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
+// CHECK-NEXT: | | | |         `-TemplateTypeParm {{.*}} 'KNT'
+// CHECK-NEXT: | | | `-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_reify_kernel_parameters' empty
 // CHECK-NEXT: | | |   `-TemplateArgument type '__sycl_kernel_info<KNT>':'__sycl_kernel_info<type-parameter-0-0>'
 // CHECK-NEXT: | | |     `-TemplateSpecializationType {{.*}} '__sycl_kernel_info<KNT>' dependent
 // CHECK-NEXT: | | |       |-name: '__sycl_kernel_info'
@@ -424,7 +440,15 @@ void foo() {
 // CHECK-NEXT: | | | | | `-TemplateArgument type 'KNT':'type-parameter-0-0'
 // CHECK-NEXT: | | | | |   `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
 // CHECK-NEXT: | | | | |     `-TemplateTypeParm {{.*}} 'KNT'
-// CHECK-NEXT: | | | | `-UnresolvedMemberExpr {{.*}} '<bound member function type>' lvalue
+// CHECK-NEXT: | | | | |-UnresolvedMemberExpr {{.*}} '<bound member function type>' lvalue
+// CHECK-NEXT: | | | | `-UnresolvedLookupExpr {{.*}} '<dependent type>' lvalue (ADL) = 'sycl_reify_kernel_parameters' empty
+// CHECK-NEXT: | | | |   `-TemplateArgument type '__sycl_kernel_info<KNT>':'__sycl_kernel_info<type-parameter-0-0>'
+// CHECK-NEXT: | | | |     `-TemplateSpecializationType {{.*}} '__sycl_kernel_info<KNT>' dependent
+// CHECK-NEXT: | | | |       |-name: '__sycl_kernel_info'
+// CHECK-NEXT: | | | |       | `-ClassTemplateDecl {{.*}} referenced __sycl_kernel_info external-linkage
+// CHECK-NEXT: | | | |       `-TemplateArgument type 'KNT':'type-parameter-0-0'
+// CHECK-NEXT: | | | |         `-TemplateTypeParmType {{.*}} 'KNT' dependent depth 0 index 0
+// CHECK-NEXT: | | | |           `-TemplateTypeParm {{.*}} 'KNT'
 // CHECK-NEXT: | | | `-SYCLKernelEntryPointAttr {{.*}} KNT
 // CHECK-NEXT: | | `-CXXMethodDecl {{.*}} used skep9 {{.*}} implicit_instantiation implicit-inline instantiated_from 0x{{.*}}
 // CHECK-NEXT: | |   |-TemplateArgument type 'KN<9>'
